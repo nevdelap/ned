@@ -32,7 +32,7 @@ fn main() {
     if matches.free.len() == 0 || matches.opt_present("h") {
         let brief = format!("Usage: {} [options] <pattern> [files]", program);
         print!("{}", opts.usage(&brief));
-        return;
+        process::exit(1);
     }
 
     let pattern = &matches.free[0];
