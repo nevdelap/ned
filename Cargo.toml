@@ -1,0 +1,8 @@
+[package]
+name = "ned"
+version = "0.1.0"
+authors = ["Nev Delap <nevdelap@gmail.com>"]
+
+[dependencies]
+getopts = "0.2.14"
+regex = "0.1.*"
