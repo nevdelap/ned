@@ -1,5 +1,8 @@
 extern crate getopts;
-use getopts::{Matches, Options};
+extern crate regex;
+
+use getopts::Options;
+use regex::Regex;
 use std::{env, path, process};
 
 fn main() {
@@ -21,10 +24,9 @@ fn main() {
 
     let opts = opts;
     let parsed = opts.parse(&args);
-    if let Err(error) = parsed {
-        println!("ned: {}", error.to_string());
+    if let Err(err) = parsed {
+        println!("ned: {}", err.to_string());
         process::exit(1);
-        return;
     }
 
     let matches = parsed.unwrap();
@@ -37,9 +39,19 @@ fn main() {
     let pattern = &matches.free[0];
     let files: Vec<&String> = matches.free.iter().skip(1).collect();
 
-    do_work(&pattern, &files);
-}
+    let re = Regex::new(&pattern);
+    if let Err(err) = re {
+        println!("ned: {}", err.to_string());
+        process::exit(1);
+    }
 
-fn do_work(pattern: &str, files: &Vec<&String>) {
-    println!("{}, {:?}", pattern, files);
+    // Turn files into a collection of file handles.
+    // If there are no files the collection will contain just stdin, stdout.
+
+    let re = re.unwrap();
+    println!("p: {}", pattern);
+    for file in files {
+        // Read each file, apply the pattern, write the file.
+        println!("f: {}", file);
+    }
 }
