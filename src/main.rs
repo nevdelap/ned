@@ -49,8 +49,6 @@ fn main() {
         process::exit(1);
     }
 
-    // http://rust-lang-nursery.github.io/regex/regex/#syntax
-
     let pattern = &matches.free[0];
     let files: Vec<&String> = matches.free.iter().skip(1).collect();
 
