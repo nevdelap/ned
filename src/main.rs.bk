@@ -24,9 +24,7 @@ fn main() {
     opts.optflag("r", "replace", "replace matches, may include named groups");
     opts.optflag("",
                  "options",
-                 "regex options: i - ignore case, s - single line, . matches newlines, m - \
-                  multi-line, ^ and $ match begin and end of each line, x - extended, ignore \
-                  whitespace and # comments");
+                 "regex options: i - ignore case, s - single line, . matches newlines, m - multi-line, ^ and $ match begin and end of each line, x - extended, ignore whitespace and # comments");
     opts.optflag("i", "in-place", "edit files in place");
     opts.optflag("v", "invert-match", "show non-matching lines");
     opts.optflag("o",
