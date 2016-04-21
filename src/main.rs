@@ -69,21 +69,24 @@ fn get_program_and_args() -> (String, Vec<String>) {
 fn make_opts() -> Options {
     let mut opts = Options::new();
     opts.parsing_style(ParsingStyle::FloatingFrees);
-    opts.optopt("r", "replace", "replace matches, may include named groups", "REPLACEMENT");
+    opts.optopt("r",
+                "replace",
+                "replace matches, may include named groups",
+                "REPLACEMENT");
     opts.optflag("i", "ignore-case", "ignore case");
-    opts.optflag("s", "single", ". matches newlines, ^ and $ match beginning and end of each file");
-    opts.optflag("m", "multi-line", "multi-line, ^ and $ match beginning and end of each line");
-    opts.optflag("x", "extended", "ignore whitespace and # comments");
-    opts.optflag("l",
-                 "matching-lines",
-                 "show only matching lines");
+    opts.optflag("s",
+                 "single",
+                 ". matches newlines, ^ and $ match beginning and end of each file");
     opts.optflag("m",
-                 "matches",
-                 "show only matches");
+                 "multi-line",
+                 "multi-line, ^ and $ match beginning and end of each line");
+    opts.optflag("x", "extended", "ignore whitespace and # comments");
+    opts.optflag("l", "matching-lines", "show only matching lines");
+    opts.optflag("m", "matches", "show only matches");
     opts.optopt("g",
-                 "group",
-                 "show the match group, specified by number or name",
-                 "GROUP");
+                "group",
+                "show the match group, specified by number or name",
+                "GROUP");
     opts.optflag("v", "invert-match", "show non-matching lines");
     opts.optflag("", "stdout", "output to stdout");
     opts.optflag("q", "quiet", "suppress all normal output");
@@ -94,7 +97,7 @@ fn make_opts() -> Options {
 
 fn make_options(matches: &Matches) -> String {
     let mut options: String = "".to_string();
-    for option in vec!["i", "s", "m", "x" ] {
+    for option in vec!["i", "s", "m", "x"] {
         if matches.opt_present(&option) {
             options.push_str(&option);
         }
