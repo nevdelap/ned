@@ -6,7 +6,6 @@ use regex::Regex;
 use std::{env, path, process};
 
 fn main() {
-
     let (program, args) = get_program_and_args();
     let opts = make_opts();
 
