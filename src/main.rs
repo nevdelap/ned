@@ -43,9 +43,10 @@ fn main() {
     }
 
     let file_names: Vec<&String> = matches.free.iter().skip(1).collect();
+    let stdin = file_names.len() == 0;
 
     let mut files = Vec::<Box<Read>>::new();
-    if file_names.len() == 0 {
+    if stdin {
         files.push(Box::new(io::stdin()));
     } else {
         for file_name in file_names {
@@ -61,14 +62,25 @@ fn main() {
 
     let re = re.expect("Bug, already checked for a regex parse error.");
 
+    let colors = matches.opt_present("colors");
+    let group = matches.opt_present("group");
+    let invert = matches.opt_present("invert-match");
+    let lines = matches.opt_present("matching-lines");
+    let stdout = stdin || matches.opt_present("stdout");
+    let matches = matches.opt_present("matches");
+
     for file in &mut files {
-        let mut data = Vec::with_capacity(1024);
+        let mut data = Vec::with_capacity(10240);
         match file.read_to_end(&mut data) {
             Ok(size) => {
                 if size > 0 {
                     match String::from_utf8(data) {
-                        Ok(content) => {
-                            println!("{}", content);
+                        Ok(_content) => {
+                            if stdout {
+                                // print
+                            } else {
+                                // rewind the file and write over it
+                            }
                         }
                         Err(err) => {
                             println!("{}: {}", &program, err.to_string());
@@ -87,7 +99,8 @@ fn main() {
 
 static OPTS_AND_ARGS: &'static str = "[OPTION]... <PATTERN> [FILE]...";
 static PRE_DESCRIPTION: &'static str = "
-For regex syntax see: http://rust-lang-nursery.github.io/regex/regex/#syntax";
+ned is a bit like grep and a bit like sed. FILEs are text files. For regex
+syntax see: http://rust-lang-nursery.github.io/regex/regex/#syntax";
 static POST_DESCRIPTION: &'static str = "
 Environment:
     NED_DEFAULTS        ned options prepended to the programs arguments";
