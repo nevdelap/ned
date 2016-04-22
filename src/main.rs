@@ -11,7 +11,7 @@ use std::string::String;
 
 enum Source {
     Stdin(Stdin),
-    File(File)
+    File(File),
 }
 
 fn main() {
@@ -61,9 +61,7 @@ fn main() {
                       .read(true)
                       .write(matches.opt_present("replace"))
                       .open(file_name) {
-                Ok(file) => {
-                    files.push((Source::File(file)))
-                }
+                Ok(file) => files.push((Source::File(file))),
                 Err(err) => {
                     println!("{}: {}", &program, err.to_string());
                     process::exit(1);
@@ -185,11 +183,16 @@ fn do_work(re: Regex,
            stdout: bool,
            files: &mut Vec<Source>)
            -> Result<i32, String> {
+    println!("TODO: Change from Result<i32, String> to Result<i32, NedError>.");
     for file in files {
         let mut data = Vec::with_capacity(10240);
         let size = try!(match file {
-            &mut Source::Stdin(ref mut stdin) => stdin.read_to_end(&mut data).map_err(|e| e.to_string()),
-            &mut Source::File(ref mut file) => file.read_to_end(&mut data).map_err(|e| e.to_string())
+            &mut Source::Stdin(ref mut stdin) => {
+                stdin.read_to_end(&mut data).map_err(|e| e.to_string())
+            }
+            &mut Source::File(ref mut file) => {
+                file.read_to_end(&mut data).map_err(|e| e.to_string())
+            }
         });
         if size > 0 {
             let content = try!(String::from_utf8(data).map_err(|e| e.to_string()));
@@ -210,7 +213,11 @@ fn do_work(re: Regex,
                 }
             } else if quiet {
                 println!("{}", "TODO: implement all/any for all the files.");
-                return Ok(if re.is_match(&content) { 0 } else { 1 });
+                return Ok(if re.is_match(&content) {
+                    0
+                } else {
+                    1
+                });
             } else if group {
                 println!("TODO: display the indicated group.");
                 // regex.captures.
