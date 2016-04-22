@@ -24,7 +24,7 @@ fn main() {
                             program,
                             &OPTS_AND_ARGS,
                             &PRE_DESCRIPTION);
-        print!("{}{}\n\n", opts.usage(&brief), &POST_DESCRIPTION);
+        print!("{}{}\n", opts.usage(&brief), &POST_DESCRIPTION);
         process::exit(1);
     }
 
@@ -61,14 +61,16 @@ fn main() {
     }
 
     match do_work(re.expect("Bug, already checked for a regex parse error."),
+                  None, //Some::<String>("xxx".to_string()),
                   matches.opt_present("colors"),
                   matches.opt_present("group"),
                   matches.opt_present("invert-match"),
                   matches.opt_present("matching-lines"),
                   matches.opt_present("matches"),
+                  matches.opt_present("quiet"),
                   stdin || matches.opt_present("stdout"),
                   &mut files) {
-        Ok(_) => process::exit(0),
+        Ok(status) => process::exit(status),
         Err(err) => {
             println!("{}: {}", &program, err);
             process::exit(1);
@@ -82,7 +84,17 @@ ned is a bit like grep and a bit like sed. FILEs are text files. For regex
 syntax see: http://rust-lang-nursery.github.io/regex/regex/#syntax";
 static POST_DESCRIPTION: &'static str = "
 Environment:
-    NED_DEFAULTS        ned options prepended to the programs arguments";
+    NED_DEFAULTS        ned options prepended to the programs arguments
+
+Exit codes:
+    0                   matches found/replaced
+    1                   no match
+
+Quiet:
+    When -q --quiet is  specified ned tests for matches and returns an exit
+    code of 0 if a match is found in any file. When -a --all is combined with
+    quiet it returns an exit code of 0 if a match is found in all files.
+";
 
 fn get_program_and_args() -> (String, Vec<String>) {
     let args: Vec<String> = env::args().collect();
@@ -120,6 +132,10 @@ fn make_opts() -> Options {
     opts.optflag("c", "colors", "show matches in color");
     opts.optflag("", "stdout", "output to stdout");
     opts.optflag("q", "quiet", "suppress all normal output");
+    opts.optflag("a",
+                 "all",
+                 "exit code is 0 if all files match, default is \
+                 exit code is 0 if any file matches");
     opts.optflag("V", "version", "output version information and exit");
     opts.optflag("h", "help", "print this help menu and exit");
     opts
@@ -135,26 +151,62 @@ fn make_options(matches: &Matches) -> String {
     options
 }
 
-fn do_work(_re: Regex,
-           _colors: bool,
-           _group: bool,
-           _invert: bool,
-           _lines: bool,
+fn do_work(re: Regex,
+           replacement: Option<String>,
+           colors: bool,
+           group: bool,
+           invert: bool,
+           lines: bool,
+           matches: bool,
+           quiet: bool,
            stdout: bool,
-           _matches: bool,
            files: &mut Vec<Box<Read>>)
-           -> Result<(), String> {
+           -> Result<i32, String> {
     for file in files {
         let mut data = Vec::with_capacity(10240);
         let size = try!(file.read_to_end(&mut data).map_err(|e| e.to_string()));
         if size > 0 {
-            let _content = try!(String::from_utf8(data).map_err(|e| e.to_string()));
-            if stdout {
-                // print
+            let content = try!(String::from_utf8(data).map_err(|e| e.to_string()));
+            if let Some(ref r) = replacement {
+                let content = re.replace_all(&content, r.as_str());
+                println!("TODO: display the number of replacements.");
+                println!("{}", content);
+                if replacement.is_some() {
+                    if stdout {
+                        println!("TODO: write content to stdout.");
+                    } else /* if there were replacements */ {
+                        println!("TODO: write out the file");
+                    }
+                }
+            } else if quiet {
+                println!("{:?}", re.is_match(&content));
+            } else if group {
+                println!("TODO: display the indicated group.");
+                //regex.captures.
+            } else if lines {
+                for line in content.lines() {
+                    if !colors || invert {
+                        if re.is_match(line) ^ invert {
+                            println!("{}", line);
+                        }
+                    } else {
+                        println!("TODO: display line with colored matches.");
+                        for (start, end) in re.find_iter(&line) {
+                            println!("{}", &line[start..end]);
+                        }
+                    }
+                }
+            } else if matches {
+                for (start, end) in re.find_iter(&content) {
+                    println!("{}", &content[start..end]);
+                }
             } else {
-                // rewind the file and write over it
+                println!("TODO: display entire content with colored matches.");
+                for (start, end) in re.find_iter(&content) {
+                    println!("{}", &content[start..end]);
+                }
             }
         }
     }
-    Ok(())
+    Ok(0)
 }
