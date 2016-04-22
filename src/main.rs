@@ -20,7 +20,10 @@ fn main() {
 
     let matches = parsed.expect("Bug, already checked for a getopts parse error.");
     if matches.free.len() == 0 || matches.opt_present("h") {
-        let brief = format!("Usage: {} {}\n{}", program, &OPTS_AND_ARGS, &PRE_DESCRIPTION);
+        let brief = format!("Usage: {} {}\n{}",
+                            program,
+                            &OPTS_AND_ARGS,
+                            &PRE_DESCRIPTION);
         print!("{}{}\n\n", opts.usage(&brief), &POST_DESCRIPTION);
         process::exit(1);
     }
@@ -66,14 +69,14 @@ fn main() {
                     match String::from_utf8(data) {
                         Ok(content) => {
                             println!("{}", content);
-                        },
+                        }
                         Err(err) => {
                             println!("{}: {}", &program, err.to_string());
                             process::exit(1);
                         }
                     }
                 }
-            },
+            }
             Err(err) => {
                 println!("{}: {}", &program, err.to_string());
                 process::exit(1);
