@@ -144,11 +144,11 @@ fn do_work(_re: Regex,
            _matches: bool,
            files: &mut Vec<Box<Read>>)
            -> Result<(), String> {
-    let mut data = Vec::with_capacity(10240);
     for file in files {
+        let mut data = Vec::with_capacity(10240);
         let size = try!(file.read_to_end(&mut data).map_err(|e| e.to_string()));
         if size > 0 {
-            let _content = try!(String::from_utf8(&data).map_err(|e| e.to_string()));
+            let _content = try!(String::from_utf8(data).map_err(|e| e.to_string()));
             if stdout {
                 // print
             } else {
