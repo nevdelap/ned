@@ -148,7 +148,7 @@ fn do_work(_re: Regex,
     for file in files {
         let size = try!(file.read_to_end(&mut data).map_err(|e| e.to_string()));
         if size > 0 {
-            let _content = try!(String::from_utf8(data).map_err(|e| e.to_string()));
+            let _content = try!(String::from_utf8(&data).map_err(|e| e.to_string()));
             if stdout {
                 // print
             } else {
