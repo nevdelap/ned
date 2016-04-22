@@ -6,3 +6,4 @@ authors = ["Nev Delap <nevdelap@gmail.com>"]
 [dependencies]
 getopts = "0.2.14"
 regex = "0.1.66"
+term = "0.4.4"

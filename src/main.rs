@@ -1,12 +1,18 @@
 extern crate getopts;
 extern crate regex;
+extern crate term;
 
 use getopts::{Matches, Options, ParsingStyle};
 use regex::Regex;
 use std::{env, path, process};
-use std::fs::File;
-use std::io::{self, Read};
+use std::fs::{File, OpenOptions};
+use std::io::{self, Read, Seek, SeekFrom, Stdin, Write};
 use std::string::String;
+
+enum Source {
+    Stdin(Stdin),
+    File(File)
+}
 
 fn main() {
     let (program, args) = get_program_and_args();
@@ -45,13 +51,19 @@ fn main() {
     let file_names: Vec<&String> = matches.free.iter().skip(1).collect();
     let stdin = file_names.len() == 0;
 
-    let mut files = Vec::<Box<Read>>::new();
+    println!("TODO: add recursive");
+    let mut files = Vec::<Source>::new();
     if stdin {
-        files.push(Box::new(io::stdin()));
+        files.push(Source::Stdin(io::stdin()));
     } else {
         for file_name in file_names {
-            match File::open(file_name) {
-                Ok(file) => files.push(Box::new(file)),
+            match OpenOptions::new()
+                      .read(true)
+                      .write(matches.opt_present("replace"))
+                      .open(file_name) {
+                Ok(file) => {
+                    files.push((Source::File(file)))
+                }
                 Err(err) => {
                     println!("{}: {}", &program, err.to_string());
                     process::exit(1);
@@ -61,13 +73,13 @@ fn main() {
     }
 
     match do_work(re.expect("Bug, already checked for a regex parse error."),
-                  None, //Some::<String>("xxx".to_string()),
+                  matches.opt_str("replace"),
                   matches.opt_present("colors"),
                   matches.opt_present("group"),
                   matches.opt_present("invert-match"),
-                  matches.opt_present("matching-lines"),
-                  matches.opt_present("matches"),
+                  matches.opt_present("only-matches"),
                   matches.opt_present("quiet"),
+                  matches.opt_present("single"),
                   stdin || matches.opt_present("stdout"),
                   &mut files) {
         Ok(status) => process::exit(status),
@@ -80,8 +92,8 @@ fn main() {
 
 static OPTS_AND_ARGS: &'static str = "[OPTION]... <PATTERN> [FILE]...";
 static PRE_DESCRIPTION: &'static str = "
-ned is a bit like grep and a bit like sed. FILEs are text files. For regex
-syntax see: http://rust-lang-nursery.github.io/regex/regex/#syntax";
+ned is a bit like grep and a bit like sed. FILEs are ascii or utf-8 text files.
+For regex syntax see: http://rust-lang-nursery.github.io/regex/regex/#syntax";
 static POST_DESCRIPTION: &'static str = "
 Environment:
     NED_DEFAULTS        ned options prepended to the programs arguments
@@ -114,6 +126,12 @@ fn make_opts() -> Options {
                 "replace",
                 "replace matches, may include named groups",
                 "REPLACEMENT");
+    opts.optopt("n", "number", "match/replace N occurrences", "N");
+    opts.optopt("k",
+                "skip",
+                "skip M occurrences before matching/replacing",
+                "N");
+    opts.optflag("b", "backwards", "-n and -k options count backwards");
     opts.optflag("i", "ignore-case", "ignore case");
     opts.optflag("s",
                  "single",
@@ -122,13 +140,18 @@ fn make_opts() -> Options {
                  "multi-line",
                  "multi-line, ^ and $ match beginning and end of each line");
     opts.optflag("x", "extended", "ignore whitespace and # comments");
-    opts.optflag("l", "matching-lines", "show only matching lines");
-    opts.optflag("m", "matches", "show only matches");
+    opts.optflag("o", "only-matches", "show only matches");
     opts.optopt("g",
                 "group",
                 "show the match group, specified by number or name",
                 "GROUP");
     opts.optflag("v", "invert-match", "show non-matching lines");
+    opts.optflag("r",
+                 "recursive",
+                 "recurse, only follow symbolic links if they are on the command line");
+    opts.optflag("R",
+                 "derefence-recursive",
+                 "recurse, follow all symbolic links");
     opts.optflag("c", "colors", "show matches in color");
     opts.optflag("", "stdout", "output to stdout");
     opts.optflag("q", "quiet", "suppress all normal output");
@@ -156,34 +179,51 @@ fn do_work(re: Regex,
            colors: bool,
            group: bool,
            invert: bool,
-           lines: bool,
-           matches: bool,
+           only_matches: bool,
            quiet: bool,
+           single: bool,
            stdout: bool,
-           files: &mut Vec<Box<Read>>)
+           files: &mut Vec<Source>)
            -> Result<i32, String> {
     for file in files {
         let mut data = Vec::with_capacity(10240);
-        let size = try!(file.read_to_end(&mut data).map_err(|e| e.to_string()));
+        let size = try!(match file {
+            &mut Source::Stdin(ref mut stdin) => stdin.read_to_end(&mut data).map_err(|e| e.to_string()),
+            &mut Source::File(ref mut file) => file.read_to_end(&mut data).map_err(|e| e.to_string())
+        });
         if size > 0 {
             let content = try!(String::from_utf8(data).map_err(|e| e.to_string()));
-            if let Some(ref r) = replacement {
-                let content = re.replace_all(&content, r.as_str());
-                println!("TODO: display the number of replacements.");
-                println!("{}", content);
-                if replacement.is_some() {
-                    if stdout {
-                        println!("TODO: write content to stdout.");
-                    } else /* if there were replacements */ {
-                        println!("TODO: write out the file");
+            if let Some(ref replacement) = replacement {
+                if replacement.len() > 0 {
+                    let mut content = content;
+                    content = re.replace_all(&content, replacement.as_str());
+                    if stdout && !quiet {
+                        println!("{}", content);
+                    } else {
+                        if let &mut Source::File(ref mut file) = file {
+                            try!(file.seek(SeekFrom::Start(0)).map_err(|e| e.to_string()));
+                            try!(file.write(&content.into_bytes()).map_err(|e| e.to_string()));
+                        } else {
+                            panic!("Bug, should be a File.");
+                        }
                     }
                 }
             } else if quiet {
-                println!("{:?}", re.is_match(&content));
+                println!("{}", "TODO: implement all/any for all the files.");
+                return Ok(if re.is_match(&content) { 0 } else { 1 });
             } else if group {
                 println!("TODO: display the indicated group.");
-                //regex.captures.
-            } else if lines {
+                // regex.captures.
+            } else if single {
+                println!("TODO: display entire content with colored matches.");
+                for (start, end) in re.find_iter(&content) {
+                    println!("{}", &content[start..end]);
+                }
+            } else if only_matches {
+                for (start, end) in re.find_iter(&content) {
+                    println!("{}", &content[start..end]);
+                }
+            } else {
                 for line in content.lines() {
                     if !colors || invert {
                         if re.is_match(line) ^ invert {
@@ -195,15 +235,6 @@ fn do_work(re: Regex,
                             println!("{}", &line[start..end]);
                         }
                     }
-                }
-            } else if matches {
-                for (start, end) in re.find_iter(&content) {
-                    println!("{}", &content[start..end]);
-                }
-            } else {
-                println!("TODO: display entire content with colored matches.");
-                for (start, end) in re.find_iter(&content) {
-                    println!("{}", &content[start..end]);
                 }
             }
         }
