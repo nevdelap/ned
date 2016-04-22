@@ -4,6 +4,9 @@ extern crate regex;
 use getopts::{Matches, Options, ParsingStyle};
 use regex::Regex;
 use std::{env, path, process};
+use std::fs::File;
+use std::io::{self, Read};
+use std::string::String;
 
 fn main() {
     let (program, args) = get_program_and_args();
@@ -36,17 +39,46 @@ fn main() {
         process::exit(1);
     }
 
-    // Turn files into a collection of file handles.
-    // If there are no files the collection will contain just stdin, stdout.
+    let file_names: Vec<&String> = matches.free.iter().skip(1).collect();
+
+    let mut files = Vec::<Box<Read>>::new();
+    if file_names.len() == 0 {
+        files.push(Box::new(io::stdin()));
+    } else {
+        for file_name in file_names {
+            match File::open(file_name) {
+                Ok(file) => files.push(Box::new(file)),
+                Err(err) => {
+                    println!("{}: {}", &program, err.to_string());
+                    process::exit(1);
+                }
+            }
+        }
+    }
 
     let re = re.expect("Bug, already checked for a regex parse error.");
-    println!("p: {}", pattern);
 
-    let files: Vec<&String> = matches.free.iter().skip(1).collect();
-
-    for file in files {
-        // Read each file, apply the pattern, write the file.
-        println!("f: {}", file);
+    for file in &mut files {
+        let mut data = Vec::with_capacity(1024);
+        match file.read_to_end(&mut data) {
+            Ok(size) => {
+                if size > 0 {
+                    match String::from_utf8(data) {
+                        Ok(content) => {
+                            println!("{}", content);
+                        },
+                        Err(err) => {
+                            println!("{}: {}", &program, err.to_string());
+                            process::exit(1);
+                        }
+                    }
+                }
+            },
+            Err(err) => {
+                println!("{}: {}", &program, err.to_string());
+                process::exit(1);
+            }
+        }
     }
 }
 
