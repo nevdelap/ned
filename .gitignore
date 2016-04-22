@@ -1,1 +1,3 @@
+src/tmp*
 target
+*.bk
