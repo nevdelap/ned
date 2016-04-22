@@ -129,7 +129,7 @@ fn make_opts() -> Options {
     opts.optopt("n", "number", "match/replace N occurrences", "N");
     opts.optopt("k",
                 "skip",
-                "skip M occurrences before matching/replacing",
+                "skip N occurrences before matching/replacing",
                 "N");
     opts.optflag("b", "backwards", "-n and -k options count backwards");
     opts.optflag("i", "ignore-case", "ignore case");
