@@ -60,39 +60,18 @@ fn main() {
         }
     }
 
-    let re = re.expect("Bug, already checked for a regex parse error.");
-
-    let colors = matches.opt_present("colors");
-    let group = matches.opt_present("group");
-    let invert = matches.opt_present("invert-match");
-    let lines = matches.opt_present("matching-lines");
-    let stdout = stdin || matches.opt_present("stdout");
-    let matches = matches.opt_present("matches");
-
-    for file in &mut files {
-        let mut data = Vec::with_capacity(10240);
-        match file.read_to_end(&mut data) {
-            Ok(size) => {
-                if size > 0 {
-                    match String::from_utf8(data) {
-                        Ok(_content) => {
-                            if stdout {
-                                // print
-                            } else {
-                                // rewind the file and write over it
-                            }
-                        }
-                        Err(err) => {
-                            println!("{}: {}", &program, err.to_string());
-                            process::exit(1);
-                        }
-                    }
-                }
-            }
-            Err(err) => {
-                println!("{}: {}", &program, err.to_string());
-                process::exit(1);
-            }
+    match do_work(re.expect("Bug, already checked for a regex parse error."),
+                  matches.opt_present("colors"),
+                  matches.opt_present("group"),
+                  matches.opt_present("invert-match"),
+                  matches.opt_present("matching-lines"),
+                  matches.opt_present("matches"),
+                  stdin || matches.opt_present("stdout"),
+                  &mut files) {
+        Ok(_) => process::exit(0),
+        Err(err) => {
+            println!("{}: {}", &program, err);
+            process::exit(1);
         }
     }
 }
@@ -154,4 +133,28 @@ fn make_options(matches: &Matches) -> String {
         }
     }
     options
+}
+
+fn do_work(_re: Regex,
+           _colors: bool,
+           _group: bool,
+           _invert: bool,
+           _lines: bool,
+           stdout: bool,
+           _matches: bool,
+           files: &mut Vec<Box<Read>>)
+           -> Result<(), String> {
+    for file in files {
+        let mut data = Vec::with_capacity(10240);
+        let size = try!(file.read_to_end(&mut data).map_err(|e| e.to_string()));
+        if size > 0 {
+            let _content = try!(String::from_utf8(data).map_err(|e| e.to_string()));
+            if stdout {
+                // print
+            } else {
+                // rewind the file and write over it
+            }
+        }
+    }
+    Ok(())
 }
