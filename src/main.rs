@@ -17,8 +17,8 @@ fn main() {
 
     let matches = parsed.expect("Bug, already checked for a getopts parse error.");
     if matches.free.len() == 0 || matches.opt_present("h") {
-        let brief = format!("Usage: {} {}\n{}", program, &OPTS_AND_ARGS, &DESCRIPTION);
-        print!("{}\n", opts.usage(&brief));
+        let brief = format!("Usage: {} {}\n{}", program, &OPTS_AND_ARGS, &PRE_DESCRIPTION);
+        print!("{}{}\n\n", opts.usage(&brief), &POST_DESCRIPTION);
         process::exit(1);
     }
 
@@ -51,8 +51,11 @@ fn main() {
 }
 
 static OPTS_AND_ARGS: &'static str = "[OPTION]... <PATTERN> [FILE]...";
-static DESCRIPTION: &'static str = "
+static PRE_DESCRIPTION: &'static str = "
 For regex syntax see: http://rust-lang-nursery.github.io/regex/regex/#syntax";
+static POST_DESCRIPTION: &'static str = "
+Environment:
+    NED_DEFAULTS        ned options prepended to the programs arguments";
 
 fn get_program_and_args() -> (String, Vec<String>) {
     let args: Vec<String> = env::args().collect();
@@ -87,6 +90,7 @@ fn make_opts() -> Options {
                 "show the match group, specified by number or name",
                 "GROUP");
     opts.optflag("v", "invert-match", "show non-matching lines");
+    opts.optflag("c", "colors", "show matches in color");
     opts.optflag("", "stdout", "output to stdout");
     opts.optflag("q", "quiet", "suppress all normal output");
     opts.optflag("V", "version", "output version information and exit");
