@@ -9,9 +9,9 @@ use std::fs::{File, OpenOptions};
 use std::io::{self, Read, Seek, SeekFrom, Stdin, Write};
 use std::string::String;
 
-enum Source {
-    Stdin(Stdin),
-    File(File),
+enum InOut {
+    DifferentFiles((Box<Read>, Box<Write>)),
+    SameFile(Box<File>),
 }
 
 fn main() {
@@ -48,20 +48,59 @@ fn main() {
         process::exit(1);
     }
 
+    let colors = matches.opt_present("colors");
+    let group = matches.opt_present("group");
+    let invert_match = matches.opt_present("invert-match");
+    let only_matches = matches.opt_present("only-matches");
+    let quiet = matches.opt_present("quiet");
+    let replace = matches.opt_str("replace");
+    let stdout = matches.opt_present("stdout");
+
     let file_names: Vec<&String> = matches.free.iter().skip(1).collect();
     let stdin = file_names.len() == 0;
 
     println!("TODO: add recursive");
-    let mut files = Vec::<Source>::new();
+    let mut files = Vec::<InOut>::new();
     if stdin {
-        files.push(Source::Stdin(io::stdin()));
+        files.push(
+            InOut::DifferentFiles(
+                (
+                    Box::new(io::stdin()),
+                    if !quiet {
+                        Box::new(io::stdout())
+                    } else {
+                        Box::new(io::sink())
+                    },
+                )
+            )
+        );
     } else {
         for file_name in file_names {
             match OpenOptions::new()
                       .read(true)
                       .write(matches.opt_present("replace"))
                       .open(file_name) {
-                Ok(file) => files.push((Source::File(file))),
+                Ok(file) => {
+                    files.push(
+                        if !quiet && !stdout {
+                            InOut::SameFile(
+                                Box::new(file)
+                            )
+                        } else {
+                            InOut::DifferentFiles(
+                                (
+                                    Box::new(file),
+                                    if quiet {
+                                        Box::new(io::sink())
+                                    } else {
+                                        Box::new(io::stdout())
+                                    },
+                                )
+                            )
+                        }
+
+                    )
+                }
                 Err(err) => {
                     println!("{}: {}", &program, err.to_string());
                     process::exit(1);
@@ -71,14 +110,11 @@ fn main() {
     }
 
     match do_work(re.expect("Bug, already checked for a regex parse error."),
-                  matches.opt_str("replace"),
-                  matches.opt_present("colors"),
-                  matches.opt_present("group"),
-                  matches.opt_present("invert-match"),
-                  matches.opt_present("only-matches"),
-                  matches.opt_present("quiet"),
-                  matches.opt_present("single"),
-                  stdin || matches.opt_present("stdout"),
+                  colors,
+                  group,
+                  invert_match,
+                  only_matches,
+                  replace,
                   &mut files) {
         Ok(status) => process::exit(status),
         Err(err) => {
@@ -173,77 +209,76 @@ fn make_options(matches: &Matches) -> String {
 }
 
 fn do_work(re: Regex,
-           replacement: Option<String>,
            colors: bool,
            group: bool,
-           invert: bool,
+           invert_match: bool,
            only_matches: bool,
-           quiet: bool,
-           single: bool,
-           stdout: bool,
-           files: &mut Vec<Source>)
+           replace: Option<String>,
+           files: &mut Vec<InOut>)
            -> Result<i32, String> {
     println!("TODO: Change from Result<i32, String> to Result<i32, NedError>.");
+
     for file in files {
-        let mut data = Vec::with_capacity(10240);
-        let size = try!(match file {
-            &mut Source::Stdin(ref mut stdin) => {
-                stdin.read_to_end(&mut data).map_err(|e| e.to_string())
+        let content;
+        {
+            let read: &mut Read = match file {
+                &mut InOut::DifferentFiles((ref mut read, ref mut _write)) => read,
+                &mut InOut::SameFile(ref mut file) => file,
+            };
+            let mut buffer = Vec::new();
+            let _ = try!(read.read_to_end(&mut buffer).map_err(|e| e.to_string()));
+            content = try!(String::from_utf8(buffer).map_err(|e| e.to_string()));
+        }
+
+        /*if let Some(ref replace) = replace {
+            if replace.len() > 0 {
+                let mut content = content;
+                content = re.replace_all(&content, replace.as_str());
+                //if let Some(seek) = seek {
+                //    try!(seek.seek(SeekFrom::Start(0)).map_err(|e| e.to_string()));
+                //}
+                try!(write.write(&content.into_bytes()).map_err(|e| e.to_string()));
             }
-            &mut Source::File(ref mut file) => {
-                file.read_to_end(&mut data).map_err(|e| e.to_string())
-            }
-        });
-        if size > 0 {
-            let content = try!(String::from_utf8(data).map_err(|e| e.to_string()));
-            if let Some(ref replacement) = replacement {
-                if replacement.len() > 0 {
-                    let mut content = content;
-                    content = re.replace_all(&content, replacement.as_str());
-                    if stdout && !quiet {
-                        println!("{}", content);
-                    } else {
-                        if let &mut Source::File(ref mut file) = file {
-                            try!(file.seek(SeekFrom::Start(0)).map_err(|e| e.to_string()));
-                            try!(file.write(&content.into_bytes()).map_err(|e| e.to_string()));
-                        } else {
-                            panic!("Bug, should be a File.");
-                        }
-                    }
-                }
-            } else if quiet {
-                println!("{}", "TODO: implement all/any for all the files.");
-                return Ok(if re.is_match(&content) {
-                    0
-                } else {
-                    1
-                });
-            } else if group {
-                println!("TODO: display the indicated group.");
-                // regex.captures.
-            } else if single {
-                println!("TODO: display entire content with colored matches.");
-                for (start, end) in re.find_iter(&content) {
-                    println!("{}", &content[start..end]);
-                }
-            } else if only_matches {
-                for (start, end) in re.find_iter(&content) {
-                    println!("{}", &content[start..end]);
-                }
+        }/ * else if quiet {
+            println!("{}", "TODO: implement all/any for all the files.");
+            return Ok(if re.is_match(&content) {
+                0
             } else {
-                for line in content.lines() {
-                    if !colors || invert {
-                        if re.is_match(line) ^ invert {
-                            println!("{}", line);
-                        }
-                    } else {
-                        println!("TODO: display line with colored matches.");
-                        for (start, end) in re.find_iter(&line) {
-                            println!("{}", &line[start..end]);
-                        }
+                1
+            });
+        } else if group {
+            println!("TODO: display the indicated group.");
+            // regex.captures.
+        } else if single {
+            println!("TODO: display entire content with colored matches.");
+            for (start, end) in re.find_iter(&content) {
+                println!("{}", &content[start..end]);
+            }
+        } else if only_matches {
+            for (start, end) in re.find_iter(&content) {
+                println!("{}", &content[start..end]);
+            }
+        } else {
+            for line in content.lines() {
+                if !colors || invert {
+                    if re.is_match(line) ^ invert {
+                        println!("{}", line);
+                    }
+                } else {
+                    println!("TODO: display line with colored matches.");
+                    for (start, end) in re.find_iter(&line) {
+                        println!("{}", &line[start..end]);
                     }
                 }
             }
+        }*/
+
+        {
+            let write: &mut Write = match file {
+                &mut InOut::DifferentFiles((ref mut _read, ref mut write)) => write,
+                &mut InOut::SameFile(ref mut file) => file,
+            };
+            try!(write.write(&content.into_bytes()).map_err(|e| e.to_string()));
         }
     }
     Ok(0)
