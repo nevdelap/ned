@@ -6,7 +6,7 @@ use getopts::{Matches, Options, ParsingStyle};
 use regex::Regex;
 use std::{env, path, process};
 use std::fs::{File, OpenOptions};
-use std::io::{self, Read, Seek, SeekFrom, Stdin, Write};
+use std::io::{self, Read, Seek, SeekFrom, Write};
 use std::string::String;
 
 enum InOut {
@@ -49,11 +49,12 @@ fn main() {
     }
 
     let colors = matches.opt_present("colors");
-    let group = matches.opt_present("group");
+    let group = matches.opt_str("group");
     let invert_match = matches.opt_present("invert-match");
     let only_matches = matches.opt_present("only-matches");
     let quiet = matches.opt_present("quiet");
     let replace = matches.opt_str("replace");
+    let single = matches.opt_present("single");
     let stdout = matches.opt_present("stdout");
 
     let file_names: Vec<&String> = matches.free.iter().skip(1).collect();
@@ -114,7 +115,9 @@ fn main() {
                   group,
                   invert_match,
                   only_matches,
+                  quiet,
                   replace,
+                  single,
                   &mut files) {
         Ok(status) => process::exit(status),
         Err(err) => {
@@ -210,16 +213,20 @@ fn make_options(matches: &Matches) -> String {
 
 fn do_work(re: Regex,
            colors: bool,
-           group: bool,
+           group: Option<String>,
            invert_match: bool,
            only_matches: bool,
+           quiet: bool,
            replace: Option<String>,
+           single: bool,
            files: &mut Vec<InOut>)
            -> Result<i32, String> {
     println!("TODO: Change from Result<i32, String> to Result<i32, NedError>.");
 
+    let mut exit_code = 0;
+
     for file in files {
-        let content;
+        let mut content;
         {
             let read: &mut Read = match file {
                 &mut InOut::DifferentFiles((ref mut read, ref mut _write)) => read,
@@ -230,50 +237,69 @@ fn do_work(re: Regex,
             content = try!(String::from_utf8(buffer).map_err(|e| e.to_string()));
         }
 
-        /*if let Some(ref replace) = replace {
+        if let Some(ref replace) = replace {
             if replace.len() > 0 {
-                let mut content = content;
                 content = re.replace_all(&content, replace.as_str());
-                //if let Some(seek) = seek {
-                //    try!(seek.seek(SeekFrom::Start(0)).map_err(|e| e.to_string()));
-                //}
-                try!(write.write(&content.into_bytes()).map_err(|e| e.to_string()));
+                // If content changed exit_code = 1
             }
-        }/ * else if quiet {
+        } else if quiet {
+            // Quiet match only can be shortcut by the more performant is_match() and skip the write.
             println!("{}", "TODO: implement all/any for all the files.");
-            return Ok(if re.is_match(&content) {
-                0
+            if re.is_match(&content) {
+                exit_code = 1;
+                // if any break
             } else {
-                1
-            });
-        } else if group {
-            println!("TODO: display the indicated group.");
-            // regex.captures.
-        } else if single {
-            println!("TODO: display entire content with colored matches.");
-            for (start, end) in re.find_iter(&content) {
-                println!("{}", &content[start..end]);
+                exit_code = 0;
+                // if all break
+            }
+        } else if let Some(ref group) = group {
+            if let Some(captures) = re.captures(&content) {
+                match group.trim().parse::<usize>() {
+                    Ok(index) => {
+                        // if there are captures exit_code = 1
+                        if let Some(matched) = captures.at(index) {
+                            println!("{}", matched);
+                        }
+                    }
+                    Err(_) => {
+                        if let Some(matched) = captures.name(group) {
+                            println!("{}", matched);
+                        }
+                    }
+                }
             }
         } else if only_matches {
+            // if it finds anything exit_code = 1
             for (start, end) in re.find_iter(&content) {
                 println!("{}", &content[start..end]);
             }
-        } else {
+        } else if !single {
             for line in content.lines() {
-                if !colors || invert {
-                    if re.is_match(line) ^ invert {
+                if !colors || invert_match {
+                    if re.is_match(line) ^ invert_match {
                         println!("{}", line);
+                        exit_code = 1;
                     }
                 } else {
                     println!("TODO: display line with colored matches.");
+                    // If found anything exit_code = 1;
                     for (start, end) in re.find_iter(&line) {
                         println!("{}", &line[start..end]);
                     }
                 }
             }
-        }*/
+        } else {
+            println!("TODO: display entire content with colored matches.");
+            // If found anything exit_code = 1;
+            for (start, end) in re.find_iter(&content) {
+                println!("{}", &content[start..end]);
+            }
+        }
 
         {
+            if let &mut InOut::SameFile(ref mut seek) = file{
+                try!(seek.seek(SeekFrom::Start(0)).map_err(|e| e.to_string()));
+            }
             let write: &mut Write = match file {
                 &mut InOut::DifferentFiles((ref mut _read, ref mut write)) => write,
                 &mut InOut::SameFile(ref mut file) => file,
@@ -281,5 +307,5 @@ fn do_work(re: Regex,
             try!(write.write(&content.into_bytes()).map_err(|e| e.to_string()));
         }
     }
-    Ok(0)
+    Ok(exit_code)
 }
