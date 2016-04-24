@@ -63,12 +63,13 @@ fn main() {
     println!("TODO: add recursive");
     let mut files = Vec::<InOut>::new();
     if stdin {
-        files.push(InOut::DifferentFiles((Box::new(io::stdin()),
-                                          if !quiet {
+        let input = Box::new(io::stdin());
+        let output: Box<Write> = if !quiet {
             Box::new(io::stdout())
         } else {
             Box::new(io::sink())
-        })));
+        };
+        files.push(InOut::DifferentFiles((input, output)));
     } else {
         for file_name in file_names {
             match OpenOptions::new()
@@ -79,12 +80,13 @@ fn main() {
                     files.push(if !quiet && !stdout {
                         InOut::SameFile(Box::new(file))
                     } else {
-                        InOut::DifferentFiles((Box::new(file),
-                                               if quiet {
+                        let input = Box::new(file);
+                        let output: Box<Write> = if quiet {
                             Box::new(io::sink())
                         } else {
                             Box::new(io::stdout())
-                        }))
+                        };
+                        InOut::DifferentFiles((input, output))
                     })
                 }
                 Err(err) => {
