@@ -63,18 +63,12 @@ fn main() {
     println!("TODO: add recursive");
     let mut files = Vec::<InOut>::new();
     if stdin {
-        files.push(
-            InOut::DifferentFiles(
-                (
-                    Box::new(io::stdin()),
-                    if !quiet {
-                        Box::new(io::stdout())
-                    } else {
-                        Box::new(io::sink())
-                    },
-                )
-            )
-        );
+        files.push(InOut::DifferentFiles((Box::new(io::stdin()),
+                                          if !quiet {
+            Box::new(io::stdout())
+        } else {
+            Box::new(io::sink())
+        })));
     } else {
         for file_name in file_names {
             match OpenOptions::new()
@@ -82,25 +76,16 @@ fn main() {
                       .write(matches.opt_present("replace"))
                       .open(file_name) {
                 Ok(file) => {
-                    files.push(
-                        if !quiet && !stdout {
-                            InOut::SameFile(
-                                Box::new(file)
-                            )
+                    files.push(if !quiet && !stdout {
+                        InOut::SameFile(Box::new(file))
+                    } else {
+                        InOut::DifferentFiles((Box::new(file),
+                                               if quiet {
+                            Box::new(io::sink())
                         } else {
-                            InOut::DifferentFiles(
-                                (
-                                    Box::new(file),
-                                    if quiet {
-                                        Box::new(io::sink())
-                                    } else {
-                                        Box::new(io::stdout())
-                                    },
-                                )
-                            )
-                        }
-
-                    )
+                            Box::new(io::stdout())
+                        }))
+                    })
                 }
                 Err(err) => {
                     println!("{}: {}", &program, err.to_string());
@@ -243,7 +228,8 @@ fn do_work(re: Regex,
                 // If content changed exit_code = 1
             }
         } else if quiet {
-            // Quiet match only can be shortcut by the more performant is_match() and skip the write.
+            // Quiet match only can be shortcut by the more
+            // performant is_match() and skip the write.
             println!("{}", "TODO: implement all/any for all the files.");
             if re.is_match(&content) {
                 exit_code = 1;
@@ -297,7 +283,7 @@ fn do_work(re: Regex,
         }
 
         {
-            if let &mut InOut::SameFile(ref mut seek) = file{
+            if let &mut InOut::SameFile(ref mut seek) = file {
                 try!(seek.seek(SeekFrom::Start(0)).map_err(|e| e.to_string()));
             }
             let write: &mut Write = match file {
