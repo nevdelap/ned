@@ -1,7 +1,8 @@
 extern crate getopts;
 extern crate regex;
-extern crate term;
+extern crate ansi_term;
 
+use ansi_term::Colour::Red;
 use getopts::{Matches, Options, ParsingStyle};
 use regex::Regex;
 use std::{env, path, process};
@@ -48,7 +49,6 @@ fn main() {
         process::exit(1);
     }
 
-    let colors = matches.opt_present("colors");
     let group = matches.opt_str("group");
     let invert_match = matches.opt_present("invert-match");
     let only_matches = matches.opt_present("only-matches");
@@ -59,6 +59,7 @@ fn main() {
 
     let file_names: Vec<&String> = matches.free.iter().skip(1).collect();
     let stdin = file_names.len() == 0;
+    let colors = matches.opt_present("colors") && (stdin || stdout);
 
     println!("TODO: add recursive");
     let mut files = Vec::<InOut>::new();
@@ -211,6 +212,7 @@ fn do_work(re: Regex,
     println!("TODO: Change from Result<i32, String> to Result<i32, NedError>.");
 
     let mut exit_code = 0;
+    let color = Red.bold();
 
     for file in files {
         let mut content;
@@ -224,8 +226,11 @@ fn do_work(re: Regex,
             content = try!(String::from_utf8(buffer).map_err(|e| e.to_string()));
         }
 
-        if let Some(ref replace) = replace {
+        if let Some(mut replace) = replace.clone() {
             if replace.len() > 0 {
+                if colors {
+                    replace = color.paint(replace.as_str()).to_string();
+                }
                 content = re.replace_all(&content, replace.as_str());
                 // If content changed exit_code = 1
             }
