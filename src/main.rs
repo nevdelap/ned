@@ -115,22 +115,24 @@ fn main() {
     }
 }
 
-static OPTS_AND_ARGS: &'static str = "[OPTION]... <PATTERN> [FILE]...";
+static OPTS_AND_ARGS: &'static str = "[OPTION]... [-p] <PATTERN> [FILE]...";
 static PRE_DESCRIPTION: &'static str = "
 ned is a bit like grep and a bit like sed. FILEs are ascii or utf-8 text files.
 For regex syntax see: http://rust-lang-nursery.github.io/regex/regex/#syntax";
 static POST_DESCRIPTION: &'static str = "
 Environment:
-    NED_DEFAULTS        ned options prepended to the programs arguments
+    NED_DEFAULTS        ned options prepended to the program's arguments
 
 Exit codes:
     0                   matches found/replaced
-    1                   no match
+    1                   no matches
 
 Quiet:
     When -q --quiet is  specified ned tests for matches and returns an exit
-    code of 0 if a match is found in any file. When -a --all is combined with
-    quiet it returns an exit code of 0 if a match is found in all files.
+    code of 0 if a match is found in ANY file. When -a --all is combined with
+    quiet it returns an exit code of 0 if a match is found in ALL files. Quiet
+    any matches will only read only as many files as needed to find a match.
+    Quiet matches are more performant than non-quiet matches.
 ";
 
 fn get_program_and_args() -> (String, Vec<String>) {
@@ -147,6 +149,12 @@ fn get_program_and_args() -> (String, Vec<String>) {
 fn make_opts() -> Options {
     let mut opts = Options::new();
     opts.parsing_style(ParsingStyle::FloatingFrees);
+    opts.optopt("p",
+                "pattern",
+                "specify pattern, if the option isn't used the pattern must precede the files, \
+                 the option allows the pattern to be put after the files for more convenient \
+                 editing",
+                "PATTERN");
     opts.optopt("r",
                 "replace",
                 "replace matches, may include named groups",
@@ -171,12 +179,10 @@ fn make_opts() -> Options {
                 "show the match group, specified by number or name",
                 "GROUP");
     opts.optflag("v", "invert-match", "show non-matching lines");
-    opts.optflag("r",
-                 "recursive",
+    opts.optflag("r", "recursive", "recurse, follow all symbolic links");
+    opts.optflag("",
+                 "cautious-recursive",
                  "recurse, only follow symbolic links if they are on the command line");
-    opts.optflag("R",
-                 "derefence-recursive",
-                 "recurse, follow all symbolic links");
     opts.optflag("c", "colors", "show matches in color");
     opts.optflag("", "stdout", "output to stdout");
     opts.optflag("q", "quiet", "suppress all normal output");
