@@ -10,9 +10,9 @@ use std::fs::{File, OpenOptions};
 use std::io::{self, Read, Seek, SeekFrom, Write};
 use std::string::String;
 
-enum InOut {
-    DifferentFiles((Box<Read>, Box<Write>)),
-    SameFile(Box<File>),
+enum Source {
+    Stdin(Box<Read>),
+    File(Box<File>),
 }
 
 fn main() {
@@ -62,15 +62,9 @@ fn main() {
     let colors = matches.opt_present("colors") && (stdin || stdout);
 
     println!("TODO: add recursive");
-    let mut files = Vec::<InOut>::new();
+    let mut files = Vec::<Source>::new();
     if stdin {
-        let input = Box::new(io::stdin());
-        let output: Box<Write> = if !quiet {
-            Box::new(io::stdout())
-        } else {
-            Box::new(io::sink())
-        };
-        files.push(InOut::DifferentFiles((input, output)));
+        files.push(Source::Stdin(Box::new(io::stdin())));
     } else {
         for file_name in file_names {
             match OpenOptions::new()
@@ -78,17 +72,7 @@ fn main() {
                       .write(matches.opt_present("replace"))
                       .open(file_name) {
                 Ok(file) => {
-                    files.push(if !quiet && !stdout {
-                        InOut::SameFile(Box::new(file))
-                    } else {
-                        let input = Box::new(file);
-                        let output: Box<Write> = if quiet {
-                            Box::new(io::sink())
-                        } else {
-                            Box::new(io::stdout())
-                        };
-                        InOut::DifferentFiles((input, output))
-                    })
+                    files.push(Source::File(Box::new(file)))
                 }
                 Err(err) => {
                     println!("{}: {}", &program, err.to_string());
@@ -213,7 +197,7 @@ fn do_work(re: Regex,
            quiet: bool,
            replace: Option<String>,
            single: bool,
-           files: &mut Vec<InOut>)
+           files: &mut Vec<Source>)
            -> Result<i32, String> {
     println!("TODO: Change from Result<i32, String> to Result<i32, NedError>.");
 
@@ -224,13 +208,34 @@ fn do_work(re: Regex,
         let mut content;
         {
             let read: &mut Read = match file {
-                &mut InOut::DifferentFiles((ref mut read, ref mut _write)) => read,
-                &mut InOut::SameFile(ref mut file) => file,
+                &mut Source::Stdin(ref mut read) => read,
+                &mut Source::File(ref mut file) => file,
             };
             let mut buffer = Vec::new();
             let _ = try!(read.read_to_end(&mut buffer).map_err(|e| e.to_string()));
             content = try!(String::from_utf8(buffer).map_err(|e| e.to_string()));
         }
+
+/*
+        for file in files
+            if replace {
+                do the replace
+                if stdout {
+                    write to stdout with colors
+                    continue
+                } else {
+                    write to file
+                }
+            }
+
+            if quiet {
+                do shortcut
+            } else {
+                everything else, all going to stdout
+            }
+        }
+*/
+
 
         if let Some(mut replace) = replace.clone() {
             if replace.len() > 0 {
@@ -296,14 +301,12 @@ fn do_work(re: Regex,
         }
 
         {
-            if let &mut InOut::SameFile(ref mut seek) = file {
+            if let &mut Source::File(ref mut seek) = file {
                 try!(seek.seek(SeekFrom::Start(0)).map_err(|e| e.to_string()));
             }
-            let write: &mut Write = match file {
-                &mut InOut::DifferentFiles((ref mut _read, ref mut write)) => write,
-                &mut InOut::SameFile(ref mut file) => file,
-            };
-            try!(write.write(&content.into_bytes()).map_err(|e| e.to_string()));
+            if let &mut Source::File(ref mut write) = file {
+                try!(write.write(&content.into_bytes()).map_err(|e| e.to_string()));
+            }
         }
     }
     Ok(exit_code)
