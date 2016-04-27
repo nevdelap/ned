@@ -4,10 +4,12 @@ extern crate ansi_term;
 
 use ansi_term::Colour::Red;
 use getopts::{Matches, Options, ParsingStyle};
-use regex::Regex;
+use regex::{FindMatches, Regex};
 use std::{env, path, process};
 use std::fs::{File, OpenOptions};
-use std::io::{self, Cursor, Read, Seek, SeekFrom, Write};
+#[cfg(test)]
+use std::io::Cursor;
+use std::io::{self, Read, Seek, SeekFrom, Write};
 use std::string::String;
 
 #[cfg(test)]
@@ -16,6 +18,7 @@ mod tests;
 enum Source {
     Stdin(Box<Read>),
     File(Box<File>),
+    #[cfg(test)]
     Cursor(Box<Cursor<Vec<u8>>>),
 }
 
@@ -192,6 +195,7 @@ fn process_files(re: Regex,
     for mut file in files {
         exit_code = try!(process_file(&re, &matches, &mut file, &mut output));
     }
+    try!(output.flush().map_err(|e| e.to_string()));
     Ok(exit_code)
 }
 
@@ -209,6 +213,7 @@ fn process_file(re: &Regex,
         let read: &mut Read = match file {
             &mut Source::Stdin(ref mut read) => read,
             &mut Source::File(ref mut file) => file,
+            #[cfg(test)]
             &mut Source::Cursor(ref mut cursor) => cursor,
         };
         let mut buffer = Vec::new();
@@ -238,6 +243,7 @@ fn process_file(re: &Regex,
                     try!(file.seek(SeekFrom::Start(0)).map_err(|e| e.to_string()));
                     try!(file.write(&new_content.into_bytes()).map_err(|e| e.to_string()));
                 }
+                #[cfg(test)]
                 &mut Source::Cursor(ref mut file) => {
                     try!(file.seek(SeekFrom::Start(0)).map_err(|e| e.to_string()));
                     try!(file.write(&new_content.into_bytes()).map_err(|e| e.to_string()));
@@ -284,12 +290,7 @@ fn process_file(re: &Regex,
                 }
                 Ok(0)
             } else {
-                // Print colored matches within matches.
-                for (start, end) in re.find_iter(&text) {
-                    try!(output.write(&text[start..end].to_string().into_bytes())
-                               .map_err(|e| e.to_string()));
-                }
-                Ok(0)
+                display_line(colors, output, text, re.find_iter(&text))
             }
         };
 
@@ -303,4 +304,23 @@ fn process_file(re: &Regex,
     }
 
     Ok(exit_code)
+}
+
+fn display_line(colors: bool,
+    mut output: &mut Write,
+    text: &str,
+    matches: FindMatches) -> Result<i32, String>
+{
+    let color = Red.bold();
+    let mut last = 0;
+    for (start, end) in matches {
+        try!(output.write(&text[last..start].to_string().into_bytes())
+                   .map_err(|e| e.to_string()));
+        try!(output.write(&color.paint(&text[start..end]).to_string().into_bytes())
+                   .map_err(|e| e.to_string()));
+        last = end;
+    }
+    try!(output.write(&text[last..].to_string().into_bytes())
+               .map_err(|e| e.to_string()));
+    Ok(0)
 }
