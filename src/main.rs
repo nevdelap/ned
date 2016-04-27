@@ -307,17 +307,21 @@ fn process_file(re: &Regex,
 }
 
 fn display_line(colors: bool,
-    mut output: &mut Write,
-    text: &str,
-    matches: FindMatches) -> Result<i32, String>
-{
+                mut output: &mut Write,
+                text: &str,
+                matches: FindMatches)
+                -> Result<i32, String> {
     let color = Red.bold();
     let mut last = 0;
     for (start, end) in matches {
         try!(output.write(&text[last..start].to_string().into_bytes())
                    .map_err(|e| e.to_string()));
-        try!(output.write(&color.paint(&text[start..end]).to_string().into_bytes())
-                   .map_err(|e| e.to_string()));
+        let x = if colors {
+            color.paint(&text[start..end]).to_string()
+        } else {
+            text[start..end].to_string()
+        };
+        try!(output.write(&x.to_string().into_bytes()).map_err(|e| e.to_string()));
         last = end;
     }
     try!(output.write(&text[last..].to_string().into_bytes())

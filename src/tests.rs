@@ -9,7 +9,7 @@ fn basic_match() {
     let pattern = "is";
     let options = "";
     let expected_exit_code = 0;
-    let expected_screen_output = "isis";
+    let expected_screen_output = "This is a test.";
     let expected_file_content = &input;
 
     test(input,
@@ -27,7 +27,7 @@ fn colored_match() {
     let pattern = "is";
     let options = "--colors";
     let expected_exit_code = 0;
-    let expected_screen_output = "isis";
+    let expected_screen_output = "Th\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.";
     let expected_file_content = &input; // TODO
 
     test(input,
