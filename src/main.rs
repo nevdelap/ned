@@ -21,8 +21,8 @@ enum Source {
 
 fn main() {
     let (program, args) = get_program_and_args();
-    let opts = make_opts();
 
+    let opts = make_opts();
     let parsed = opts.parse(&args);
     if let Err(err) = parsed {
         println!("{}: {}", &program, err.to_string());
@@ -53,17 +53,8 @@ fn main() {
         process::exit(1);
     }
 
-    let group = matches.opt_str("group");
-    let invert_match = matches.opt_present("invert-match");
-    let line_oriented = matches.opt_present("line_oriented");
-    let only_matches = matches.opt_present("only-matches");
-    let quiet = matches.opt_present("quiet");
-    let replace = matches.opt_str("replace");
-    let stdout = matches.opt_present("stdout");
-
     let file_names: Vec<&String> = matches.free.iter().skip(1).collect();
     let stdin = file_names.len() == 0;
-    let colors = matches.opt_present("colors") && (stdin || stdout);
 
     println!("TODO: add recursive");
     let mut files = Vec::<Source>::new();
@@ -86,14 +77,7 @@ fn main() {
 
     let mut output = io::stdout();
     match process_files(re.expect("Bug, already checked for a regex parse error."),
-                        colors,
-                        &group,
-                        invert_match,
-                        line_oriented,
-                        only_matches,
-                        quiet,
-                        &replace,
-                        stdout,
+                        &matches,
                         &mut files,
                         &mut output) {
         Ok(status) => process::exit(status),
@@ -198,14 +182,7 @@ fn make_options(matches: &Matches) -> String {
 }
 
 fn process_files(re: Regex,
-                 colors: bool,
-                 group: &Option<String>,
-                 invert_match: bool,
-                 line_oriented: bool,
-                 only_matches: bool,
-                 quiet: bool,
-                 replace: &Option<String>,
-                 stdout: bool,
+                 matches: &Matches,
                  files: &mut Vec<Source>,
                  mut output: &mut Write)
                  -> Result<i32, String> {
@@ -213,30 +190,13 @@ fn process_files(re: Regex,
 
     let mut exit_code = 0;
     for mut file in files {
-        exit_code = try!(process_file(&re,
-                                      colors,
-                                      &group,
-                                      invert_match,
-                                      line_oriented,
-                                      only_matches,
-                                      quiet,
-                                      &replace,
-                                      stdout,
-                                      &mut file,
-                                      &mut output));
+        exit_code = try!(process_file(&re, &matches, &mut file, &mut output));
     }
     Ok(exit_code)
 }
 
 fn process_file(re: &Regex,
-                colors: bool,
-                group: &Option<String>,
-                invert_match: bool,
-                line_oriented: bool,
-                only_matches: bool,
-                quiet: bool,
-                replace: &Option<String>,
-                stdout: bool,
+                matches: &Matches,
                 file: &mut Source,
                 mut output: &mut Write)
                 -> Result<i32, String> {
@@ -256,7 +216,15 @@ fn process_file(re: &Regex,
         content = try!(String::from_utf8(buffer).map_err(|e| e.to_string()));
     }
 
-    if let Some(mut replace) = replace.clone() {
+    let colors = matches.opt_present("colors"); // But not if the output isn't a tty.
+    let group = matches.opt_str("group");
+    let line_oriented = matches.opt_present("line-oriented");
+    let only_matches = matches.opt_present("only-matches");
+    let quiet = matches.opt_present("quiet");
+    let replace = matches.opt_str("replace");
+    let stdout = matches.opt_present("stdout");
+
+    if let Some(mut replace) = replace {
         if stdout && colors {
             replace = color.paint(replace.as_str()).to_string();
         }
@@ -290,33 +258,39 @@ fn process_file(re: &Regex,
     } else {
 
         let mut process_text = |text: &str| -> Result<i32, String> {
-            if let &Some(ref group) = group {
+            if let Some(ref group) = group {
                 if let Some(captures) = re.captures(&text) {
                     match group.trim().parse::<usize>() {
                         Ok(index) => {
                             // if there are captures exit_code = 1
                             if let Some(matched) = captures.at(index) {
-                                try!(output.write(&matched.to_string().into_bytes()).map_err(|e| e.to_string()));
+                                try!(output.write(&matched.to_string().into_bytes())
+                                           .map_err(|e| e.to_string()));
                             }
                         }
                         Err(_) => {
                             if let Some(matched) = captures.name(group) {
-                                try!(output.write(&matched.to_string().into_bytes()).map_err(|e| e.to_string()));
+                                try!(output.write(&matched.to_string().into_bytes())
+                                           .map_err(|e| e.to_string()));
                             }
                         }
                     }
                 }
+                Ok(0)
             } else if only_matches {
                 for (start, end) in re.find_iter(&text) {
-                    try!(output.write(&text[start..end].to_string().into_bytes()).map_err(|e| e.to_string()));
+                    try!(output.write(&text[start..end].to_string().into_bytes())
+                               .map_err(|e| e.to_string()));
                 }
+                Ok(0)
             } else {
                 // Print colored matches within matches.
                 for (start, end) in re.find_iter(&text) {
-                    try!(output.write(&text[start..end].to_string().into_bytes()).map_err(|e| e.to_string()));
+                    try!(output.write(&text[start..end].to_string().into_bytes())
+                               .map_err(|e| e.to_string()));
                 }
+                Ok(0)
             }
-            Ok(0)
         };
 
         if line_oriented {

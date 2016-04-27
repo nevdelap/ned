@@ -1,140 +1,123 @@
-use {process_file, Source};
 use regex::Regex;
 use std::io::{Cursor, Read, Seek, SeekFrom, Write};
+use {make_opts, process_file, Source};
 
 #[test]
 fn basic_match() {
 
     let input = "This is a test.";
-    let re = "is";
-    let colors = false;
-    let group = None;
-    let invert_match = false;
-    let line_oriented = false;
-    let only_matches = false;
-    let quiet = false;
-    let replace = None;
-    let stdout = false;
+    let pattern = "is";
+    let options = "";
+    let expected_exit_code = 0;
+    let expected_screen_output = "isis";
+    let expected_file_content = &input;
 
-    let (exit_code, screen_output, file_content) = test(input,
-                                                        re,
-                                                        colors,
-                                                        &group,
-                                                        invert_match,
-                                                        line_oriented,
-                                                        only_matches,
-                                                        quiet,
-                                                        &replace,
-                                                        stdout);
-
-    assert_eq!(exit_code, 0);
-    assert_eq!(screen_output, "isis");
-    assert_eq!(file_content, input);
+    test(input,
+         pattern,
+         options,
+         expected_exit_code,
+         expected_screen_output,
+         expected_file_content);
 }
 
 #[test]
 fn colored_match() {
 
     let input = "This is a test.";
-    let re = "is";
-    let colors = true;
-    let group = None;
-    let invert_match = false;
-    let line_oriented = false;
-    let only_matches = false;
-    let quiet = false;
-    let replace = None;
-    let stdout = false;
+    let pattern = "is";
+    let options = "--colors";
+    let expected_exit_code = 0;
+    let expected_screen_output = "isis";
+    let expected_file_content = &input; // TODO
 
-    let (exit_code, screen_output, file_content) = test(input,
-                                                        re,
-                                                        colors,
-                                                        &group,
-                                                        invert_match,
-                                                        line_oriented,
-                                                        only_matches,
-                                                        quiet,
-                                                        &replace,
-                                                        stdout);
-
-    assert_eq!(exit_code, 0);
-    assert_eq!(screen_output, "isis");
-    assert_eq!(file_content, input);
+    test(input,
+         pattern,
+         options,
+         expected_exit_code,
+         expected_screen_output,
+         expected_file_content);
 }
 
 #[test]
 fn quiet_match() {
 
     let input = "This is a test.";
-    let re = "is";
-    let colors = false;
-    let group = None;
-    let invert_match = false;
-    let line_oriented = false;
-    let only_matches = false;
-    let quiet = true;
-    let replace = None;
-    let stdout = false;
+    let pattern = "is";
+    let options = "--quiet";
+    let expected_exit_code = 0;
+    let expected_screen_output = "";
+    let expected_file_content = &input;
 
-    let (exit_code, screen_output, file_content) = test(input,
-                                                        re,
-                                                        colors,
-                                                        &group,
-                                                        invert_match,
-                                                        line_oriented,
-                                                        only_matches,
-                                                        quiet,
-                                                        &replace,
-                                                        stdout);
-
-    assert_eq!(exit_code, 0);
-    assert_eq!(screen_output, "");
-    assert_eq!(file_content, input);
+    test(input,
+         pattern,
+         options,
+         expected_exit_code,
+         expected_screen_output,
+         expected_file_content);
 }
 
 #[test]
 fn quiet_no_match() {
 
     let input = "This is a test.";
-    let re = "as";
-    let colors = false;
-    let group = None;
-    let invert_match = false;
-    let line_oriented = false;
-    let only_matches = false;
-    let quiet = true;
-    let replace = None;
-    let stdout = false;
+    let pattern = "as";
+    let options = "--quiet";
+    let expected_exit_code = 1;
+    let expected_screen_output = "";
+    let expected_file_content = &input;
 
-    let (exit_code, screen_output, file_content) = test(input,
-                                                        re,
-                                                        colors,
-                                                        &group,
-                                                        invert_match,
-                                                        line_oriented,
-                                                        only_matches,
-                                                        quiet,
-                                                        &replace,
-                                                        stdout);
+    test(input,
+         pattern,
+         options,
+         expected_exit_code,
+         expected_screen_output,
+         expected_file_content);
+}
 
-    assert_eq!(exit_code, 1);
-    assert_eq!(screen_output, "");
-    assert_eq!(file_content, input);
+#[test]
+fn basic_replace() {
+
+    let input = "This is a test.";
+    let pattern = "is";
+    let options = "--replace=at";
+    let expected_exit_code = 0;
+    let expected_screen_output = "";
+    let expected_file_content = "That at a test.";
+
+    test(input,
+         pattern,
+         options,
+         expected_exit_code,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
+fn basic_replace_to_stdout() {
+
+    let input = "This is a test.";
+    let pattern = "is";
+    let options = "--replace=at --stdout";
+    let expected_exit_code = 0;
+    let expected_screen_output = "That at a test.";
+    let expected_file_content = &input;
+
+    test(input,
+         pattern,
+         options,
+         expected_exit_code,
+         expected_screen_output,
+         expected_file_content);
 }
 
 fn test(input: &str,
-        re: &str,
-        colors: bool,
-        group: &Option<String>,
-        invert_match: bool,
-        line_oriented: bool,
-        only_matches: bool,
-        quiet: bool,
-        replace: &Option<String>,
-        stdout: bool)
-        -> (i32, String, String) {
+        pattern: &str,
+        options: &str,
+        expected_exit_code: i32,
+        expected_screen_output: &str,
+        expected_file_content: &str) {
 
-    let re = Regex::new(re).unwrap();
+    let re = Regex::new(pattern).unwrap();
 
     let mut cursor = Cursor::<Vec<u8>>::new(vec![]);
     let _ = cursor.write(&input.to_string().into_bytes());
@@ -142,96 +125,25 @@ fn test(input: &str,
     let mut file = Source::Cursor(Box::new(cursor));
     let mut screen_output: Vec<u8> = vec![];
 
-    let exit_code = process_file(&re,
-                                 colors,
-                                 &group,
-                                 invert_match,
-                                 line_oriented,
-                                 only_matches,
-                                 quiet,
-                                 replace,
-                                 stdout,
-                                 &mut file,
-                                 &mut screen_output)
-                        .unwrap();
+    let opts = make_opts();
+    let options: Vec<&str> = options.split_whitespace().collect();
+    let matches = opts.parse(&options).unwrap();
+
+    let exit_code = process_file(&re, &matches, &mut file, &mut screen_output).unwrap();
 
     let screen_output = String::from_utf8(screen_output).unwrap();
-    let file_content;
 
+    let file_output;
     let mut buffer = Vec::new();
     if let Source::Cursor(ref mut cursor) = file {
         let _ = cursor.seek(SeekFrom::Start(0));
         let _ = cursor.read_to_end(&mut buffer);
-        file_content = String::from_utf8(buffer).unwrap();
+        file_output = String::from_utf8(buffer).unwrap();
     } else {
         panic!("WTF?");
     }
 
-    (exit_code, screen_output, file_content)
-}
-
-#[test]
-fn basic_replace() {
-
-    let input = "This is a test.";
-    let re = "is";
-    let colors = false;
-    let group = None;
-    let invert_match = false;
-    let line_oriented = false;
-    let only_matches = false;
-    let quiet = false;
-    let replace = Some("at".to_string());
-    let stdout = false;
-
-    let (exit_code, screen_output, file_content) = test(input,
-                                                        re,
-                                                        colors,
-                                                        &group,
-                                                        invert_match,
-                                                        line_oriented,
-                                                        only_matches,
-                                                        quiet,
-                                                        &replace,
-                                                        stdout);
-
-    assert_eq!(exit_code, 0);
-    assert_eq!(screen_output, "");
-    assert_eq!(file_content, "That at a test.");
-}
-
-#[test]
-fn basic_replace_to_stdout() {
-
-    let input = "This is a test.";
-    let re = "is";
-    let colors = false;
-    let group = None;
-    let invert_match = false;
-    let line_oriented = false;
-    let only_matches = false;
-    let quiet = false;
-    let replace = Some("at".to_string());
-    let stdout = true;
-
-    let (exit_code, screen_output, file_content) = test(input,
-                                                        re,
-                                                        colors,
-                                                        &group,
-                                                        invert_match,
-                                                        line_oriented,
-                                                        only_matches,
-                                                        quiet,
-                                                        &replace,
-                                                        stdout);
-
-    assert_eq!(exit_code, 0);
-    assert_eq!(screen_output, "That at a test.");
-    assert_eq!(file_content, "This is a test.");
-}
-
-#[test]
-#[should_panic]
-fn something_else() {
-    assert_eq!(1, 0);
+    assert_eq!(exit_code, expected_exit_code);
+    assert_eq!(screen_output, expected_screen_output);
+    assert_eq!(file_output, expected_file_content);
 }
