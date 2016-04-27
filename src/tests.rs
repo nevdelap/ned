@@ -28,7 +28,7 @@ fn colored_match() {
     let options = "--colors";
     let expected_exit_code = 0;
     let expected_screen_output = "Th\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.";
-    let expected_file_content = &input; // TODO
+    let expected_file_content = &input;
 
     test(input,
          pattern,
@@ -120,8 +120,8 @@ fn test(input: &str,
     let re = Regex::new(pattern).unwrap();
 
     let mut cursor = Cursor::<Vec<u8>>::new(vec![]);
-    let _ = cursor.write(&input.to_string().into_bytes());
-    let _ = cursor.seek(SeekFrom::Start(0));
+    cursor.write(&input.to_string().into_bytes()).unwrap();
+    cursor.seek(SeekFrom::Start(0)).unwrap();
     let mut file = Source::Cursor(Box::new(cursor));
     let mut screen_output: Vec<u8> = vec![];
 
@@ -140,7 +140,7 @@ fn test(input: &str,
         let _ = cursor.read_to_end(&mut buffer);
         file_output = String::from_utf8(buffer).unwrap();
     } else {
-        panic!("WTF?");
+        panic!("Oh oh?");
     }
 
     assert_eq!(exit_code, expected_exit_code);
