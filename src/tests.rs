@@ -21,6 +21,42 @@ fn basic_match() {
 }
 
 #[test]
+fn group_0_match() {
+
+    let input = "This is a test.";
+    let pattern = "Th(is)";
+    let options = "-g 0";
+    let expected_exit_code = 0;
+    let expected_screen_output = "This";
+    let expected_file_content = &input;
+
+    test(input,
+         pattern,
+         options,
+         expected_exit_code,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
+fn group_n_match() {
+
+    let input = "This is a test.";
+    let pattern = "Th(is)";
+    let options = "-g 1";
+    let expected_exit_code = 0;
+    let expected_screen_output = "is";
+    let expected_file_content = &input;
+
+    test(input,
+         pattern,
+         options,
+         expected_exit_code,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
 fn colored_match() {
 
     let input = "This is a test.";
