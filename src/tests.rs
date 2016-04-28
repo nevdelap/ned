@@ -21,11 +21,65 @@ fn basic_match() {
 }
 
 #[test]
+fn no_match() {
+
+    let input = "
+This is a test with
+multiple lines of very
+unteresting content
+that is only good for
+tests because no one
+would want to read it.
+";
+    let pattern = "on";
+    let options = "--no-match";
+    let expected_exit_code = 0;
+    let expected_screen_output = "";
+    let expected_file_content = &input;
+
+    test(input,
+         pattern,
+         options,
+         expected_exit_code,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
+fn no_match_line_oriented() {
+
+    let input = "
+This is a test with
+multiple lines of very
+unteresting content
+that is only good for
+tests because no one
+would want to read it.
+";
+    let pattern = "on";
+    let options = "--no-match --line-oriented";
+    let expected_exit_code = 0;
+    let expected_screen_output = "
+This is a test with
+multiple lines of very
+would want to read it.
+";
+    let expected_file_content = &input;
+
+    test(input,
+         pattern,
+         options,
+         expected_exit_code,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
 fn group_0_match() {
 
     let input = "This is a test.";
     let pattern = "Th(is)";
-    let options = "-g 0";
+    let options = "--group 0";
     let expected_exit_code = 0;
     let expected_screen_output = "This";
     let expected_file_content = &input;
@@ -39,13 +93,49 @@ fn group_0_match() {
 }
 
 #[test]
-fn group_n_match() {
+fn group_1_match() {
 
     let input = "This is a test.";
     let pattern = "Th(is)";
-    let options = "-g 1";
+    let options = "--group 1";
     let expected_exit_code = 0;
     let expected_screen_output = "is";
+    let expected_file_content = &input;
+
+    test(input,
+         pattern,
+         options,
+         expected_exit_code,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
+fn group_2_match() {
+
+    let input = "This is a test.";
+    let pattern = "is (a) (test)";
+    let options = "--group 2";
+    let expected_exit_code = 0;
+    let expected_screen_output = "test";
+    let expected_file_content = &input;
+
+    test(input,
+         pattern,
+         options,
+         expected_exit_code,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
+fn named_group_match() {
+
+    let input = "This is a test.";
+    let pattern = "is (a) (?P<dave>test)";
+    let options = "--group dave";
+    let expected_exit_code = 0;
+    let expected_screen_output = "test";
     let expected_file_content = &input;
 
     test(input,

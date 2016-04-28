@@ -4,7 +4,7 @@ extern crate ansi_term;
 
 use ansi_term::Colour::Red;
 use getopts::{Matches, Options, ParsingStyle};
-use regex::{FindMatches, Regex};
+use regex::Regex;
 use std::{env, path, process};
 use std::fs::{File, OpenOptions};
 #[cfg(test)]
@@ -143,7 +143,9 @@ fn make_opts() -> Options {
                 "skip",
                 "skip N occurrences before matching/replacing",
                 "N");
-    opts.optflag("b", "backwards", "-n and -k options count backwards");
+    opts.optflag("b",
+                 "backwards",
+                 "-n --number and -k --skip options count backwards");
     opts.optflag("i", "ignore-case", "ignore case");
     opts.optflag("s",
                  "single",
@@ -158,7 +160,9 @@ fn make_opts() -> Options {
                 "group",
                 "show the match group, specified by number or name",
                 "GROUP");
-    opts.optflag("v", "invert-match", "show non-matching lines");
+    opts.optflag("v",
+                 "no-match",
+                 "show only non-matching");
     opts.optflag("r", "recursive", "recurse, follow all symbolic links");
     opts.optflag("",
                  "cautious-recursive",
@@ -224,7 +228,7 @@ fn process_file(re: &Regex,
 
     let group = matches.opt_str("group");
     let line_oriented = matches.opt_present("line-oriented");
-    let only_matches = matches.opt_present("only-matches");
+    let no_match = matches.opt_present("no-match");
     let quiet = matches.opt_present("quiet");
     let replace = matches.opt_str("replace");
     let stdout = matches.opt_present("stdout");
@@ -285,9 +289,9 @@ fn process_file(re: &Regex,
                     }
                 }
                 Ok(0)
-            } else if only_matches {
-                for (start, end) in re.find_iter(&text) {
-                    try!(output.write(&text[start..end].to_string().into_bytes())
+            } else if no_match {
+                if !re.is_match(&text) {
+                    try!(output.write(&text.to_string().into_bytes())
                                .map_err(|e| e.to_string()));
                 }
                 Ok(0)
@@ -299,7 +303,9 @@ fn process_file(re: &Regex,
 
         if line_oriented {
             for line in content.lines() {
-                try!(process_text(&line));
+                {
+                    try!(process_text(&(line.to_string() + "\n")));
+                }
             }
         } else {
             try!(process_text(&content));
