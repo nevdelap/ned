@@ -21,12 +21,41 @@ fn basic_match() {
 }
 
 #[test]
+fn match_line_oriented() {
+
+    let input = "
+This is a test with
+multiple lines of very
+uninteresting content
+that is only good for
+tests because no one
+would want to read it.
+";
+    let pattern = "on";
+    let options = "--line-oriented";
+    let expected_exit_code = 0;
+    let expected_screen_output = "\
+uninteresting content
+that is only good for
+tests because no one
+";
+    let expected_file_content = &input;
+
+    test(input,
+         pattern,
+         options,
+         expected_exit_code,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
 fn no_match() {
 
     let input = "
 This is a test with
 multiple lines of very
-unteresting content
+uninteresting content
 that is only good for
 tests because no one
 would want to read it.
@@ -51,7 +80,7 @@ fn no_match_line_oriented() {
     let input = "
 This is a test with
 multiple lines of very
-unteresting content
+uninteresting content
 that is only good for
 tests because no one
 would want to read it.

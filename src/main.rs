@@ -295,9 +295,11 @@ fn process_file(re: &Regex,
                                .map_err(|e| e.to_string()));
                 }
                 Ok(0)
-            } else {
+            } else if re.is_match(&text) {
                 try!(output.write(&text.to_string().into_bytes()).map_err(|e| e.to_string()));
                 Ok(0)
+            } else {
+                Ok(1)
             }
         };
 
