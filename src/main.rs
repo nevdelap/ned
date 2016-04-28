@@ -78,6 +78,7 @@ fn main() {
         }
     }
 
+    // Output is passed here so that tests can read the output.
     let mut output = io::stdout();
     match process_files(re.expect("Bug, already checked for a regex parse error."),
                         &matches,
@@ -208,7 +209,7 @@ fn process_file(re: &Regex,
     let mut exit_code = 0;
     let color = Red.bold();
 
-    let content;
+    let mut content;
     {
         let read: &mut Read = match file {
             &mut Source::Stdin(ref mut read) => read,
@@ -221,32 +222,31 @@ fn process_file(re: &Regex,
         content = try!(String::from_utf8(buffer).map_err(|e| e.to_string()));
     }
 
-    let colors = matches.opt_present("colors"); // But not if the output isn't a tty.
     let group = matches.opt_str("group");
     let line_oriented = matches.opt_present("line-oriented");
     let only_matches = matches.opt_present("only-matches");
     let quiet = matches.opt_present("quiet");
     let replace = matches.opt_str("replace");
     let stdout = matches.opt_present("stdout");
+    let colors = matches.opt_present("colors") && (stdout || replace.is_none());
 
     if let Some(mut replace) = replace {
-        if stdout && colors {
+        if colors {
             replace = color.paint(replace.as_str()).to_string();
         }
-        let new_content = re.replace_all(&content, replace.as_str());
+        content = re.replace_all(&content, replace.as_str());
         if stdout {
-            try!(output.write(&new_content.into_bytes()).map_err(|e| e.to_string()));
+            try!(output.write(&content.into_bytes()).map_err(|e| e.to_string()));
         } else {
-            // Better way to do this?
             match file {
                 &mut Source::File(ref mut file) => {
                     try!(file.seek(SeekFrom::Start(0)).map_err(|e| e.to_string()));
-                    try!(file.write(&new_content.into_bytes()).map_err(|e| e.to_string()));
+                    try!(file.write(&content.into_bytes()).map_err(|e| e.to_string()));
                 }
                 #[cfg(test)]
                 &mut Source::Cursor(ref mut file) => {
                     try!(file.seek(SeekFrom::Start(0)).map_err(|e| e.to_string()));
-                    try!(file.write(&new_content.into_bytes()).map_err(|e| e.to_string()));
+                    try!(file.write(&content.into_bytes()).map_err(|e| e.to_string()));
                 }
                 _ => {}
             }
@@ -262,7 +262,9 @@ fn process_file(re: &Regex,
             1
         };
     } else {
-
+        if colors {
+            content = re.replace_all(&content, color.paint("$0").to_string().as_str());
+        }
         let mut process_text = |text: &str| -> Result<i32, String> {
             if let Some(ref group) = group {
                 if let Some(captures) = re.captures(&text) {
@@ -290,7 +292,8 @@ fn process_file(re: &Regex,
                 }
                 Ok(0)
             } else {
-                display_line(colors, output, text, re.find_iter(&text))
+                try!(output.write(&text.to_string().into_bytes()).map_err(|e| e.to_string()));
+                Ok(0)
             }
         };
 
@@ -304,27 +307,4 @@ fn process_file(re: &Regex,
     }
 
     Ok(exit_code)
-}
-
-fn display_line(colors: bool,
-                mut output: &mut Write,
-                text: &str,
-                matches: FindMatches)
-                -> Result<i32, String> {
-    let color = Red.bold();
-    let mut last = 0;
-    for (start, end) in matches {
-        try!(output.write(&text[last..start].to_string().into_bytes())
-                   .map_err(|e| e.to_string()));
-        let x = if colors {
-            color.paint(&text[start..end]).to_string()
-        } else {
-            text[start..end].to_string()
-        };
-        try!(output.write(&x.to_string().into_bytes()).map_err(|e| e.to_string()));
-        last = end;
-    }
-    try!(output.write(&text[last..].to_string().into_bytes())
-               .map_err(|e| e.to_string()));
-    Ok(0)
 }
