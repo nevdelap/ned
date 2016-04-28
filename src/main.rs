@@ -303,9 +303,7 @@ fn process_file(re: &Regex,
 
         if line_oriented {
             for line in content.lines() {
-                {
-                    try!(process_text(&(line.to_string() + "\n")));
-                }
+                try!(process_text(&(line.to_string() + "\n")));
             }
         } else {
             try!(process_text(&content));
