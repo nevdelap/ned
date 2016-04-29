@@ -1,0 +1,51 @@
+ned is a bit like grep and a bit like sed, but not really. FILEs are ascii or
+utf-8 text files.
+
+For regex syntax see: http://rust-lang-nursery.github.io/regex/regex/#syntax
+
+Options:
+DONE    -p, --pattern PATTERN
+                        specify pattern, if the option isn't used the pattern
+                        must precede the files, the option allows the pattern
+                        to be put after the files for more convenient editing
+DONE    -r, --replace REPLACEMENT
+                        replace matches, may include named groups
+    -n, --number N      match/replace N occurrences
+    -k, --skip N        skip N occurrences before matching/replacing
+    -b, --backwards     -n --number and -k --skip options count backwards
+DONE    -i, --ignore-case   ignore case
+DONE    -s, --single        . matches newlines, ^ and $ match beginning and end of
+                        each file
+DONE    -m, --multiline     multiline, ^ and $ match beginning and end of each
+                        line
+DONE    -l, --line-oriented
+                        operate on lines
+DONE    -x, --extended      ignore whitespace and # comments
+DONE    -o, --only-matches  show only matches
+DONE    -g, --group GROUP   show the match group, specified by number or name
+DONE    -v, --no-match      show only non-matching
+    -r, --recursive     recurse, follow all symbolic links
+        --cautious-recursive
+                        recurse, only follow symbolic links if they are on the
+                        command line
+DONE    -c, --colors        show matches in color
+DONE        --stdout        output to stdout
+    -q, --quiet         suppress all normal output
+    -a, --all           exit code is 0 if all files match, default is exit
+                        code is 0 if any file matches
+DONE    -V, --version       output version information and exit
+DONE    -h, --help          print this help menu and exit
+
+Environment:
+    NED_DEFAULTS        ned options prepended to the program's arguments
+
+Exit codes:
+TODO    0                   matches found/replaced
+TODO    1                   no matches
+
+Quiet:
+    When -q --quiet is  specified ned tests for matches and returns an exit
+    code of 0 if a match is found in ANY file. When -a --all is combined with
+    quiet it returns an exit code of 0 if a match is found in ALL files. Quiet
+    any matches will only read only as many files as needed to find a match.
+    Quiet matches are more performant than non-quiet matches.
