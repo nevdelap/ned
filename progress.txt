@@ -4,37 +4,37 @@ utf-8 text files.
 For regex syntax see: http://rust-lang-nursery.github.io/regex/regex/#syntax
 
 Options:
-DONE    -p, --pattern PATTERN
+Done!    -p, --pattern PATTERN
                         specify pattern, if the option isn't used the pattern
                         must precede the files, the option allows the pattern
                         to be put after the files for more convenient editing
-DONE    -r, --replace REPLACEMENT
+Done!    -r, --replace REPLACEMENT
                         replace matches, may include named groups
 TODO    -n, --number N      match/replace N occurrences
 TODO    -k, --skip N        skip N occurrences before matching/replacing
 TODO    -b, --backwards     -n --number and -k --skip options count backwards
-DONE    -i, --ignore-case   ignore case
-DONE    -s, --single        . matches newlines, ^ and $ match beginning and end of
+Done!    -i, --ignore-case   ignore case
+Done!    -s, --single        . matches newlines, ^ and $ match beginning and end of
                         each file
-DONE    -m, --multiline     multiline, ^ and $ match beginning and end of each
+Done!    -m, --multiline     multiline, ^ and $ match beginning and end of each
                         line
-DONE    -l, --line-oriented
+Done!    -l, --line-oriented
                         operate on lines
-DONE    -x, --extended      ignore whitespace and # comments
-DONE    -o, --only-matches  show only matches
-DONE    -g, --group GROUP   show the match group, specified by number or name
-DONE    -v, --no-match      show only non-matching
+Done!    -x, --extended      ignore whitespace and # comments
+Done!    -o, --only-matches  show only matches
+Done!    -g, --group GROUP   show the match group, specified by number or name
+Done!    -v, --no-match      show only non-matching
 TODO    -r, --recursive     recurse, follow all symbolic links
         --cautious-recursive
                         recurse, only follow symbolic links if they are on the
                         command line
-DONE    -c, --colors        show matches in color
-DONE        --stdout        output to stdout
+Done!    -c, --colors        show matches in color
+Done!        --stdout        output to stdout
     -q, --quiet         suppress all normal output
     -a, --all           exit code is 0 if all files match, default is exit
                         code is 0 if any file matches
-DONE    -V, --version       output version information and exit
-DONE    -h, --help          print this help menu and exit
+Done!    -V, --version       output version information and exit
+Done!    -h, --help          print this help menu and exit
 
 Environment:
 TODO    NED_DEFAULTS        ned options prepended to the program's arguments
