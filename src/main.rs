@@ -133,7 +133,13 @@ fn get_program_and_args() -> (String, Vec<String>) {
                       .expect("Bug, could't get bin name.")
                       .to_str()
                       .expect("Bug, could't get bin name.");
-    let args: Vec<String> = args.iter().skip(1).map(|arg| arg.clone()).collect();
+    let mut args: Vec<String> = args.iter().skip(1).map(|arg| arg.clone()).collect();
+    if let Ok(default_args) = env::var("NED_DEFAULTS") {
+        let old_args = args;
+        args = default_args.split_whitespace().map(|s| s.to_string()).collect::<Vec<String>>();
+        args.extend(old_args);
+        println!("{:?}", args);
+    }
     (program.to_string(), args)
 }
 
