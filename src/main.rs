@@ -42,21 +42,12 @@ fn main() {
         process::exit(1);
     }
 
-    let options = make_options(&matches);
-
-    let (mut pattern, file_names) = match matches.opt_str("pattern") {
-        Some(pattern) => {
-            (pattern.clone(), matches.free.iter().collect::<Vec<_>>())
-        }
-        None => {
-            (matches.free[0].clone(), matches.free.iter().skip(1).collect::<Vec<_>>())
-        }
+    let (pattern, file_names) = match matches.opt_str("pattern") {
+        Some(pattern) => (pattern.clone(), matches.free.iter().collect::<Vec<_>>()),
+        None => (matches.free[0].clone(), matches.free.iter().skip(1).collect::<Vec<_>>()),
     };
 
-    if options != "" {
-        pattern = format!("(?{}){}", &options, &pattern);
-    }
-    let pattern = pattern;
+    let pattern = add_re_options_to_pattern(&matches, &pattern);
 
     let re = Regex::new(&pattern);
     if let Err(err) = re {
@@ -87,8 +78,8 @@ fn main() {
 
     // Output is passed here so that tests can read the output.
     let mut output = io::stdout();
-    match process_files(re.expect("Bug, already checked for a regex parse error."),
-                        &matches,
+    match process_files(&matches,
+                        re.expect("Bug, already checked for a regex parse error."),
                         &mut files,
                         &mut output) {
         Ok(status) => process::exit(status),
@@ -167,9 +158,7 @@ fn make_opts() -> Options {
                 "group",
                 "show the match group, specified by number or name",
                 "GROUP");
-    opts.optflag("v",
-                 "no-match",
-                 "show only non-matching");
+    opts.optflag("v", "no-match", "show only non-matching");
     opts.optflag("r", "recursive", "recurse, follow all symbolic links");
     opts.optflag("",
                  "cautious-recursive",
@@ -186,18 +175,22 @@ fn make_opts() -> Options {
     opts
 }
 
-fn make_options(matches: &Matches) -> String {
+fn add_re_options_to_pattern(matches: &Matches, pattern: &str) -> String {
     let mut options: String = "".to_string();
     for option in vec!["i", "s", "m", "x"] {
         if matches.opt_present(&option) {
             options.push_str(&option);
         }
     }
-    options
+    if options != "" {
+        format!("(?{}){}", &options, &pattern)
+    } else {
+        pattern.to_string()
+    }
 }
 
-fn process_files(re: Regex,
-                 matches: &Matches,
+fn process_files(matches: &Matches,
+                 re: Regex,
                  files: &mut Vec<Source>,
                  mut output: &mut Write)
                  -> Result<i32, String> {
@@ -205,14 +198,14 @@ fn process_files(re: Regex,
 
     let mut exit_code = 0;
     for mut file in files {
-        exit_code = try!(process_file(&re, &matches, &mut file, &mut output));
+        exit_code = try!(process_file(&matches, &re, &mut file, &mut output));
     }
     try!(output.flush().map_err(|e| e.to_string()));
     Ok(exit_code)
 }
 
-fn process_file(re: &Regex,
-                matches: &Matches,
+fn process_file(matches: &Matches,
+                re: &Regex,
                 file: &mut Source,
                 mut output: &mut Write)
                 -> Result<i32, String> {
@@ -236,6 +229,7 @@ fn process_file(re: &Regex,
     let group = matches.opt_str("group");
     let line_oriented = matches.opt_present("line-oriented");
     let no_match = matches.opt_present("no-match");
+    let only_matches = matches.opt_present("only-matches");
     let quiet = matches.opt_present("quiet");
     let replace = matches.opt_str("replace");
     let stdout = matches.opt_present("stdout");
@@ -277,7 +271,7 @@ fn process_file(re: &Regex,
             content = re.replace_all(&content, color.paint("$0").to_string().as_str());
         }
 
-        let mut process_text = |text: &str| -> Result<i32, String> {
+        let mut process_text = |pre: &str, text: &str, post: &str| -> Result<i32, String> {
             if let Some(ref group) = group {
                 if let Some(captures) = re.captures(&text) {
                     match group.trim().parse::<usize>() {
@@ -299,12 +293,32 @@ fn process_file(re: &Regex,
                 Ok(0)
             } else if no_match {
                 if !re.is_match(&text) {
+                    try!(output.write(&pre.to_string().into_bytes())
+                               .map_err(|e| e.to_string()));
                     try!(output.write(&text.to_string().into_bytes())
+                               .map_err(|e| e.to_string()));
+                    try!(output.write(&post.to_string().into_bytes())
                                .map_err(|e| e.to_string()));
                 }
                 Ok(0)
             } else if re.is_match(&text) {
-                try!(output.write(&text.to_string().into_bytes()).map_err(|e| e.to_string()));
+                try!(output.write(&pre.to_string().into_bytes())
+                           .map_err(|e| e.to_string()));
+                if only_matches {
+                    for (start, end) in re.find_iter(&text) {
+                        let mut the_match = text[start..end].to_string();
+                        if colors {
+                            the_match = re.replace_all(&the_match,
+                                                       color.paint("$0").to_string().as_str());
+                        }
+                        try!(output.write(&the_match.to_string().into_bytes())
+                                   .map_err(|e| e.to_string()));
+                    }
+                } else {
+                    try!(output.write(&text.to_string().into_bytes()).map_err(|e| e.to_string()));
+                }
+                try!(output.write(&post.to_string().into_bytes())
+                           .map_err(|e| e.to_string()));
                 Ok(0)
             } else {
                 Ok(1)
@@ -313,15 +327,15 @@ fn process_file(re: &Regex,
 
         if line_oriented {
             for (line_number, line) in content.lines().enumerate() {
-                let mut line = line.to_string();
-                if line_number == 0 && line.starts_with("\n") {
-                    line.insert(0, '\n');
-                }
-                line = line.to_string() + "\n";
-                try!(process_text(&line));
+                let pre = if line_number == 0 && line.starts_with("\n") {
+                    "\n"
+                } else {
+                    ""
+                };
+                try!(process_text(pre, &line, "\n"));
             }
         } else {
-            try!(process_text(&content));
+            try!(process_text("", &content, ""));
         }
     }
     Ok(exit_code)

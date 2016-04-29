@@ -1,6 +1,6 @@
 use regex::Regex;
 use std::io::{Cursor, Read, Seek, SeekFrom, Write};
-use {make_opts, process_file, Source};
+use {add_re_options_to_pattern, make_opts, process_file, Source};
 
 #[test]
 fn basic_match() {
@@ -10,6 +10,65 @@ fn basic_match() {
     let options = "";
     let expected_exit_code = 0;
     let expected_screen_output = "This is a test.";
+    let expected_file_content = &input;
+
+    test(input,
+         pattern,
+         options,
+         expected_exit_code,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
+fn ignore_case_match() {
+
+    let input = "This is a test.";
+    let pattern = "IS";
+    let options = "--ignore-case";
+    let expected_exit_code = 0;
+    let expected_screen_output = "This is a test.";
+    let expected_file_content = &input;
+
+    test(input,
+         pattern,
+         options,
+         expected_exit_code,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
+fn extended_match() {
+
+    let input = "This is a test.";
+    let pattern = "
+# this is a commented
+# regex that will find
+# the word is.
+is # Look, that's it!
+# Cool magool.";
+    let options = "--extended";
+    let expected_exit_code = 0;
+    let expected_screen_output = "This is a test.";
+    let expected_file_content = &input;
+
+    test(input,
+         pattern,
+         options,
+         expected_exit_code,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
+fn only_matches() {
+
+    let input = "This is a test.";
+    let pattern = "is";
+    let options = "--only-matches";
+    let expected_exit_code = 0;
+    let expected_screen_output = "isis";
     let expected_file_content = &input;
 
     test(input,
@@ -272,7 +331,12 @@ fn test(input: &str,
         expected_screen_output: &str,
         expected_file_content: &str) {
 
-    let re = Regex::new(pattern).unwrap();
+    let opts = make_opts();
+    let options: Vec<&str> = options.split_whitespace().collect();
+    let matches = opts.parse(&options).unwrap();
+    let pattern = add_re_options_to_pattern(&matches, pattern);
+
+    let re = Regex::new(&pattern).unwrap();
 
     let mut cursor = Cursor::<Vec<u8>>::new(vec![]);
     cursor.write(&input.to_string().into_bytes()).unwrap();
@@ -280,11 +344,7 @@ fn test(input: &str,
     let mut file = Source::Cursor(Box::new(cursor));
     let mut screen_output: Vec<u8> = vec![];
 
-    let opts = make_opts();
-    let options: Vec<&str> = options.split_whitespace().collect();
-    let matches = opts.parse(&options).unwrap();
-
-    let exit_code = process_file(&re, &matches, &mut file, &mut screen_output).unwrap();
+    let exit_code = process_file(&matches, &re, &mut file, &mut screen_output).unwrap();
 
     let screen_output = String::from_utf8(screen_output).unwrap();
 
