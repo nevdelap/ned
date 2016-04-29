@@ -49,3 +49,10 @@ Quiet:
     quiet it returns an exit code of 0 if a match is found in ALL files. Quiet
     any matches will only read only as many files as needed to find a match.
     Quiet matches are more performant than non-quiet matches.
+
+
+
+
+OTHER
+
+TODO Change from Result<i32, String> to Result<i32, NedError>."

@@ -34,7 +34,7 @@ fn main() {
 
     let matches = parsed.expect("Bug, already checked for a getopts parse error.");
     if matches.opt_present("version") {
-        print!("{}\n", &VERSION);
+        println!("{}", &VERSION);
         process::exit(1);
     }
 
@@ -43,7 +43,7 @@ fn main() {
                             program,
                             &OPTS_AND_ARGS,
                             &PRE_DESCRIPTION);
-        print!("{}{}\n", opts.usage(&brief), &POST_DESCRIPTION);
+        println!("{}{}", opts.usage(&brief), &POST_DESCRIPTION);
         process::exit(1);
     }
 
@@ -62,7 +62,6 @@ fn main() {
 
     let stdin = file_names.len() == 0;
 
-    println!("TODO: add recursive");
     let mut files = Vec::<Source>::new();
     if stdin {
         files.push(Source::Stdin(Box::new(io::stdin())));
@@ -213,8 +212,6 @@ fn process_files(matches: &Matches,
                  files: &mut Vec<Source>,
                  mut output: &mut Write)
                  -> Result<i32, String> {
-    println!("TODO: Change from Result<i32, String> to Result<i32, NedError>.");
-
     let mut exit_code = 0;
     for mut file in files {
         exit_code = try!(process_file(&matches, &re, &mut file, &mut output));
