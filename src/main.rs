@@ -1,16 +1,18 @@
+extern crate ansi_term;
 extern crate getopts;
 extern crate regex;
-extern crate ansi_term;
+extern crate walkdir;
 
 use ansi_term::Colour::Red;
 use getopts::{Matches, Options, ParsingStyle};
 use regex::Regex;
-use std::{env, path, process};
 use std::fs::{File, OpenOptions};
 #[cfg(test)]
 use std::io::Cursor;
 use std::io::{self, Read, Seek, SeekFrom, Write};
 use std::string::String;
+use std::{env, path, process};
+use walkdir::WalkDir;
 
 #[cfg(test)]
 mod tests;
@@ -62,23 +64,40 @@ fn main() {
 
     let stdin = file_names.len() == 0;
 
+    let follow = matches.opt_present("follow");
+    let recursive = matches.opt_present("recursive");
+
     let mut files = Vec::<Source>::new();
     if stdin {
         files.push(Source::Stdin(Box::new(io::stdin())));
     } else {
         for file_name in file_names {
-            match OpenOptions::new()
-                      .read(true)
-                      .write(matches.opt_present("replace"))
-                      .open(file_name) {
-                Ok(file) => files.push(Source::File(Box::new(file))),
-                Err(err) => {
-                    println!("{}: {}", &program, err.to_string());
-                    process::exit(1);
+            for entry in WalkDir::new(file_name).follow_links(follow) {
+                match entry {
+                    Ok(entry) => {
+                        println!("{:?}", entry.path());
+                        if entry.file_type().is_file() {
+                            match OpenOptions::new()
+                                      .read(true)
+                                      .write(matches.opt_present("replace"))
+                                      .open(entry.path()) {
+                                Ok(file) => files.push(Source::File(Box::new(file))),
+                                Err(err) => {
+                                    println!("{}: {}", &program, err.to_string());
+                                    process::exit(1);
+                                }
+                            }
+                        }
+                    }
+                    Err(err) => {
+                        println!("{}: {}", &program, err.to_string());
+                        process::exit(1);
+                    }
                 }
             }
         }
     }
+    return;
 
     // Output is passed here so that tests can read the output.
     let mut output = io::stdout();
@@ -154,14 +173,14 @@ fn make_opts() -> Options {
                 "replace",
                 "replace matches, may include named groups",
                 "REPLACEMENT");
-    opts.optopt("n", "number", "match/replace N occurrences", "N");
-    opts.optopt("k",
-                "skip",
-                "skip N occurrences before matching/replacing",
-                "N");
-    opts.optflag("b",
-                 "backwards",
-                 "-n --number and -k --skip options count backwards");
+    // opts.optopt("n", "number", "match/replace N occurrences", "N");
+    // opts.optopt("k",
+    // "skip",
+    // "skip N occurrences before matching/replacing",
+    // "N");
+    // opts.optflag("b",
+    // "backwards",
+    // "-n --number and -k --skip options count backwards");
     opts.optflag("i", "ignore-case", "ignore case");
     opts.optflag("s",
                  "single",
@@ -177,17 +196,12 @@ fn make_opts() -> Options {
                 "show the match group, specified by number or name",
                 "GROUP");
     opts.optflag("v", "no-match", "show only non-matching");
-    opts.optflag("r", "recursive", "recurse, follow all symbolic links");
-    opts.optflag("",
-                 "cautious-recursive",
-                 "recurse, only follow symbolic links if they are on the command line");
+    opts.optflag("r", "recursive", "recurse");
+    opts.optflag("f", "follow", "follow symlinks");
     opts.optflag("c", "colors", "show matches in color");
     opts.optflag("", "stdout", "output to stdout");
     opts.optflag("q", "quiet", "suppress all normal output");
-    opts.optflag("a",
-                 "all",
-                 "exit code is 0 if all files match, default is \
-                 exit code is 0 if any file matches");
+    opts.optflag("a", "all", "do not ignore entries starting with .");
     opts.optflag("V", "version", "output version information and exit");
     opts.optflag("h", "help", "print this help menu and exit");
     opts
@@ -349,8 +363,7 @@ fn process_file(matches: &Matches,
                 } else {
                     let mut text = text.to_string();
                     if colors {
-                        text = re.replace_all(&text,
-                                                 color.paint("$0").to_string().as_str());
+                        text = re.replace_all(&text, color.paint("$0").to_string().as_str());
                     }
                     try!(output.write(&text.to_string().into_bytes()).map_err(|e| e.to_string()));
                 }

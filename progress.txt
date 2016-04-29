@@ -10,9 +10,9 @@ Done!    -p, --pattern PATTERN
                         to be put after the files for more convenient editing
 Done!    -r, --replace REPLACEMENT
                         replace matches, may include named groups
-TODO    -n, --number N      match/replace N occurrences
-TODO    -k, --skip N        skip N occurrences before matching/replacing
-TODO    -b, --backwards     -n --number and -k --skip options count backwards
+V2    -n, --number N      match/replace N occurrences
+V2    -k, --skip N        skip N occurrences before matching/replacing
+V2    -b, --backwards     -n --number and -k --skip options count backwards
 Done!    -i, --ignore-case   ignore case
 Done!    -s, --single        . matches newlines, ^ and $ match beginning and end of
                         each file
@@ -25,19 +25,16 @@ Done!    -o, --only-matches  show only matches
 Done!    -g, --group GROUP   show the match group, specified by number or name
 Done!    -v, --no-match      show only non-matching
 TODO    -r, --recursive     recurse, follow all symbolic links
-        --cautious-recursive
-                        recurse, only follow symbolic links if they are on the
-                        command line
+Done!    -f, --follow    follow symlinks
 Done!    -c, --colors        show matches in color
 Done!        --stdout        output to stdout
 Done!    -q, --quiet         suppress all normal output
-TODO    -a, --all           exit code is 0 if all files match, default is exit
-                        code is 0 if any file matches
+TODO    -a, --all           do not ignore entries starting with .
 Done!    -V, --version       output version information and exit
 Done!    -h, --help          print this help menu and exit
 
 Environment:
-TODO    NED_DEFAULTS        ned options prepended to the program's arguments
+Done!    NED_DEFAULTS        ned options prepended to the program's arguments
 
 Exit codes:
 TODO    0                   matches found/replaced

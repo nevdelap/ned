@@ -395,17 +395,27 @@ fn test(input: &str,
         expected_screen_output: &str,
         expected_file_content: &str) {
 
-    really_test(input, pattern, options, expected_exit_code, expected_screen_output, expected_file_content);
+    really_test(input,
+                pattern,
+                options,
+                expected_exit_code,
+                expected_screen_output,
+                expected_file_content);
     let options = format!("{} --quiet", options);
-    really_test(input, pattern, &options, expected_exit_code, "", expected_file_content);
+    really_test(input,
+                pattern,
+                &options,
+                expected_exit_code,
+                "",
+                expected_file_content);
 }
 
 fn really_test(input: &str,
-        pattern: &str,
-        options: &str,
-        expected_exit_code: i32,
-        expected_screen_output: &str,
-        expected_file_content: &str) {
+               pattern: &str,
+               options: &str,
+               expected_exit_code: i32,
+               expected_screen_output: &str,
+               expected_file_content: &str) {
 
     let opts = make_opts();
     let options: Vec<&str> = options.split_whitespace().collect();

@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Nev Delap <nevdelap@gmail.com>"]
 
 [dependencies]
+ansi_term = "0.7.2"
 getopts = "0.2.14"
 regex = "0.1.66"
-ansi_term = "0.7.2"
+walkdir = "0.1.5"
