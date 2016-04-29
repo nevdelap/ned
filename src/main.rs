@@ -255,7 +255,9 @@ fn process_file(matches: &Matches,
         }
         content = re.replace_all(&content, replace.as_str());
         if stdout {
-            try!(output.write(&content.into_bytes()).map_err(|e| e.to_string()));
+            if !quiet {
+                try!(output.write(&content.into_bytes()).map_err(|e| e.to_string()));
+            }
         } else {
             match file {
                 &mut Source::File(ref mut file) => {

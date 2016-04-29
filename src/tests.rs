@@ -353,42 +353,6 @@ fn colored_match() {
 }
 
 #[test]
-fn quiet_match() {
-
-    let input = "This is a test.";
-    let pattern = "is";
-    let options = "--quiet";
-    let expected_exit_code = 0;
-    let expected_screen_output = "";
-    let expected_file_content = &input;
-
-    test(input,
-         pattern,
-         options,
-         expected_exit_code,
-         expected_screen_output,
-         expected_file_content);
-}
-
-#[test]
-fn quiet_no_match() {
-
-    let input = "This is a test.";
-    let pattern = "as";
-    let options = "--quiet";
-    let expected_exit_code = 1;
-    let expected_screen_output = "";
-    let expected_file_content = &input;
-
-    test(input,
-         pattern,
-         options,
-         expected_exit_code,
-         expected_screen_output,
-         expected_file_content);
-}
-
-#[test]
 fn basic_replace() {
 
     let input = "This is a test.";
@@ -425,6 +389,18 @@ fn basic_replace_to_stdout() {
 }
 
 fn test(input: &str,
+        pattern: &str,
+        options: &str,
+        expected_exit_code: i32,
+        expected_screen_output: &str,
+        expected_file_content: &str) {
+
+    really_test(input, pattern, options, expected_exit_code, expected_screen_output, expected_file_content);
+    let options = format!("{} --quiet", options);
+    really_test(input, pattern, &options, expected_exit_code, "", expected_file_content);
+}
+
+fn really_test(input: &str,
         pattern: &str,
         options: &str,
         expected_exit_code: i32,
