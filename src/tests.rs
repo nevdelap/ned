@@ -3,7 +3,7 @@ use std::io::{Cursor, Read, Seek, SeekFrom, Write};
 use {add_re_options_to_pattern, make_opts, process_file, Source};
 
 #[test]
-fn basic_match() {
+fn basic_match_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "is";
@@ -21,7 +21,7 @@ fn basic_match() {
 }
 
 #[test]
-fn ignore_case_match() {
+fn ignore_case_match_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "IS";
@@ -39,7 +39,7 @@ fn ignore_case_match() {
 }
 
 #[test]
-fn single_line_match() {
+fn single_line_match_quiet_and_not_quiet() {
 
     let input = "
 This is a test with
@@ -64,7 +64,7 @@ would want to read it.
 }
 
 #[test]
-fn multi_line_match_beginning_and_end_of_file() {
+fn multi_line_match_beginning_and_end_of_file_quiet_and_not_quiet() {
 
     let input = "
 This is a test with
@@ -89,7 +89,7 @@ would want to read it.
 }
 
 #[test]
-fn multi_line_match_beginning_and_end_of_lines() {
+fn multi_line_match_beginning_and_end_of_lines_quiet_and_not_quiet() {
 
     let input = "
 This is a test with
@@ -114,7 +114,7 @@ would want to read it.
 }
 
 #[test]
-fn single_and_multi_line_match() {
+fn single_and_multi_line_match_quiet_and_not_quiet() {
 
     let input = "
 This is a test with
@@ -139,7 +139,7 @@ would want to read it.
 }
 
 #[test]
-fn extended_match() {
+fn extended_match_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "
@@ -162,7 +162,7 @@ is # Look, that's it!
 }
 
 #[test]
-fn only_matches() {
+fn only_matches_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "is";
@@ -180,7 +180,7 @@ fn only_matches() {
 }
 
 #[test]
-fn match_line_oriented() {
+fn match_line_oriented_quiet_and_not_quiet() {
 
     let input = "
 This is a test with
@@ -209,7 +209,7 @@ tests because no one
 }
 
 #[test]
-fn no_match() {
+fn no_match_quiet_and_not_quiet() {
 
     let input = "
 This is a test with
@@ -234,7 +234,7 @@ would want to read it.
 }
 
 #[test]
-fn no_match_line_oriented() {
+fn no_match_line_oriented_quiet_and_not_quiet() {
 
     let input = "
 This is a test with
@@ -263,7 +263,7 @@ would want to read it.
 }
 
 #[test]
-fn group_0_match() {
+fn group_0_match_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "Th(is)";
@@ -281,7 +281,7 @@ fn group_0_match() {
 }
 
 #[test]
-fn group_1_match() {
+fn group_1_match_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "Th(is)";
@@ -299,7 +299,7 @@ fn group_1_match() {
 }
 
 #[test]
-fn group_2_match() {
+fn group_2_match_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "is (a) (test)";
@@ -317,7 +317,7 @@ fn group_2_match() {
 }
 
 #[test]
-fn named_group_match() {
+fn named_group_match_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "is (a) (?P<dave>test)";
@@ -335,7 +335,7 @@ fn named_group_match() {
 }
 
 #[test]
-fn colored_match() {
+fn colored_match_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "is";
@@ -353,7 +353,7 @@ fn colored_match() {
 }
 
 #[test]
-fn basic_replace() {
+fn basic_replace_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "is";
@@ -371,7 +371,7 @@ fn basic_replace() {
 }
 
 #[test]
-fn basic_replace_to_stdout() {
+fn basic_replace_to_stdout_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "is";
