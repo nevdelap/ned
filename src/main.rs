@@ -33,7 +33,7 @@ fn main() {
     }
 
     let matches = parsed.expect("Bug, already checked for a getopts parse error.");
-    if matches.free.len() == 0 || matches.opt_present("h") {
+    if matches.free.len() == 0 && !matches.opt_present("pattern") || matches.opt_present("h") {
         let brief = format!("Usage: {} {}\n{}",
                             program,
                             &OPTS_AND_ARGS,
@@ -44,7 +44,15 @@ fn main() {
 
     let options = make_options(&matches);
 
-    let mut pattern: String = matches.free[0].clone();
+    let (mut pattern, file_names) = match matches.opt_str("pattern") {
+        Some(pattern) => {
+            (pattern.clone(), matches.free.iter().collect::<Vec<_>>())
+        }
+        None => {
+            (matches.free[0].clone(), matches.free.iter().skip(1).collect::<Vec<_>>())
+        }
+    };
+
     if options != "" {
         pattern = format!("(?{}){}", &options, &pattern);
     }
@@ -56,7 +64,6 @@ fn main() {
         process::exit(1);
     }
 
-    let file_names: Vec<&String> = matches.free.iter().skip(1).collect();
     let stdin = file_names.len() == 0;
 
     println!("TODO: add recursive");
