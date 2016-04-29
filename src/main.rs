@@ -267,10 +267,6 @@ fn process_file(matches: &Matches,
             1
         };
     } else {
-        if colors {
-            content = re.replace_all(&content, color.paint("$0").to_string().as_str());
-        }
-
         let mut process_text = |pre: &str, text: &str, post: &str| -> Result<i32, String> {
             if let Some(ref group) = group {
                 if let Some(captures) = re.captures(&text) {
@@ -280,12 +276,26 @@ fn process_file(matches: &Matches,
                         Ok(index) => {
                             // if there are captures exit_code = 1
                             if let Some(matched) = captures.at(index) {
+                                let mut matched = matched.to_string();
+                                if colors {
+                                    matched = re.replace_all(&matched,
+                                                             color.paint("$0")
+                                                                  .to_string()
+                                                                  .as_str());
+                                }
                                 try!(output.write(&matched.to_string().into_bytes())
                                            .map_err(|e| e.to_string()));
                             }
                         }
                         Err(_) => {
                             if let Some(matched) = captures.name(group) {
+                                let mut matched = matched.to_string();
+                                if colors {
+                                    matched = re.replace_all(&matched,
+                                                             color.paint("$0")
+                                                                  .to_string()
+                                                                  .as_str());
+                                }
                                 try!(output.write(&matched.to_string().into_bytes())
                                            .map_err(|e| e.to_string()));
                             }
@@ -313,12 +323,17 @@ fn process_file(matches: &Matches,
                         let mut matched = text[start..end].to_string();
                         if colors {
                             matched = re.replace_all(&matched,
-                                                       color.paint("$0").to_string().as_str());
+                                                     color.paint("$0").to_string().as_str());
                         }
                         try!(output.write(&matched.to_string().into_bytes())
                                    .map_err(|e| e.to_string()));
                     }
                 } else {
+                    let mut text = text.to_string();
+                    if colors {
+                        text = re.replace_all(&text,
+                                                 color.paint("$0").to_string().as_str());
+                    }
                     try!(output.write(&text.to_string().into_bytes()).map_err(|e| e.to_string()));
                 }
                 try!(output.write(&post.to_string().into_bytes())
