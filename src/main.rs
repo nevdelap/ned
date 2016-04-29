@@ -36,7 +36,7 @@ fn main() {
 
     let matches = parsed.expect("Bug, already checked for a getopts parse error.");
     if matches.opt_present("version") {
-        println!("{}", &VERSION);
+        println!("{}{}", &VERSION, &LICENSE);
         process::exit(1);
     }
 
@@ -45,7 +45,7 @@ fn main() {
                             program,
                             &OPTS_AND_ARGS,
                             &PRE_DESCRIPTION);
-        println!("{}{}", opts.usage(&brief), &POST_DESCRIPTION);
+        println!("\n{}{}{}{}", opts.usage(&brief), &POST_DESCRIPTION, &VERSION, &LICENSE);
         process::exit(1);
     }
 
@@ -134,11 +134,10 @@ Quiet:
     any matches will only read only as many files as needed to find a match.
     Quiet matches are more performant than non-quiet matches.
 ";
-static VERSION: &'static str = "\
-ned 0.1.0
-Copyright (C) 2016 Nev Delap
-https://github.com/nevdelap/ned
-
+static VERSION: &'static str = "
+ned 0.1.0 Copyright (C) 2016 Nev Delap - https://github.com/nevdelap/ned
+";
+static LICENSE: &'static str = "
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
