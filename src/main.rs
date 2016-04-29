@@ -33,6 +33,11 @@ fn main() {
     }
 
     let matches = parsed.expect("Bug, already checked for a getopts parse error.");
+    if matches.opt_present("version") {
+        print!("{}\n", &VERSION);
+        process::exit(1);
+    }
+
     if matches.free.len() == 0 && !matches.opt_present("pattern") || matches.opt_present("h") {
         let brief = format!("Usage: {} {}\n{}",
                             program,
@@ -110,6 +115,15 @@ Quiet:
     quiet it returns an exit code of 0 if a match is found in ALL files. Quiet
     any matches will only read only as many files as needed to find a match.
     Quiet matches are more performant than non-quiet matches.
+";
+static VERSION: &'static str = "\
+ned 0.1.0
+Copyright (C) 2016 Nev Delap
+https://github.com/nevdelap/ned
+
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
 ";
 
 fn get_program_and_args() -> (String, Vec<String>) {

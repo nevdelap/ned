@@ -39,6 +39,106 @@ fn ignore_case_match() {
 }
 
 #[test]
+fn single_line_match() {
+
+    let input = "
+This is a test with
+multiple lines of very
+uninteresting content
+that is only good for
+tests because no one
+would want to read it.
+";
+    let pattern = r"^\nThis.*read it.\n$";
+    let options = "--single";
+    let expected_exit_code = 0;
+    let expected_screen_output = &input;
+    let expected_file_content = &input;
+
+    test(input,
+         pattern,
+         options,
+         expected_exit_code,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
+fn multi_line_match_beginning_and_end_of_file() {
+
+    let input = "
+This is a test with
+multiple lines of very
+uninteresting content
+that is only good for
+tests because no one
+would want to read it.
+";
+    let pattern = r"\A\nThis(.|[\n])+read it.\n\z";
+    let options = "--multiline";
+    let expected_exit_code = 0;
+    let expected_screen_output = &input;
+    let expected_file_content = &input;
+
+    test(input,
+         pattern,
+         options,
+         expected_exit_code,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
+fn multi_line_match_beginning_and_end_of_lines() {
+
+    let input = "
+This is a test with
+multiple lines of very
+uninteresting content
+that is only good for
+tests because no one
+would want to read it.
+";
+    let pattern = r"^multiple(.|[\n])+for$";
+    let options = "--multiline";
+    let expected_exit_code = 0;
+    let expected_screen_output = &input;
+    let expected_file_content = &input;
+
+    test(input,
+         pattern,
+         options,
+         expected_exit_code,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
+fn single_and_multi_line_match() {
+
+    let input = "
+This is a test with
+multiple lines of very
+uninteresting content
+that is only good for
+tests because no one
+would want to read it.
+";
+    let pattern = r"\A\nThis.+read it.\n\z";
+    let options = "--single --multiline";
+    let expected_exit_code = 0;
+    let expected_screen_output = &input;
+    let expected_file_content = &input;
+
+    test(input,
+         pattern,
+         options,
+         expected_exit_code,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
 fn extended_match() {
 
     let input = "This is a test.";
