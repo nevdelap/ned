@@ -137,8 +137,7 @@ fn get_program_and_args() -> (String, Vec<String>) {
     if let Ok(default_args) = env::var("NED_DEFAULTS") {
         let old_args = args;
         args = default_args.split_whitespace().map(|s| s.to_string()).collect::<Vec<String>>();
-        args.extend(old_args);
-        println!("{:?}", args);
+        args.extend(old_args);;
     }
     (program.to_string(), args)
 }
