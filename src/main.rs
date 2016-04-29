@@ -274,6 +274,8 @@ fn process_file(matches: &Matches,
         let mut process_text = |pre: &str, text: &str, post: &str| -> Result<i32, String> {
             if let Some(ref group) = group {
                 if let Some(captures) = re.captures(&text) {
+                    try!(output.write(&pre.to_string().into_bytes())
+                               .map_err(|e| e.to_string()));
                     match group.trim().parse::<usize>() {
                         Ok(index) => {
                             // if there are captures exit_code = 1
@@ -289,6 +291,8 @@ fn process_file(matches: &Matches,
                             }
                         }
                     }
+                    try!(output.write(&post.to_string().into_bytes())
+                               .map_err(|e| e.to_string()));
                 }
                 Ok(0)
             } else if no_match {
@@ -306,12 +310,12 @@ fn process_file(matches: &Matches,
                            .map_err(|e| e.to_string()));
                 if only_matches {
                     for (start, end) in re.find_iter(&text) {
-                        let mut the_match = text[start..end].to_string();
+                        let mut matched = text[start..end].to_string();
                         if colors {
-                            the_match = re.replace_all(&the_match,
+                            matched = re.replace_all(&matched,
                                                        color.paint("$0").to_string().as_str());
                         }
-                        try!(output.write(&the_match.to_string().into_bytes())
+                        try!(output.write(&matched.to_string().into_bytes())
                                    .map_err(|e| e.to_string()));
                     }
                 } else {
