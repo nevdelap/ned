@@ -269,6 +269,7 @@ fn process_file(re: &Regex,
         if colors {
             content = re.replace_all(&content, color.paint("$0").to_string().as_str());
         }
+
         let mut process_text = |text: &str| -> Result<i32, String> {
             if let Some(ref group) = group {
                 if let Some(captures) = re.captures(&text) {
@@ -304,13 +305,17 @@ fn process_file(re: &Regex,
         };
 
         if line_oriented {
-            for line in content.lines() {
-                try!(process_text(&(line.to_string() + "\n")));
+            for (line_number, line) in content.lines().enumerate() {
+                let mut line = line.to_string();
+                if line_number == 0 && line.starts_with("\n") {
+                    line.insert(0, '\n');
+                }
+                line = line.to_string() + "\n";
+                try!(process_text(&line));
             }
         } else {
             try!(process_text(&content));
         }
     }
-
     Ok(exit_code)
 }
