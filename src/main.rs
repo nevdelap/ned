@@ -88,6 +88,7 @@ fn main() {
             if !recursive {
                 walkdir = walkdir.max_depth(1);
             }
+            // Filter on excludes.
             for entry in walkdir {
                 match entry {
                     Ok(entry) => {
@@ -219,7 +220,7 @@ fn make_opts() -> Options {
     opts.optflag("f", "follow", "follow symlinks");
     opts.optopt("",
                 "include",
-                "search only files that match FILE_PATTERN",
+                "match only files that match FILE_PATTERN",
                 "FILE_PATTERN");
     opts.optopt("",
                 "exclude",
