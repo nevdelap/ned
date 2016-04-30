@@ -1,10 +1,12 @@
 extern crate ansi_term;
 extern crate getopts;
+extern crate glob;
 extern crate regex;
 extern crate walkdir;
 
 use ansi_term::Colour::Red;
 use getopts::{Matches, Options, ParsingStyle};
+use glob::Pattern;
 use regex::Regex;
 use std::fs::{File, OpenOptions};
 #[cfg(test)]
@@ -45,7 +47,11 @@ fn main() {
                             program,
                             &OPTS_AND_ARGS,
                             &PRE_DESCRIPTION);
-        println!("\n{}{}{}{}", opts.usage(&brief), &POST_DESCRIPTION, &VERSION, &LICENSE);
+        println!("\n{}{}{}{}",
+                 opts.usage(&brief),
+                 &POST_DESCRIPTION,
+                 &VERSION,
+                 &LICENSE);
         process::exit(1);
     }
 
@@ -62,6 +68,12 @@ fn main() {
         process::exit(1);
     }
 
+    // SOMEWHERE
+    // Get includes and excludes... and create collections of patterns...
+    // Pattern::new("c?t").unwrap()
+    let includes = Vec::<Pattern>::new();
+    let excludes = Vec::<Pattern>::new();
+
     let stdin = file_names.len() == 0;
 
     let follow = matches.opt_present("follow");
@@ -72,19 +84,27 @@ fn main() {
         files.push(Source::Stdin(Box::new(io::stdin())));
     } else {
         for file_name in file_names {
-            for entry in WalkDir::new(file_name).follow_links(follow) {
+            let mut walkdir = WalkDir::new(file_name).follow_links(follow);
+            if !recursive {
+                walkdir = walkdir.max_depth(1);
+            }
+            for entry in walkdir {
                 match entry {
                     Ok(entry) => {
-                        println!("{:?}", entry.path());
-                        if entry.file_type().is_file() {
-                            match OpenOptions::new()
-                                      .read(true)
-                                      .write(matches.opt_present("replace"))
-                                      .open(entry.path()) {
-                                Ok(file) => files.push(Source::File(Box::new(file))),
-                                Err(err) => {
-                                    println!("{}: {}", &program, err.to_string());
-                                    process::exit(1);
+                        if let Some(path) = entry.path().to_str() {
+                            println!("{:?}", entry.path());
+                            if entry.file_type().is_file() &&
+                               (includes.len() ==0 || includes.iter().any(|pattern| pattern.matches(path))) &&
+                               !excludes.iter().any(|pattern| pattern.matches(path)) {
+                                match OpenOptions::new()
+                                          .read(true)
+                                          .write(matches.opt_present("replace"))
+                                          .open(path) {
+                                    Ok(file) => files.push(Source::File(Box::new(file))),
+                                    Err(err) => {
+                                        println!("{}: {}", &program, err.to_string());
+                                        process::exit(1);
+                                    }
                                 }
                             }
                         }
@@ -195,8 +215,16 @@ fn make_opts() -> Options {
                 "show the match group, specified by number or name",
                 "GROUP");
     opts.optflag("v", "no-match", "show only non-matching");
-    opts.optflag("r", "recursive", "recurse");
+    opts.optflag("R", "recursive", "recurse");
     opts.optflag("f", "follow", "follow symlinks");
+    opts.optopt("",
+                "include",
+                "search only files that match FILE_PATTERN",
+                "FILE_PATTERN");
+    opts.optopt("",
+                "exclude",
+                "skip files and directories matching FILE_PATTERN",
+                "FILE_PATTERN");
     opts.optflag("c", "colors", "show matches in color");
     opts.optflag("", "stdout", "output to stdout");
     opts.optflag("q", "quiet", "suppress all normal output");
