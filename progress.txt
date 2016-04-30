@@ -24,8 +24,12 @@ Done!    -x, --extended      ignore whitespace and # comments
 Done!    -o, --only-matches  show only matches
 Done!    -g, --group GROUP   show the match group, specified by number or name
 Done!    -v, --no-match      show only non-matching
-TODO    -r, --recursive     recurse, follow all symbolic links
+Done!    -r, --recursive     recurse, follow all symbolic links
 Done!    -f, --follow    follow symlinks
+TODO        --include FILE_PATTERN
+                        search only files that match FILE_PATTERN
+TODO        --exclude FILE_PATTERN
+                        skip files and directories matching FILE_PATTERN
 Done!    -c, --colors        show matches in color
 Done!        --stdout        output to stdout
 Done!    -q, --quiet         suppress all normal output
