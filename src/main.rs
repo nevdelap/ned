@@ -12,12 +12,14 @@ use std::fs::{File, OpenOptions};
 #[cfg(test)]
 use std::io::Cursor;
 use std::io::{self, Read, Seek, SeekFrom, Write};
+use std::path::Path;
 use std::string::String;
 use std::{env, path, process};
 use walkdir::{WalkDir, WalkDirIterator};
 
 #[cfg(test)]
 mod test_matches;
+#[cfg(test)]
 mod test_other;
 
 enum Source {
@@ -79,16 +81,24 @@ fn ned(program: &str, args: &Vec<String>) -> Result<i32, String> {
         process::exit(1);
     }
 
-    let mut files = try!(get_files(&matches, &file_names).map_err(|e| e.to_string()));
+    //    let files = try!(get_files(&matches, &file_names, |path| {
+    // let file = try!(OpenOptions::new()
+    // .read(true)
+    // .write(matches.opt_present("replace"))
+    // .open(path)
+    // .map_err(|e| e.to_string()));
+    // Ok(Source::File(Box::new(file)))
+    // }).map_err(|e| e.to_string()));
     // Output is passed here so that tests can read the output.
-    let mut output = io::stdout();
-    let exit_status = try!(process_files(&matches,
-                                         re.expect("Bug, already checked for a regex parse \
-                                                    error."),
-                                         &mut files,
-                                         &mut output)
-                               .map_err(|e| e.to_string()));
-    Ok(exit_status)
+    // / *    let mut output = io::stdout();
+    // let exit_status = try!(process_files(&matches,
+    // re.expect("Bug, already checked for a regex parse \
+    // error."),
+    // &mut files,
+    // &mut output)
+    // .map_err(|e| e.to_string()));
+    // Ok(exit_status)
+    Ok(0)
 }
 
 static OPTS_AND_ARGS: &'static str = "[OPTION]... [-p] <PATTERN> [FILE]...";
@@ -201,16 +211,20 @@ fn add_re_options_to_pattern(matches: &Matches, pattern: &str) -> String {
     }
 }
 
-fn get_files(matches: &Matches, file_names: &Vec<&String>) -> Result<Vec<Source>, String> {
+fn get_files<T, F>(matches: &Matches,
+                   file_names: &Vec<&String>,
+                   make_file: F)
+                   -> Result<Vec<T>, String>
+    where T: Clone,
+          F: Fn(&Path) -> T
+{
     let stdin = file_names.len() == 0;
-    let follow = matches.opt_present("follow");
-    let recursive = matches.opt_present("recursive");
-    let all = matches.opt_present("all");
 
-    let mut files = Vec::<Source>::new();
-    if stdin {
-        files.push(Source::Stdin(Box::new(io::stdin())));
-    } else {
+    let mut files = Vec::<T>::new();
+    if !stdin {
+        let follow = matches.opt_present("follow");
+        let recursive = matches.opt_present("recursive");
+        let all = matches.opt_present("all");
         let mut includes = Vec::<Pattern>::new();
         for include in matches.opt_strs("include") {
             let pattern = try!(Pattern::new(&include).map_err(|e| e.to_string()));
@@ -255,12 +269,7 @@ fn get_files(matches: &Matches, file_names: &Vec<&String>) -> Result<Vec<Source>
                            !(excludes.iter().any(|pattern| pattern.matches(file_name)) ||
                              !all && file_name.starts_with(".")) {
                             println!("{:?}", path);
-                            let file = try!(OpenOptions::new()
-                                                .read(true)
-                                                .write(matches.opt_present("replace"))
-                                                .open(path)
-                                                .map_err(|e| e.to_string()));
-                            files.push(Source::File(Box::new(file)));
+                            files.push(make_file(&path).clone());
                         }
                     }
                 }
