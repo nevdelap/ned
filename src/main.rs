@@ -18,9 +18,9 @@ use std::{env, path, process};
 use walkdir::{WalkDir, WalkDirIterator};
 
 #[cfg(test)]
-mod test_everything;
-#[cfg(test)]
 mod test_files;
+#[cfg(test)]
+mod test_general;
 #[cfg(test)]
 mod test_matches;
 
