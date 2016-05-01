@@ -18,9 +18,9 @@ use std::{env, path, process};
 use walkdir::{WalkDir, WalkDirIterator};
 
 #[cfg(test)]
-mod test_matches;
+mod test_files;
 #[cfg(test)]
-mod test_other;
+mod test_matches;
 
 enum Source {
     Stdin(Box<Read>),
