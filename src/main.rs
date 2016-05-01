@@ -270,7 +270,6 @@ fn get_files<T, F>(matches: &Matches,
                             includes.iter().any(|pattern| pattern.matches(file_name))) &&
                            !(excludes.iter().any(|pattern| pattern.matches(file_name)) ||
                              !all && file_name.starts_with(".")) {
-                            println!("{:?}", path);
                             let file = try!(make_file(&path).map_err(|e| e.to_string()));
                             files.push(file);
                         }

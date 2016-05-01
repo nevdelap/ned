@@ -1,3 +1,5 @@
+/// Test file related functionality - recursion, inclusion, exclusion, symlinks, etc.
+
 use std::path::Path;
 use {get_files, make_opts};
 

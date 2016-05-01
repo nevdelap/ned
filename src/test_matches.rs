@@ -1,3 +1,6 @@
+/// Test match related functionality - different types of matches, matches with color, quiet, etc.
+/// The use of re, not re itself.
+
 use regex::Regex;
 use std::io::{Cursor, Read, Seek, SeekFrom, Write};
 use {add_re_options_to_pattern, make_opts, process_file, Source};
