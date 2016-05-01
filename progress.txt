@@ -26,14 +26,16 @@ Done!    -g, --group GROUP   show the match group, specified by number or name
 Done!    -v, --no-match      show only non-matching
 Done!    -r, --recursive     recurse, follow all symbolic links
 Done!    -f, --follow    follow symlinks
-TODO        --include FILE_PATTERN
+Done!        --include FILE_PATTERN
                         search only files that match FILE_PATTERN
-TODO        --exclude FILE_PATTERN
+Done!        --exclude FILE_PATTERN
                         skip files and directories matching FILE_PATTERN
+Done!        --exclude-dir GLOB
+                        skip directories matching GLOB
 Done!    -c, --colors        show matches in color
 Done!        --stdout        output to stdout
 Done!    -q, --quiet         suppress all normal output
-TODO    -a, --all           do not ignore entries starting with .
+Done!    -a, --all           do not ignore entries starting with .
 Done!    -V, --version       output version information and exit
 Done!    -h, --help          print this help menu and exit
 

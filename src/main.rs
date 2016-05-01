@@ -14,10 +14,11 @@ use std::io::Cursor;
 use std::io::{self, Read, Seek, SeekFrom, Write};
 use std::string::String;
 use std::{env, path, process};
-use walkdir::WalkDir;
+use walkdir::{WalkDir, WalkDirIterator};
 
 #[cfg(test)]
-mod tests;
+mod test_matches;
+mod test_other;
 
 enum Source {
     Stdin(Box<Read>),
@@ -29,8 +30,18 @@ enum Source {
 fn main() {
     let (program, args) = get_program_and_args();
 
+    match ned(&program, &args) {
+        Ok(exit_code) => process::exit(exit_code),
+        Err(err) => {
+            println!("{}: {}", &program, err.to_string());
+            process::exit(1)
+        }
+    }
+}
+
+fn ned(program: &str, args: &Vec<String>) -> Result<i32, String> {
     let opts = make_opts();
-    let parsed = opts.parse(&args);
+    let parsed = opts.parse(args);
     if let Err(err) = parsed {
         println!("{}: {}", &program, err.to_string());
         process::exit(1);
@@ -68,87 +79,16 @@ fn main() {
         process::exit(1);
     }
 
-    let stdin = file_names.len() == 0;
-
-    let follow = matches.opt_present("follow");
-    let recursive = matches.opt_present("recursive");
-
-    let mut files = Vec::<Source>::new();
-    if stdin {
-        files.push(Source::Stdin(Box::new(io::stdin())));
-    } else {
-        let mut includes = Vec::<Pattern>::new();
-        for include in matches.opt_strs("include") {
-            let pattern = Pattern::new(&include);
-            match pattern {
-                Ok(pattern) => includes.push(pattern),
-                Err(err) => {
-                    println!("{}: {}", &program, err.to_string());
-                    process::exit(1);
-                }
-            }
-        }
-        let mut excludes = Vec::<Pattern>::new();
-        for exclude in matches.opt_strs("exclude") {
-            let pattern = Pattern::new(&exclude);
-            match pattern {
-                Ok(pattern) => excludes.push(pattern),
-                Err(err) => {
-                    println!("{}: {}", &program, err.to_string());
-                    process::exit(1);
-                }
-            }
-        }
-        for file_name in file_names {
-            let mut walkdir = WalkDir::new(file_name).follow_links(follow);
-            if !recursive {
-                walkdir = walkdir.max_depth(1);
-            }
-            // Filter on excludes.
-            for entry in walkdir {
-                match entry {
-                    Ok(entry) => {
-                        if let Some(path) = entry.path().to_str() {
-                            if entry.file_type().is_file() &&
-                               (includes.len() == 0 ||
-                                includes.iter().any(|pattern| pattern.matches(path))) &&
-                               !excludes.iter().any(|pattern| pattern.matches(path)) {
-                                println!("{:?}", entry.path());
-                                match OpenOptions::new()
-                                          .read(true)
-                                          .write(matches.opt_present("replace"))
-                                          .open(path) {
-                                    Ok(file) => files.push(Source::File(Box::new(file))),
-                                    Err(err) => {
-                                        println!("{}: {}", &program, err.to_string());
-                                        process::exit(1);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    Err(err) => {
-                        println!("{}: {}", &program, err.to_string());
-                        process::exit(1);
-                    }
-                }
-            }
-        }
-    }
-    return;
-
+    let mut files = try!(get_files(&matches, &file_names).map_err(|e| e.to_string()));
     // Output is passed here so that tests can read the output.
     let mut output = io::stdout();
-    match process_files(&matches,
-                        re.expect("Bug, already checked for a regex parse error."),
-                        &mut files,
-                        &mut output) {
-        Ok(status) => process::exit(status),
-        Err(err) => {
-            println!("{}: {}", &program, err);
-            process::exit(1);
-        }
-    }
+    let exit_status = try!(process_files(&matches,
+                                         re.expect("Bug, already checked for a regex parse \
+                                                    error."),
+                                         &mut files,
+                                         &mut output)
+                               .map_err(|e| e.to_string()));
+    Ok(exit_status)
 }
 
 static OPTS_AND_ARGS: &'static str = "[OPTION]... [-p] <PATTERN> [FILE]...";
@@ -235,14 +175,9 @@ fn make_opts() -> Options {
     opts.optflag("v", "no-match", "show only non-matching");
     opts.optflag("R", "recursive", "recurse");
     opts.optflag("f", "follow", "follow symlinks");
-    opts.optmulti("",
-                  "include",
-                  "match only files that match FILE_PATTERN",
-                  "FILE_PATTERN");
-    opts.optmulti("",
-                  "exclude",
-                  "skip files and directories matching FILE_PATTERN",
-                  "FILE_PATTERN");
+    opts.optmulti("", "include", "match only files that match GLOB", "GLOB");
+    opts.optmulti("", "exclude", "skip files matching GLOB", "GLOB");
+    opts.optmulti("", "exclude-dir", "skip directories matching GLOB", "GLOB");
     opts.optflag("c", "colors", "show matches in color");
     opts.optflag("", "stdout", "output to stdout");
     opts.optflag("q", "quiet", "suppress all normal output");
@@ -264,6 +199,75 @@ fn add_re_options_to_pattern(matches: &Matches, pattern: &str) -> String {
     } else {
         pattern.to_string()
     }
+}
+
+fn get_files(matches: &Matches, file_names: &Vec<&String>) -> Result<Vec<Source>, String> {
+    let stdin = file_names.len() == 0;
+    let follow = matches.opt_present("follow");
+    let recursive = matches.opt_present("recursive");
+    let all = matches.opt_present("all");
+
+    let mut files = Vec::<Source>::new();
+    if stdin {
+        files.push(Source::Stdin(Box::new(io::stdin())));
+    } else {
+        let mut includes = Vec::<Pattern>::new();
+        for include in matches.opt_strs("include") {
+            let pattern = try!(Pattern::new(&include).map_err(|e| e.to_string()));
+            includes.push(pattern);
+        }
+        let mut excludes = Vec::<Pattern>::new();
+        for exclude in matches.opt_strs("exclude") {
+            let pattern = try!(Pattern::new(&exclude).map_err(|e| e.to_string()));
+            excludes.push(pattern);
+        }
+        let mut exclude_dir = Vec::<Pattern>::new();
+        for exclude in matches.opt_strs("exclude-dir") {
+            let pattern = try!(Pattern::new(&exclude).map_err(|e| e.to_string()));
+            exclude_dir.push(pattern);
+        }
+        for file_name in file_names {
+            let mut walkdir = WalkDir::new(file_name).follow_links(follow);
+            if !recursive {
+                walkdir = walkdir.max_depth(1);
+            }
+            // Filter on excludes.
+            for entry in walkdir.into_iter().filter_entry(|entry| {
+                let path = entry.path();
+                if let Some(file_name) = path.file_name() {
+                    return if let Some(file_name) = file_name.to_str() {
+                        !entry.file_type().is_dir() ||
+                        !(exclude_dir.iter().any(|pattern| pattern.matches(file_name)) ||
+                          !all && file_name.starts_with("."))
+                    } else {
+                        false
+                    };
+                }
+                true
+            }) {
+                let entry = try!(entry.map_err(|e| e.to_string()));
+                let path = entry.path();
+                if let Some(file_name) = path.file_name() {
+                    if let Some(file_name) = file_name.to_str() {
+                        if entry.file_type().is_file() &&
+                           (includes.len() == 0 ||
+                            includes.iter().any(|pattern| pattern.matches(file_name))) &&
+                           !(excludes.iter().any(|pattern| pattern.matches(file_name)) ||
+                             !all && file_name.starts_with(".")) {
+                            println!("{:?}", path);
+                            let file = try!(OpenOptions::new()
+                                                .read(true)
+                                                .write(matches.opt_present("replace"))
+                                                .open(path)
+                                                .map_err(|e| e.to_string()));
+                            files.push(Source::File(Box::new(file)));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Ok(files)
 }
 
 fn process_files(matches: &Matches,
