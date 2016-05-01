@@ -18,6 +18,8 @@ use std::{env, path, process};
 use walkdir::{WalkDir, WalkDirIterator};
 
 #[cfg(test)]
+mod test_everything;
+#[cfg(test)]
 mod test_files;
 #[cfg(test)]
 mod test_matches;
@@ -32,7 +34,9 @@ enum Source {
 fn main() {
     let (program, args) = get_program_and_args();
 
-    match ned(&program, &args) {
+    // Output is passed here so that tests can read the output.
+    let mut output = io::stdout();
+    match ned(&program, &args, &mut output) {
         Ok(exit_code) => process::exit(exit_code),
         Err(err) => {
             println!("{}: {}", &program, err.to_string());
@@ -41,7 +45,7 @@ fn main() {
     }
 }
 
-fn ned(program: &str, args: &Vec<String>) -> Result<i32, String> {
+fn ned(program: &str, args: &Vec<String>, mut output: &mut Write) -> Result<i32, String> {
     let opts = make_opts();
     let parsed = opts.parse(args);
     if let Err(err) = parsed {
@@ -69,8 +73,8 @@ fn ned(program: &str, args: &Vec<String>) -> Result<i32, String> {
     }
 
     let (pattern, file_names) = match matches.opt_str("pattern") {
-        Some(pattern) => (pattern.clone(), matches.free.iter().collect::<Vec<_>>()),
-        None => (matches.free[0].clone(), matches.free.iter().skip(1).collect::<Vec<_>>()),
+        Some(pattern) => (pattern.clone(), matches.free.iter().collect::<Vec<&String>>()),
+        None => (matches.free[0].clone(), matches.free.iter().skip(1).collect::<Vec<&String>>()),
     };
 
     let pattern = add_re_options_to_pattern(&matches, &pattern);
@@ -81,24 +85,23 @@ fn ned(program: &str, args: &Vec<String>) -> Result<i32, String> {
         process::exit(1);
     }
 
-    //    let files = try!(get_files(&matches, &file_names, |path| {
-    // let file = try!(OpenOptions::new()
-    // .read(true)
-    // .write(matches.opt_present("replace"))
-    // .open(path)
-    // .map_err(|e| e.to_string()));
-    // Ok(Source::File(Box::new(file)))
-    // }).map_err(|e| e.to_string()));
-    // Output is passed here so that tests can read the output.
-    // / *    let mut output = io::stdout();
-    // let exit_status = try!(process_files(&matches,
-    // re.expect("Bug, already checked for a regex parse \
-    // error."),
-    // &mut files,
-    // &mut output)
-    // .map_err(|e| e.to_string()));
-    // Ok(exit_status)
-    Ok(0)
+    let mut files = try!(get_files::<Source, _>(&matches, &file_names, |path| {
+                             let file = try!(OpenOptions::new()
+                                                 .read(true)
+                                                 .write(matches.opt_present("replace"))
+                                                 .open(path)
+                                                 .map_err(|e| e.to_string()));
+                             Ok(Source::File(Box::new(file)))
+                         })
+                             .map_err(|e| e.to_string()));
+
+    let exit_status = try!(process_files(&matches,
+                                         re.expect("Bug, already checked for a regex parse \
+                                                    error."),
+                                         &mut files,
+                                         &mut output)
+                               .map_err(|e| e.to_string()));
+    Ok(exit_status)
 }
 
 static OPTS_AND_ARGS: &'static str = "[OPTION]... [-p] <PATTERN> [FILE]...";
@@ -215,8 +218,7 @@ fn get_files<T, F>(matches: &Matches,
                    file_names: &Vec<&String>,
                    make_file: F)
                    -> Result<Vec<T>, String>
-    where T: Clone,
-          F: Fn(&Path) -> T
+    where F: Fn(&Path) -> Result<T, String>
 {
     let stdin = file_names.len() == 0;
 
@@ -269,7 +271,8 @@ fn get_files<T, F>(matches: &Matches,
                            !(excludes.iter().any(|pattern| pattern.matches(file_name)) ||
                              !all && file_name.starts_with(".")) {
                             println!("{:?}", path);
-                            files.push(make_file(&path).clone());
+                            let file = try!(make_file(&path).map_err(|e| e.to_string()));
+                            files.push(file);
                         }
                     }
                 }
@@ -285,8 +288,13 @@ fn process_files(matches: &Matches,
                  mut output: &mut Write)
                  -> Result<i32, String> {
     let mut exit_code = 0;
-    for mut file in files {
-        exit_code = try!(process_file(&matches, &re, &mut file, &mut output));
+    if files.len() == 0 {
+        let mut stdin = Source::Stdin(Box::new(io::stdin()));
+        exit_code = try!(process_file(&matches, &re, &mut stdin, &mut output));
+    } else {
+        for mut file in files {
+            exit_code = try!(process_file(&matches, &re, &mut file, &mut output));
+        }
     }
     try!(output.flush().map_err(|e| e.to_string()));
     Ok(exit_code)

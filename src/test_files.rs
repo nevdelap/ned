@@ -4,7 +4,7 @@ use {get_files, make_opts};
 #[test]
 fn no_recursion() {
 
-    let options = "/home/nev/dev/ned/test";
+    let options = "test";
     let expected_file_names = ["file1.txt"];
 
     test(&options, &expected_file_names);
@@ -13,8 +13,17 @@ fn no_recursion() {
 #[test]
 fn no_recursion_all() {
 
-    let options = "/home/nev/dev/ned/test --all";
+    let options = "test --all";
     let expected_file_names = [".hidden_file1", "file1.txt"];
+
+    test(&options, &expected_file_names);
+}
+
+#[test]
+fn no_recursion_follow() {
+
+    let options = "test --follow";
+    let expected_file_names = ["file7.txt", "file1.txt"];
 
     test(&options, &expected_file_names);
 }
@@ -22,7 +31,7 @@ fn no_recursion_all() {
 #[test]
 fn recursion() {
 
-    let options = "/home/nev/dev/ned/test --recursive";
+    let options = "test --recursive";
     let expected_file_names = ["file6.txt",
                                "file7.txt",
                                "file3.txt",
@@ -37,7 +46,7 @@ fn recursion() {
 #[test]
 fn recursion_all() {
 
-    let options = "/home/nev/dev/ned/test --recursive --all";
+    let options = "test --recursive --all";
     let expected_file_names = ["file6.txt",
                                "file7.txt",
                                "file3.txt",
@@ -54,7 +63,7 @@ fn recursion_all() {
 #[test]
 fn include_files() {
 
-    let options = "-R /home/nev/dev/ned/test --include file7*";
+    let options = "-R test --include file7*";
     let expected_file_names = ["file7.txt"];
 
     test(&options, &expected_file_names);
@@ -63,7 +72,7 @@ fn include_files() {
 #[test]
 fn exclude_files() {
 
-    let options = "-R /home/nev/dev/ned/test --exclude file7*";
+    let options = "-R test --exclude file7*";
     let expected_file_names = ["file6.txt",
                                "file3.txt",
                                "file2.txt",
@@ -77,14 +86,14 @@ fn exclude_files() {
 #[test]
 fn exclude_directory() {
 
-    let options = "-R /home/nev/dev/ned/test --exclude-dir dir4";
+    let options = "-R test --exclude-dir dir4";
     let expected_file_names = ["file3.txt", "file2.txt", "file5.txt", "file4.txt", "file1.txt"];
 
     test(&options, &expected_file_names);
 }
 
-fn get_path_name(path: &Path) -> String {
-    path.file_name().unwrap().to_str().unwrap().to_string().clone()
+fn get_path_name(path: &Path) -> Result<String, String> {
+    Ok(path.file_name().unwrap().to_str().unwrap().to_string().clone())
 }
 
 fn test(options: &str, expected_file_names: &[&str]) {
