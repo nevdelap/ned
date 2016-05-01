@@ -25,6 +25,15 @@ fn recursion() {
     test(&options, &expected_file_names);
 }
 
+#[test]
+fn include_files() {
+
+    let options = "-R /home/nev/dev/ned/test --include file7*";
+    let expected_file_names = ["file7.txt"];
+
+    test(&options, &expected_file_names);
+}
+
 fn get_path_name(path: &Path) -> String {
     path.file_name().unwrap().to_str().unwrap().to_string().clone()
 }
