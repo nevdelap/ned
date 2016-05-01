@@ -68,12 +68,6 @@ fn main() {
         process::exit(1);
     }
 
-    // SOMEWHERE
-    // Get includes and excludes... and create collections of patterns...
-    // Pattern::new("c?t").unwrap()
-    let includes = Vec::<Pattern>::new();
-    let excludes = Vec::<Pattern>::new();
-
     let stdin = file_names.len() == 0;
 
     let follow = matches.opt_present("follow");
@@ -83,6 +77,28 @@ fn main() {
     if stdin {
         files.push(Source::Stdin(Box::new(io::stdin())));
     } else {
+        let mut includes = Vec::<Pattern>::new();
+        for include in matches.opt_strs("include") {
+            let pattern = Pattern::new(&include);
+            match pattern {
+                Ok(pattern) => includes.push(pattern),
+                Err(err) => {
+                    println!("{}: {}", &program, err.to_string());
+                    process::exit(1);
+                }
+            }
+        }
+        let mut excludes = Vec::<Pattern>::new();
+        for exclude in matches.opt_strs("exclude") {
+            let pattern = Pattern::new(&exclude);
+            match pattern {
+                Ok(pattern) => excludes.push(pattern),
+                Err(err) => {
+                    println!("{}: {}", &program, err.to_string());
+                    process::exit(1);
+                }
+            }
+        }
         for file_name in file_names {
             let mut walkdir = WalkDir::new(file_name).follow_links(follow);
             if !recursive {
@@ -93,10 +109,11 @@ fn main() {
                 match entry {
                     Ok(entry) => {
                         if let Some(path) = entry.path().to_str() {
-                            println!("{:?}", entry.path());
                             if entry.file_type().is_file() &&
-                               (includes.len() ==0 || includes.iter().any(|pattern| pattern.matches(path))) &&
+                               (includes.len() == 0 ||
+                                includes.iter().any(|pattern| pattern.matches(path))) &&
                                !excludes.iter().any(|pattern| pattern.matches(path)) {
+                                println!("{:?}", entry.path());
                                 match OpenOptions::new()
                                           .read(true)
                                           .write(matches.opt_present("replace"))
@@ -218,14 +235,14 @@ fn make_opts() -> Options {
     opts.optflag("v", "no-match", "show only non-matching");
     opts.optflag("R", "recursive", "recurse");
     opts.optflag("f", "follow", "follow symlinks");
-    opts.optopt("",
-                "include",
-                "match only files that match FILE_PATTERN",
-                "FILE_PATTERN");
-    opts.optopt("",
-                "exclude",
-                "skip files and directories matching FILE_PATTERN",
-                "FILE_PATTERN");
+    opts.optmulti("",
+                  "include",
+                  "match only files that match FILE_PATTERN",
+                  "FILE_PATTERN");
+    opts.optmulti("",
+                  "exclude",
+                  "skip files and directories matching FILE_PATTERN",
+                  "FILE_PATTERN");
     opts.optflag("c", "colors", "show matches in color");
     opts.optflag("", "stdout", "output to stdout");
     opts.optflag("q", "quiet", "suppress all normal output");
