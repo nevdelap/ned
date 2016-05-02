@@ -247,7 +247,6 @@ fn get_files<T, F>(matches: &Matches,
             if !recursive {
                 walkdir = walkdir.max_depth(1);
             }
-            // Filter on excludes.
             for entry in walkdir.into_iter().filter_entry(|entry| {
                 let path = entry.path();
                 if let Some(file_name) = path.file_name() {
