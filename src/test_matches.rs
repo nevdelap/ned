@@ -3,22 +3,22 @@
 
 use regex::Regex;
 use std::io::{Cursor, Read, Seek, SeekFrom, Write};
-use {add_re_options_to_pattern, make_opts, process_file, Source};
+use {add_re_options_to_pattern, get_parameters, make_opts, process_file, Source};
 
 #[test]
 fn basic_match_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "is";
-    let options = "";
-    let expected_exit_code = 0;
+    let args = "";
+    let expected_found_matches = true;
     let expected_screen_output = "This is a test.";
     let expected_file_content = &input;
 
     test(input,
          pattern,
-         options,
-         expected_exit_code,
+         args,
+         expected_found_matches,
          expected_screen_output,
          expected_file_content);
 }
@@ -28,15 +28,15 @@ fn ignore_case_match_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "IS";
-    let options = "--ignore-case";
-    let expected_exit_code = 0;
+    let args = "--ignore-case";
+    let expected_found_matches = true;
     let expected_screen_output = "This is a test.";
     let expected_file_content = &input;
 
     test(input,
          pattern,
-         options,
-         expected_exit_code,
+         args,
+         expected_found_matches,
          expected_screen_output,
          expected_file_content);
 }
@@ -53,15 +53,15 @@ tests because no one
 would want to read it.
 ";
     let pattern = r"^\nThis.*read it.\n$";
-    let options = "--single";
-    let expected_exit_code = 0;
+    let args = "--single";
+    let expected_found_matches = true;
     let expected_screen_output = &input;
     let expected_file_content = &input;
 
     test(input,
          pattern,
-         options,
-         expected_exit_code,
+         args,
+         expected_found_matches,
          expected_screen_output,
          expected_file_content);
 }
@@ -78,15 +78,15 @@ tests because no one
 would want to read it.
 ";
     let pattern = r"\A\nThis(.|[\n])+read it.\n\z";
-    let options = "--multiline";
-    let expected_exit_code = 0;
+    let args = "--multiline";
+    let expected_found_matches = true;
     let expected_screen_output = &input;
     let expected_file_content = &input;
 
     test(input,
          pattern,
-         options,
-         expected_exit_code,
+         args,
+         expected_found_matches,
          expected_screen_output,
          expected_file_content);
 }
@@ -103,15 +103,15 @@ tests because no one
 would want to read it.
 ";
     let pattern = r"^multiple(.|[\n])+for$";
-    let options = "--multiline";
-    let expected_exit_code = 0;
+    let args = "--multiline";
+    let expected_found_matches = true;
     let expected_screen_output = &input;
     let expected_file_content = &input;
 
     test(input,
          pattern,
-         options,
-         expected_exit_code,
+         args,
+         expected_found_matches,
          expected_screen_output,
          expected_file_content);
 }
@@ -128,15 +128,15 @@ tests because no one
 would want to read it.
 ";
     let pattern = r"\A\nThis.+read it.\n\z";
-    let options = "--single --multiline";
-    let expected_exit_code = 0;
+    let args = "--single --multiline";
+    let expected_found_matches = true;
     let expected_screen_output = &input;
     let expected_file_content = &input;
 
     test(input,
          pattern,
-         options,
-         expected_exit_code,
+         args,
+         expected_found_matches,
          expected_screen_output,
          expected_file_content);
 }
@@ -151,15 +151,15 @@ fn extended_match_quiet_and_not_quiet() {
 # the word is.
 is # Look, that's it!
 # Cool magool.";
-    let options = "--extended";
-    let expected_exit_code = 0;
+    let args = "--extended";
+    let expected_found_matches = true;
     let expected_screen_output = "This is a test.";
     let expected_file_content = &input;
 
     test(input,
          pattern,
-         options,
-         expected_exit_code,
+         args,
+         expected_found_matches,
          expected_screen_output,
          expected_file_content);
 }
@@ -169,15 +169,15 @@ fn only_matches_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "is";
-    let options = "--only-matches";
-    let expected_exit_code = 0;
+    let args = "--only-matches";
+    let expected_found_matches = true;
     let expected_screen_output = "isis";
     let expected_file_content = &input;
 
     test(input,
          pattern,
-         options,
-         expected_exit_code,
+         args,
+         expected_found_matches,
          expected_screen_output,
          expected_file_content);
 }
@@ -194,8 +194,8 @@ tests because no one
 would want to read it.
 ";
     let pattern = "on";
-    let options = "--line-oriented";
-    let expected_exit_code = 0;
+    let args = "--line-oriented";
+    let expected_found_matches = true;
     let expected_screen_output = "\
 uninteresting content
 that is only good for
@@ -205,8 +205,8 @@ tests because no one
 
     test(input,
          pattern,
-         options,
-         expected_exit_code,
+         args,
+         expected_found_matches,
          expected_screen_output,
          expected_file_content);
 }
@@ -223,15 +223,15 @@ tests because no one
 would want to read it.
 ";
     let pattern = "on";
-    let options = "--no-match";
-    let expected_exit_code = 0;
+    let args = "--no-match";
+    let expected_found_matches = true;
     let expected_screen_output = "";
     let expected_file_content = &input;
 
     test(input,
          pattern,
-         options,
-         expected_exit_code,
+         args,
+         expected_found_matches,
          expected_screen_output,
          expected_file_content);
 }
@@ -248,8 +248,8 @@ tests because no one
 would want to read it.
 ";
     let pattern = "on";
-    let options = "--no-match --line-oriented";
-    let expected_exit_code = 0;
+    let args = "--no-match --line-oriented";
+    let expected_found_matches = true;
     let expected_screen_output = "
 This is a test with
 multiple lines of very
@@ -259,8 +259,8 @@ would want to read it.
 
     test(input,
          pattern,
-         options,
-         expected_exit_code,
+         args,
+         expected_found_matches,
          expected_screen_output,
          expected_file_content);
 }
@@ -270,15 +270,15 @@ fn group_0_match_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "Th(is)";
-    let options = "--group 0";
-    let expected_exit_code = 0;
+    let args = "--group 0";
+    let expected_found_matches = true;
     let expected_screen_output = "This";
     let expected_file_content = &input;
 
     test(input,
          pattern,
-         options,
-         expected_exit_code,
+         args,
+         expected_found_matches,
          expected_screen_output,
          expected_file_content);
 }
@@ -288,15 +288,15 @@ fn group_1_match_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "Th(is)";
-    let options = "--group 1";
-    let expected_exit_code = 0;
+    let args = "--group 1";
+    let expected_found_matches = true;
     let expected_screen_output = "is";
     let expected_file_content = &input;
 
     test(input,
          pattern,
-         options,
-         expected_exit_code,
+         args,
+         expected_found_matches,
          expected_screen_output,
          expected_file_content);
 }
@@ -306,15 +306,15 @@ fn group_2_match_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "is (a) (test)";
-    let options = "--group 2";
-    let expected_exit_code = 0;
+    let args = "--group 2";
+    let expected_found_matches = true;
     let expected_screen_output = "test";
     let expected_file_content = &input;
 
     test(input,
          pattern,
-         options,
-         expected_exit_code,
+         args,
+         expected_found_matches,
          expected_screen_output,
          expected_file_content);
 }
@@ -324,15 +324,15 @@ fn named_group_match_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "is (a) (?P<dave>test)";
-    let options = "--group dave";
-    let expected_exit_code = 0;
+    let args = "--group dave";
+    let expected_found_matches = true;
     let expected_screen_output = "test";
     let expected_file_content = &input;
 
     test(input,
          pattern,
-         options,
-         expected_exit_code,
+         args,
+         expected_found_matches,
          expected_screen_output,
          expected_file_content);
 }
@@ -342,15 +342,15 @@ fn colored_match_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "is";
-    let options = "--colors";
-    let expected_exit_code = 0;
+    let args = "--colors";
+    let expected_found_matches = true;
     let expected_screen_output = "Th\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.";
     let expected_file_content = &input;
 
     test(input,
          pattern,
-         options,
-         expected_exit_code,
+         args,
+         expected_found_matches,
          expected_screen_output,
          expected_file_content);
 }
@@ -360,15 +360,15 @@ fn basic_replace_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "is";
-    let options = "--replace=at";
-    let expected_exit_code = 0;
+    let args = "--replace=at";
+    let expected_found_matches = true;
     let expected_screen_output = "";
     let expected_file_content = "That at a test.";
 
     test(input,
          pattern,
-         options,
-         expected_exit_code,
+         args,
+         expected_found_matches,
          expected_screen_output,
          expected_file_content);
 }
@@ -378,54 +378,52 @@ fn basic_replace_to_stdout_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "is";
-    let options = "--replace=at --stdout";
-    let expected_exit_code = 0;
+    let args = "--replace=at --stdout";
+    let expected_found_matches = true;
     let expected_screen_output = "That at a test.";
     let expected_file_content = &input;
 
     test(input,
          pattern,
-         options,
-         expected_exit_code,
+         args,
+         expected_found_matches,
          expected_screen_output,
          expected_file_content);
 }
 
 fn test(input: &str,
         pattern: &str,
-        options: &str,
-        expected_exit_code: i32,
+        args: &str,
+        expected_found_matches: bool,
         expected_screen_output: &str,
         expected_file_content: &str) {
 
     really_test(input,
                 pattern,
-                options,
-                expected_exit_code,
+                args,
+                expected_found_matches,
                 expected_screen_output,
                 expected_file_content);
-    let options = format!("{} --quiet", options);
+    let args = format!("{} --quiet", args);
     really_test(input,
                 pattern,
-                &options,
-                expected_exit_code,
+                &args,
+                expected_found_matches,
                 "",
                 expected_file_content);
 }
 
 fn really_test(input: &str,
                pattern: &str,
-               options: &str,
-               expected_exit_code: i32,
+               args: &str,
+               expected_found_matches: bool,
                expected_screen_output: &str,
                expected_file_content: &str) {
 
     let opts = make_opts();
-    let options: Vec<&str> = options.split_whitespace().collect();
-    let matches = opts.parse(&options).unwrap();
-    let pattern = add_re_options_to_pattern(&matches, pattern);
-
-    let re = Regex::new(&pattern).unwrap();
+    let mut args = args.split_whitespace().map(|arg| arg.to_string()).collect::<Vec<String>>();
+    args.insert(0, pattern.to_string());
+    let mut parameters = get_parameters(&opts, &args).unwrap();
 
     let mut cursor = Cursor::<Vec<u8>>::new(vec![]);
     cursor.write(&input.to_string().into_bytes()).unwrap();
@@ -433,7 +431,7 @@ fn really_test(input: &str,
     let mut file = Source::Cursor(Box::new(cursor));
     let mut screen_output: Vec<u8> = vec![];
 
-    let exit_code = process_file(&matches, &re, &mut file, &mut screen_output).unwrap();
+    let found_matches = process_file(&mut parameters, &mut file, &mut screen_output).unwrap();
 
     let screen_output = String::from_utf8(screen_output).unwrap();
 
@@ -447,7 +445,7 @@ fn really_test(input: &str,
         panic!("Oh oh?");
     }
 
-    assert_eq!(exit_code, expected_exit_code);
+    assert_eq!(found_matches, expected_found_matches);
     assert_eq!(screen_output, expected_screen_output);
     assert_eq!(file_output, expected_file_content);
 }

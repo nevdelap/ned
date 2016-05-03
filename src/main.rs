@@ -20,7 +20,7 @@ use walkdir::{WalkDir, WalkDirIterator};
 #[cfg(test)]
 mod test_files;
 #[cfg(test)]
-mod test_general;
+//mod test_general;
 #[cfg(test)]
 mod test_matches;
 
@@ -31,10 +31,28 @@ enum Source {
     Cursor(Box<Cursor<Vec<u8>>>),
 }
 
+struct Parameters {
+    colors: bool,
+    files: Vec<Source>,
+    group: Option<String>,
+    help: bool,
+    line_oriented: bool,
+    no_match: bool,
+    only_matches: bool,
+    pattern: Option<String>,
+    quiet: bool,
+    re: Option<Regex>,
+    replace: Option<String>,
+    stdout: bool,
+    version: bool,
+}
+
 fn main() {
+
     let (program, args) = get_program_and_args();
 
-    // Output is passed here so that tests can read the output.
+    // Output is passed here so that tests can
+    // call ned() directly read the output.
     let mut output = io::stdout();
     match ned(&program, &args, &mut output) {
         Ok(exit_code) => process::exit(exit_code),
@@ -45,21 +63,33 @@ fn main() {
     }
 }
 
-fn ned(program: &str, args: &Vec<String>, mut output: &mut Write) -> Result<i32, String> {
-    let opts = make_opts();
-    let parsed = opts.parse(args);
-    if let Err(err) = parsed {
-        println!("{}: {}", &program, err.to_string());
-        process::exit(1);
+fn get_program_and_args() -> (String, Vec<String>) {
+    let args: Vec<String> = env::args().collect();
+    let program = path::Path::new(&args[0])
+                      .file_name()
+                      .expect("Bug, could't get bin name.")
+                      .to_str()
+                      .expect("Bug, could't get bin name.");
+    let mut args: Vec<String> = args.iter().skip(1).map(|arg| arg.clone()).collect();
+    if let Ok(default_args) = env::var("NED_DEFAULTS") {
+        let old_args = args;
+        args = default_args.split_whitespace().map(|s| s.to_string()).collect::<Vec<String>>();
+        args.extend(old_args);;
     }
+    (program.to_string(), args)
+}
 
-    let matches = parsed.expect("Bug, already checked for a getopts parse error.");
-    if matches.opt_present("version") {
+fn ned(program: &str, args: &Vec<String>, mut output: &mut Write) -> Result<i32, String> {
+
+    let opts = make_opts();
+    let mut parameters = try!(get_parameters(&opts, args));
+
+    if parameters.version {
         println!("{}{}", &VERSION, &LICENSE);
         process::exit(1);
     }
 
-    if matches.free.len() == 0 && !matches.opt_present("pattern") || matches.opt_present("h") {
+    if parameters.files.len() == 0 && !parameters.pattern.is_none() || parameters.help {
         let brief = format!("Usage: {} {}\n{}",
                             program,
                             &OPTS_AND_ARGS,
@@ -72,17 +102,29 @@ fn ned(program: &str, args: &Vec<String>, mut output: &mut Write) -> Result<i32,
         process::exit(1);
     }
 
-    let (pattern, file_names) = match matches.opt_str("pattern") {
-        Some(pattern) => (pattern.clone(), matches.free.iter().collect::<Vec<&String>>()),
-        None => (matches.free[0].clone(), matches.free.iter().skip(1).collect::<Vec<&String>>()),
+    let found_matches = try!(process_files(&mut parameters, &mut output));
+    Ok(if found_matches {
+        0
+    } else {
+        1
+    })
+}
+
+fn get_parameters(opts: &Options, args: &Vec<String>) -> Result<Parameters, String> {
+
+    let matches = try!(opts.parse(args).map_err(|e| e.to_string()));
+
+    let (mut pattern, file_names) = match matches.opt_str("pattern") {
+        Some(pattern) => (Some(pattern.clone()), matches.free.iter().collect::<Vec<&String>>()),
+        None => (if matches.free.len() > 0 { Some(matches.free[0].clone()) } else { None }, matches.free.iter().skip(1).collect::<Vec<&String>>()),
     };
 
-    let pattern = add_re_options_to_pattern(&matches, &pattern);
-
-    let re = Regex::new(&pattern);
-    if let Err(err) = re {
-        println!("{}: {}", &program, err.to_string());
-        process::exit(1);
+    let re: Option<Regex>;
+    if let Some(ref pattern) = pattern {
+        //pattern = &add_re_options_to_pattern(&matches, pattern);
+        re = Some(try!(Regex::new(&pattern).map_err(|e| e.to_string())));
+    } else {
+        re = None;
     }
 
     let mut files = try!(get_files::<Source, _>(&matches, &file_names, |path| {
@@ -95,13 +137,24 @@ fn ned(program: &str, args: &Vec<String>, mut output: &mut Write) -> Result<i32,
                          })
                              .map_err(|e| e.to_string()));
 
-    let exit_status = try!(process_files(&matches,
-                                         re.expect("Bug, already checked for a regex parse \
-                                                    error."),
-                                         &mut files,
-                                         &mut output)
-                               .map_err(|e| e.to_string()));
-    Ok(exit_status)
+    let replace =  matches.opt_str("replace");
+    let stdout = matches.opt_present("stdout");
+
+    Ok(Parameters {
+        colors:  matches.opt_present("colors") && (stdout || replace.is_none()),
+        files: files,
+        group: matches.opt_str("group"),
+        help: matches.opt_present("help"),
+        line_oriented: matches.opt_present("line-oriented"),
+        no_match: matches.opt_present("no-match"),
+        only_matches: matches.opt_present("only-matches"),
+        pattern: pattern,
+        quiet: matches.opt_present("quiet"),
+        re: re,
+        replace: replace,
+        stdout: stdout,
+        version: matches.opt_present("version"),
+    })
 }
 
 static OPTS_AND_ARGS: &'static str = "[OPTION]... [-p] <PATTERN> [FILE]...";
@@ -133,22 +186,6 @@ License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 ";
-
-fn get_program_and_args() -> (String, Vec<String>) {
-    let args: Vec<String> = env::args().collect();
-    let program = path::Path::new(&args[0])
-                      .file_name()
-                      .expect("Bug, could't get bin name.")
-                      .to_str()
-                      .expect("Bug, could't get bin name.");
-    let mut args: Vec<String> = args.iter().skip(1).map(|arg| arg.clone()).collect();
-    if let Ok(default_args) = env::var("NED_DEFAULTS") {
-        let old_args = args;
-        args = default_args.split_whitespace().map(|s| s.to_string()).collect::<Vec<String>>();
-        args.extend(old_args);;
-    }
-    (program.to_string(), args)
-}
 
 fn make_opts() -> Options {
     let mut opts = Options::new();
@@ -210,7 +247,7 @@ fn add_re_options_to_pattern(matches: &Matches, pattern: &str) -> String {
     if options != "" {
         format!("(?{}){}", &options, &pattern)
     } else {
-        pattern.to_string()
+        pattern.to_string().clone()
     }
 }
 
@@ -280,31 +317,22 @@ fn get_files<T, F>(matches: &Matches,
     Ok(files)
 }
 
-fn process_files(matches: &Matches,
-                 re: Regex,
-                 files: &mut Vec<Source>,
-                 mut output: &mut Write)
-                 -> Result<i32, String> {
-    let mut exit_code = 0;
-    if files.len() == 0 {
+fn process_files(parameters: &mut Parameters, mut output: &mut Write) -> Result<bool, String> {
+    let mut found_matches = false;
+    if parameters.files.len() == 0 {
         let mut stdin = Source::Stdin(Box::new(io::stdin()));
-        exit_code = try!(process_file(&matches, &re, &mut stdin, &mut output));
-    } else {
-        for mut file in files {
-            exit_code = try!(process_file(&matches, &re, &mut file, &mut output));
+        found_matches = try!(process_file(parameters, &mut stdin, &mut output));
+    }/* else {
+        for mut file in &mut parameters.files {
+            found_matches = try!(process_file(&mut parameters, &mut file, &mut output));
         }
-    }
+    }*/
     try!(output.flush().map_err(|e| e.to_string()));
-    Ok(exit_code)
+    Ok(found_matches)
 }
 
-fn process_file(matches: &Matches,
-                re: &Regex,
-                file: &mut Source,
-                mut output: &mut Write)
-                -> Result<i32, String> {
+fn process_file(parameters: &mut Parameters, file: &mut Source, mut output: &mut Write) -> Result<bool, String> {
 
-    let mut exit_code = 0;
     let color = Red.bold();
 
     let mut content;
@@ -320,22 +348,16 @@ fn process_file(matches: &Matches,
         content = try!(String::from_utf8(buffer).map_err(|e| e.to_string()));
     }
 
-    let group = matches.opt_str("group");
-    let line_oriented = matches.opt_present("line-oriented");
-    let no_match = matches.opt_present("no-match");
-    let only_matches = matches.opt_present("only-matches");
-    let quiet = matches.opt_present("quiet");
-    let replace = matches.opt_str("replace");
-    let stdout = matches.opt_present("stdout");
-    let colors = matches.opt_present("colors") && (stdout || replace.is_none());
+    let re = parameters.re.clone().expect("Bug, already checked parameters.");
 
-    if let Some(mut replace) = replace {
-        if colors {
+    let mut found_matches = true; // TODO
+    if let Some(mut replace) = parameters.replace.clone() {
+        if parameters.colors {
             replace = color.paint(replace.as_str()).to_string();
         }
         content = re.replace_all(&content, replace.as_str());
-        if stdout {
-            if !quiet {
+        if parameters.stdout {
+            if !parameters.quiet {
                 try!(output.write(&content.into_bytes()).map_err(|e| e.to_string()));
             }
         } else {
@@ -352,19 +374,12 @@ fn process_file(matches: &Matches,
                 _ => {}
             }
         }
-        return Ok(exit_code);
-    }
-
-    if quiet {
+    } else if parameters.quiet {
         // Quiet match only is shortcut by the more performant is_match() .
-        exit_code = if re.is_match(&content) {
-            0
-        } else {
-            1
-        };
+        found_matches = re.is_match(&content)
     } else {
-        let mut process_text = |pre: &str, text: &str, post: &str| -> Result<i32, String> {
-            if let Some(ref group) = group {
+        let mut process_text = |pre: &str, text: &str, post: &str| -> Result<bool, String> {
+            if let Some(ref group) = parameters.group {
                 if let Some(captures) = re.captures(&text) {
                     try!(output.write(&pre.to_string().into_bytes())
                                .map_err(|e| e.to_string()));
@@ -373,7 +388,7 @@ fn process_file(matches: &Matches,
                             // if there are captures exit_code = 1
                             if let Some(matched) = captures.at(index) {
                                 let mut matched = matched.to_string();
-                                if colors {
+                                if parameters.colors {
                                     matched = re.replace_all(&matched,
                                                              color.paint("$0")
                                                                   .to_string()
@@ -386,7 +401,7 @@ fn process_file(matches: &Matches,
                         Err(_) => {
                             if let Some(matched) = captures.name(group) {
                                 let mut matched = matched.to_string();
-                                if colors {
+                                if parameters.colors {
                                     matched = re.replace_all(&matched,
                                                              color.paint("$0")
                                                                   .to_string()
@@ -400,8 +415,7 @@ fn process_file(matches: &Matches,
                     try!(output.write(&post.to_string().into_bytes())
                                .map_err(|e| e.to_string()));
                 }
-                Ok(0)
-            } else if no_match {
+            } else if parameters.no_match {
                 if !re.is_match(&text) {
                     try!(output.write(&pre.to_string().into_bytes())
                                .map_err(|e| e.to_string()));
@@ -410,14 +424,13 @@ fn process_file(matches: &Matches,
                     try!(output.write(&post.to_string().into_bytes())
                                .map_err(|e| e.to_string()));
                 }
-                Ok(0)
             } else if re.is_match(&text) {
                 try!(output.write(&pre.to_string().into_bytes())
                            .map_err(|e| e.to_string()));
-                if only_matches {
+                if parameters.only_matches {
                     for (start, end) in re.find_iter(&text) {
                         let mut matched = text[start..end].to_string();
-                        if colors {
+                        if parameters.colors {
                             matched = re.replace_all(&matched,
                                                      color.paint("$0").to_string().as_str());
                         }
@@ -426,20 +439,18 @@ fn process_file(matches: &Matches,
                     }
                 } else {
                     let mut text = text.to_string();
-                    if colors {
+                    if parameters.colors {
                         text = re.replace_all(&text, color.paint("$0").to_string().as_str());
                     }
                     try!(output.write(&text.to_string().into_bytes()).map_err(|e| e.to_string()));
                 }
                 try!(output.write(&post.to_string().into_bytes())
                            .map_err(|e| e.to_string()));
-                Ok(0)
-            } else {
-                Ok(1)
             }
+            Ok(true) // TODO
         };
 
-        if line_oriented {
+        if parameters.line_oriented {
             for (line_number, line) in content.lines().enumerate() {
                 let pre = if line_number == 0 && line.starts_with("\n") {
                     "\n"
@@ -452,5 +463,5 @@ fn process_file(matches: &Matches,
             try!(process_text("", &content, ""));
         }
     }
-    Ok(exit_code)
+    Ok(found_matches)
 }
