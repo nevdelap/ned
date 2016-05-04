@@ -18,11 +18,11 @@ use std::{env, path, process};
 use walkdir::{WalkDir, WalkDirIterator};
 
 #[cfg(test)]
-mod test_files;
+//mod test_files;
 #[cfg(test)]
 //mod test_general;
 #[cfg(test)]
-mod test_matches;
+//mod test_matches;
 
 enum Source {
     Stdin(Box<Read>),
@@ -32,19 +32,117 @@ enum Source {
 }
 
 struct Parameters {
+    all: bool,
     colors: bool,
-    files: Vec<Source>,
+    exclude_dirs: Vec<Pattern>,
+    excludes: Vec<Pattern>,
+    follow: bool,
+    globs: Vec<String>,
     group: Option<String>,
     help: bool,
+    includes: Vec<Pattern>,
     line_oriented: bool,
     no_match: bool,
     only_matches: bool,
-    pattern: Option<String>,
     quiet: bool,
     re: Option<Regex>,
+    recursive: bool,
     replace: Option<String>,
     stdout: bool,
     version: bool,
+}
+
+// Doing this, with recursion, inclusions, excludes, hidden file
+// handling, as an Iterator that lazily opens the files specified
+// by the given globs. Errors are written to stderr and iteration
+// continues until all directories and files have been walked.
+//
+// for glob in globs {
+//     for entry in WalkDir::new(glob) {
+//         yield Some(entry); // If we could yield.
+//     }
+// }
+// None
+//
+
+struct Files {
+    parameters: Parameters,
+    globs_iterator: Box<Iterator<Item=String>>,
+    walkdir_iterator: Option<Box<walkdir::Iter>>,
+}
+
+impl Files {
+
+    pub fn new(parameters: Parameters, globs: Vec<String>) -> Result<Files, String> {
+        let globs_iterator = Box::new(globs.into_iter());
+        Ok(Files {
+            parameters: parameters,
+            globs_iterator: globs_iterator,
+            walkdir_iterator: Files::make_walkdir_iterator(&parameters, globs_iterator.next()),
+        })
+    }
+
+    fn make_walkdir_iterator(parameters: &Parameters, glob: Option<String>) -> Option<Box<walkdir::Iter>> {
+        match glob {
+            Some(glob) => {
+                let mut walkdir = WalkDir::new(glob).follow_links(parameters.follow);
+                if !parameters.recursive {
+                    walkdir.max_depth(1);
+                }
+                let walkdir_iterator = walkdir.into_iter();
+                Some(Box::new(walkdir_iterator))
+            }
+            None => None
+        }
+    }
+}
+
+impl Iterator for Files {
+    type Item = Box<File>;
+
+    fn next(&mut self) -> Option<Box<File>> {
+        loop {
+            if let Some(walkdir_iterator) = self.walkdir_iterator {
+                if let Some(entry) = walkdir_iterator.filter_entry(|entry| {
+                    if let Some(file_name) = entry.path().file_name() {
+                        if let Some(file_name) = file_name.to_str() {
+                                return
+                                    (entry.file_type().is_file() &&
+                                        (self.parameters.includes.len() == 0 ||
+                                         self.parameters.includes.iter().any(|pattern| pattern.matches(file_name)) &&
+                                         !self.parameters.excludes.iter().any(|pattern| pattern.matches(file_name))) ||
+                                    entry.file_type().is_dir() &&
+                                        !self.parameters.exclude_dirs.iter().any(|pattern| pattern.matches(file_name))) &&
+                                    (self.parameters.all || !file_name.starts_with("."));
+                        }
+                    }
+                    false
+                }).next() {
+                    match entry {
+                        Ok(entry) => {
+                            let path = entry.path();
+                                match OpenOptions::new()
+                                             .read(true)
+                                             .write(self.parameters.replace.is_some())
+                                             .open(path) {
+                                    Ok(file) => return Some(Box::new(file)),
+                                    Err(err) => {
+                                        // TODO: write err to stdout
+                                    }
+                                }
+                        }
+                        Err(err) => {
+                            // TODO: write err to stdout
+                        }
+                    }
+                }
+            }
+            self.walkdir_iterator = Files::make_walkdir_iterator(&self.parameters, self.globs_iterator.next());
+            if self.walkdir_iterator.is_none() {
+                return None;
+            }
+        }
+    }
 }
 
 fn main() {
@@ -82,14 +180,14 @@ fn get_program_and_args() -> (String, Vec<String>) {
 fn ned(program: &str, args: &Vec<String>, mut output: &mut Write) -> Result<i32, String> {
 
     let opts = make_opts();
-    let mut parameters = try!(get_parameters(&opts, args));
+    let parameters = try!(get_parameters(&opts, args));
 
     if parameters.version {
         println!("{}{}", &VERSION, &LICENSE);
         process::exit(1);
     }
 
-    if parameters.files.len() == 0 && !parameters.pattern.is_none() || parameters.help {
+    if parameters.globs.len() == 0 && !parameters.re.is_none() || parameters.help {
         let brief = format!("Usage: {} {}\n{}",
                             program,
                             &OPTS_AND_ARGS,
@@ -102,7 +200,7 @@ fn ned(program: &str, args: &Vec<String>, mut output: &mut Write) -> Result<i32,
         process::exit(1);
     }
 
-    let found_matches = try!(process_files(&mut parameters, &mut output));
+    let found_matches = try!(process_files(&parameters, &mut output));
     Ok(if found_matches {
         0
     } else {
@@ -112,45 +210,61 @@ fn ned(program: &str, args: &Vec<String>, mut output: &mut Write) -> Result<i32,
 
 fn get_parameters(opts: &Options, args: &Vec<String>) -> Result<Parameters, String> {
 
-    let matches = try!(opts.parse(args).map_err(|e| e.to_string()));
+    let matches = try!(opts.parse(args).map_err(|err| err.to_string()));
 
-    let (mut pattern, file_names) = match matches.opt_str("pattern") {
-        Some(pattern) => (Some(pattern.clone()), matches.free.iter().collect::<Vec<&String>>()),
-        None => (if matches.free.len() > 0 { Some(matches.free[0].clone()) } else { None }, matches.free.iter().skip(1).collect::<Vec<&String>>()),
-    };
+    let globs;
+    let re;
 
-    let re: Option<Regex>;
-    if let Some(ref pattern) = pattern {
-        //pattern = &add_re_options_to_pattern(&matches, pattern);
-        re = Some(try!(Regex::new(&pattern).map_err(|e| e.to_string())));
+    if matches.opt_present("pattern") {
+        let pattern = add_re_options_to_pattern(&matches, &matches.opt_str("pattern").expect("Bug, already checked that pattern is present."));
+        re = Some(try!(Regex::new(&pattern).map_err(|err| err.to_string())));
+        globs = matches.free.iter().map(|glob| glob.clone()).collect::<Vec<String>>();
+    } else if  matches.free.len() > 0 {
+        let pattern = add_re_options_to_pattern(&matches, &matches.free[0]);
+        re = Some(try!(Regex::new(&pattern).map_err(|err| err.to_string())));
+        globs = matches.free.iter().skip(1).map(|glob| glob.clone()).collect::<Vec<String>>();
     } else {
         re = None;
+        globs = matches.free.iter().map(|glob| glob.clone()).collect::<Vec<String>>();
     }
 
-    let mut files = try!(get_files::<Source, _>(&matches, &file_names, |path| {
-                             let file = try!(OpenOptions::new()
-                                                 .read(true)
-                                                 .write(matches.opt_present("replace"))
-                                                 .open(path)
-                                                 .map_err(|e| e.to_string()));
-                             Ok(Source::File(Box::new(file)))
-                         })
-                             .map_err(|e| e.to_string()));
+    let mut includes = Vec::<Pattern>::new();
+    for include in matches.opt_strs("include") {
+        let pattern = try!(Pattern::new(&include).map_err(|err| err.to_string()));
+        includes.push(pattern);
+    }
+
+    let mut excludes = Vec::<Pattern>::new();
+    for exclude in matches.opt_strs("exclude") {
+        let pattern = try!(Pattern::new(&exclude).map_err(|err| err.to_string()));
+        excludes.push(pattern);
+    }
+
+    let mut exclude_dirs = Vec::<Pattern>::new();
+    for exclude in matches.opt_strs("exclude-dir") {
+        let pattern = try!(Pattern::new(&exclude).map_err(|err| err.to_string()));
+        exclude_dirs.push(pattern);
+    }
 
     let replace =  matches.opt_str("replace");
     let stdout = matches.opt_present("stdout");
 
     Ok(Parameters {
+        all: matches.opt_present("all"),
         colors:  matches.opt_present("colors") && (stdout || replace.is_none()),
-        files: files,
+        excludes: excludes,
+        exclude_dirs: exclude_dirs,
+        follow: matches.opt_present("follow"),
+        globs: globs,
         group: matches.opt_str("group"),
         help: matches.opt_present("help"),
+        includes: includes,
         line_oriented: matches.opt_present("line-oriented"),
         no_match: matches.opt_present("no-match"),
         only_matches: matches.opt_present("only-matches"),
-        pattern: pattern,
         quiet: matches.opt_present("quiet"),
         re: re,
+        recursive: matches.opt_present("recursive"),
         replace: replace,
         stdout: stdout,
         version: matches.opt_present("version"),
@@ -247,105 +361,39 @@ fn add_re_options_to_pattern(matches: &Matches, pattern: &str) -> String {
     if options != "" {
         format!("(?{}){}", &options, &pattern)
     } else {
-        pattern.to_string().clone()
+        pattern.to_string()
     }
 }
 
-fn get_files<T, F>(matches: &Matches,
-                   file_names: &Vec<&String>,
-                   make_file: F)
-                   -> Result<Vec<T>, String>
-    where F: Fn(&Path) -> Result<T, String>
-{
-    let stdin = file_names.len() == 0;
-
-    let mut files = Vec::<T>::new();
-    if !stdin {
-        let follow = matches.opt_present("follow");
-        let recursive = matches.opt_present("recursive");
-        let all = matches.opt_present("all");
-        let mut includes = Vec::<Pattern>::new();
-        for include in matches.opt_strs("include") {
-            let pattern = try!(Pattern::new(&include).map_err(|e| e.to_string()));
-            includes.push(pattern);
-        }
-        let mut excludes = Vec::<Pattern>::new();
-        for exclude in matches.opt_strs("exclude") {
-            let pattern = try!(Pattern::new(&exclude).map_err(|e| e.to_string()));
-            excludes.push(pattern);
-        }
-        let mut exclude_dir = Vec::<Pattern>::new();
-        for exclude in matches.opt_strs("exclude-dir") {
-            let pattern = try!(Pattern::new(&exclude).map_err(|e| e.to_string()));
-            exclude_dir.push(pattern);
-        }
-        for file_name in file_names {
-            let mut walkdir = WalkDir::new(file_name).follow_links(follow);
-            if !recursive {
-                walkdir = walkdir.max_depth(1);
-            }
-            for entry in walkdir.into_iter().filter_entry(|entry| {
-                let path = entry.path();
-                if let Some(file_name) = path.file_name() {
-                    return if let Some(file_name) = file_name.to_str() {
-                        !entry.file_type().is_dir() ||
-                        !(exclude_dir.iter().any(|pattern| pattern.matches(file_name)) ||
-                          !all && file_name.starts_with("."))
-                    } else {
-                        false
-                    };
-                }
-                true
-            }) {
-                let entry = try!(entry.map_err(|e| e.to_string()));
-                let path = entry.path();
-                if let Some(file_name) = path.file_name() {
-                    if let Some(file_name) = file_name.to_str() {
-                        if entry.file_type().is_file() &&
-                           (includes.len() == 0 ||
-                            includes.iter().any(|pattern| pattern.matches(file_name))) &&
-                           !(excludes.iter().any(|pattern| pattern.matches(file_name)) ||
-                             !all && file_name.starts_with(".")) {
-                            let file = try!(make_file(&path).map_err(|e| e.to_string()));
-                            files.push(file);
-                        }
-                    }
-                }
-            }
-        }
-    }
-    Ok(files)
-}
-
-fn process_files(parameters: &mut Parameters, mut output: &mut Write) -> Result<bool, String> {
+fn process_files(parameters: &Parameters, mut output: &mut Write) -> Result<bool, String> {
     let mut found_matches = false;
-    if parameters.files.len() == 0 {
-        let mut stdin = Source::Stdin(Box::new(io::stdin()));
-        found_matches = try!(process_file(parameters, &mut stdin, &mut output));
-    }/* else {
-        for mut file in &mut parameters.files {
-            found_matches = try!(process_file(&mut parameters, &mut file, &mut output));
+    if parameters.globs.len() == 0 {
+        //found_matches = try!(process_file(&parameters, None, &mut output));
+    } else {
+        for glob in &parameters.globs {
+            for path in get_paths(glob) {
+                //found_matches = try!(process_file(&parameters, Some(Box::new(&path)), &mut output));
+            }
         }
-    }*/
-    try!(output.flush().map_err(|e| e.to_string()));
+    }
+    try!(output.flush().map_err(|err| err.to_string()));
     Ok(found_matches)
 }
 
-fn process_file(parameters: &mut Parameters, file: &mut Source, mut output: &mut Write) -> Result<bool, String> {
-
+fn process_file(parameters: &Parameters, source: &mut Source, mut output: &mut Write) -> Result<bool, String> {
     let color = Red.bold();
 
     let mut content;
     {
-        let read: &mut Read = match file {
+        let read: &mut Read = match source {
             &mut Source::Stdin(ref mut read) => read,
             &mut Source::File(ref mut file) => file,
             #[cfg(test)]
             &mut Source::Cursor(ref mut cursor) => cursor,
         };
         let mut buffer = Vec::new();
-        let _ = try!(read.read_to_end(&mut buffer).map_err(|e| e.to_string()));
-        content = try!(String::from_utf8(buffer).map_err(|e| e.to_string()));
+        let _ = try!(read.read_to_end(&mut buffer).map_err(|err| err.to_string()));
+        content = try!(String::from_utf8(buffer).map_err(|err| err.to_string()));
     }
 
     let re = parameters.re.clone().expect("Bug, already checked parameters.");
@@ -358,18 +406,18 @@ fn process_file(parameters: &mut Parameters, file: &mut Source, mut output: &mut
         content = re.replace_all(&content, replace.as_str());
         if parameters.stdout {
             if !parameters.quiet {
-                try!(output.write(&content.into_bytes()).map_err(|e| e.to_string()));
+                try!(output.write(&content.into_bytes()).map_err(|err| err.to_string()));
             }
         } else {
-            match file {
+            match source {
                 &mut Source::File(ref mut file) => {
-                    try!(file.seek(SeekFrom::Start(0)).map_err(|e| e.to_string()));
-                    try!(file.write(&content.into_bytes()).map_err(|e| e.to_string()));
+                    try!(file.seek(SeekFrom::Start(0)).map_err(|err| err.to_string()));
+                    try!(file.write(&content.into_bytes()).map_err(|err| err.to_string()));
                 }
                 #[cfg(test)]
-                &mut Source::Cursor(ref mut file) => {
-                    try!(file.seek(SeekFrom::Start(0)).map_err(|e| e.to_string()));
-                    try!(file.write(&content.into_bytes()).map_err(|e| e.to_string()));
+                &mut Source::Cursor(ref mut cursor) => {
+                    try!(cursor.seek(SeekFrom::Start(0)).map_err(|err| err.to_string()));
+                    try!(cursor.write(&content.into_bytes()).map_err(|err| err.to_string()));
                 }
                 _ => {}
             }
@@ -382,7 +430,7 @@ fn process_file(parameters: &mut Parameters, file: &mut Source, mut output: &mut
             if let Some(ref group) = parameters.group {
                 if let Some(captures) = re.captures(&text) {
                     try!(output.write(&pre.to_string().into_bytes())
-                               .map_err(|e| e.to_string()));
+                               .map_err(|err| err.to_string()));
                     match group.trim().parse::<usize>() {
                         Ok(index) => {
                             // if there are captures exit_code = 1
@@ -395,7 +443,7 @@ fn process_file(parameters: &mut Parameters, file: &mut Source, mut output: &mut
                                                                   .as_str());
                                 }
                                 try!(output.write(&matched.to_string().into_bytes())
-                                           .map_err(|e| e.to_string()));
+                                           .map_err(|err| err.to_string()));
                             }
                         }
                         Err(_) => {
@@ -408,25 +456,25 @@ fn process_file(parameters: &mut Parameters, file: &mut Source, mut output: &mut
                                                                   .as_str());
                                 }
                                 try!(output.write(&matched.to_string().into_bytes())
-                                           .map_err(|e| e.to_string()));
+                                           .map_err(|err| err.to_string()));
                             }
                         }
                     }
                     try!(output.write(&post.to_string().into_bytes())
-                               .map_err(|e| e.to_string()));
+                               .map_err(|err| err.to_string()));
                 }
             } else if parameters.no_match {
                 if !re.is_match(&text) {
                     try!(output.write(&pre.to_string().into_bytes())
-                               .map_err(|e| e.to_string()));
+                               .map_err(|err| err.to_string()));
                     try!(output.write(&text.to_string().into_bytes())
-                               .map_err(|e| e.to_string()));
+                               .map_err(|err| err.to_string()));
                     try!(output.write(&post.to_string().into_bytes())
-                               .map_err(|e| e.to_string()));
+                               .map_err(|err| err.to_string()));
                 }
             } else if re.is_match(&text) {
                 try!(output.write(&pre.to_string().into_bytes())
-                           .map_err(|e| e.to_string()));
+                           .map_err(|err| err.to_string()));
                 if parameters.only_matches {
                     for (start, end) in re.find_iter(&text) {
                         let mut matched = text[start..end].to_string();
@@ -435,17 +483,17 @@ fn process_file(parameters: &mut Parameters, file: &mut Source, mut output: &mut
                                                      color.paint("$0").to_string().as_str());
                         }
                         try!(output.write(&matched.to_string().into_bytes())
-                                   .map_err(|e| e.to_string()));
+                                   .map_err(|err| err.to_string()));
                     }
                 } else {
                     let mut text = text.to_string();
                     if parameters.colors {
                         text = re.replace_all(&text, color.paint("$0").to_string().as_str());
                     }
-                    try!(output.write(&text.to_string().into_bytes()).map_err(|e| e.to_string()));
+                    try!(output.write(&text.to_string().into_bytes()).map_err(|err| err.to_string()));
                 }
                 try!(output.write(&post.to_string().into_bytes())
-                           .map_err(|e| e.to_string()));
+                           .map_err(|err| err.to_string()));
             }
             Ok(true) // TODO
         };
