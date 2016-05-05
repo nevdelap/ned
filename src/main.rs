@@ -15,7 +15,7 @@ use std::io::{self, Read, Seek, SeekFrom, Write};
 use std::path::Path;
 use std::string::String;
 use std::{env, path, process};
-use walkdir::{WalkDir, WalkDirIterator};
+use walkdir::{DirEntry, WalkDir, WalkDirIterator};
 
 #[cfg(test)]
 // mod test_files;
@@ -67,38 +67,11 @@ struct Parameters {
 //
 
 struct Sources {
-    parameters: Parameters,
-    globs: Vec<String>,
-    globs_iterator: Box<Iterator<Item = String>>,
-    walkdir_iterator: Option<Box<walkdir::Iter>>,
 }
 
 impl Sources {
-    pub fn new(parameters: &Parameters) -> Sources {
-        let globs = parameters.globs.clone();
-        let mut globs_iterator = Box::new(globs.clone().into_iter());
-        let walkdir_iterator = Sources::make_walkdir_iterator(&parameters, globs_iterator.next());
+    pub fn new(_parameters: &Parameters) -> Sources {
         Sources {
-            parameters: parameters.clone(),
-            globs: globs,
-            globs_iterator: globs_iterator,
-            walkdir_iterator: walkdir_iterator,
-        }
-    }
-
-    fn make_walkdir_iterator(parameters: &Parameters,
-                             glob: Option<String>)
-                             -> Option<Box<walkdir::Iter>> {
-        match glob {
-            Some(glob) => {
-                let mut walkdir = WalkDir::new(glob).follow_links(parameters.follow);
-                if !parameters.recursive {
-                    walkdir = walkdir.max_depth(1);
-                }
-                let walkdir_iterator = walkdir.into_iter();
-                Some(Box::new(walkdir_iterator))
-            }
-            None => None,
         }
     }
 }
@@ -107,48 +80,7 @@ impl Iterator for Sources {
     type Item = Source;
 
     fn next(&mut self) -> Option<Source> {
-        loop {/*
-            if let Some(ref walkdir_iterator) = self.walkdir_iterator {
-                if let Some(ref entry) = walkdir_iterator.filter_entry(|entry| {
-                    if let Some(file_name) = entry.path().file_name() {
-                        if let Some(file_name) = file_name.to_str() {
-                                return
-                                    (entry.file_type().is_file() &&
-                                        (self.parameters.includes.len() == 0 ||
-                                         self.parameters.includes.iter().any(|pattern| pattern.matches(file_name)) &&
-                                         !self.parameters.excludes.iter().any(|pattern| pattern.matches(file_name))) ||
-                                    entry.file_type().is_dir() &&
-                                        !self.parameters.exclude_dirs.iter().any(|pattern| pattern.matches(file_name))) &&
-                                    (self.parameters.all || !file_name.starts_with("."));
-                        }
-                    }
-                    false
-                }).next() {
-                    /*match entry {
-                        Ok(entry) => {
-                            let path = entry.path();
-                            match OpenOptions::new()
-                                         .read(true)
-                                         .write(self.parameters.replace.is_some())
-                                         .open(path) {
-                                Ok(file) => return Some(Source::File(Box::new(file))),
-                                Err(err) => {
-                                    // TODO: write err to stdout
-                                }
-                            }
-                        }
-                        Err(err) => {
-                            // TODO: write err to stdout
-                        }
-                    }*/
-                }
-            }
-            self.walkdir_iterator = Sources::make_walkdir_iterator(&self.parameters, self.globs_iterator.next());
-            if self.walkdir_iterator.is_none() {
-                return None;
-            }*/
-            return None;
-        }
+        panic!("oh no!");
     }
 }
 
@@ -378,7 +310,7 @@ fn add_re_options_to_pattern(matches: &Matches, pattern: &str) -> String {
 fn process_files(parameters: &Parameters, mut output: &mut Write) -> Result<bool, String> {
     let mut found_matches = false;
     for mut source in &mut Sources::new(&parameters) {
-        try!(process_file(&parameters, &mut source, output));
+        found_matches |= try!(process_file(&parameters, &mut source, output));
     }
     try!(output.flush().map_err(|err| err.to_string()));
     Ok(found_matches)
@@ -470,7 +402,7 @@ fn process_file(parameters: &Parameters,
                     try!(output.write(&post.to_string().into_bytes())
                                .map_err(|err| err.to_string()));
                 }
-                Ok(true) // TODO
+                return Ok(true); // TODO
             } else if parameters.no_match {
                 if !re.is_match(&text) {
                     try!(output.write(&pre.to_string().into_bytes())
@@ -480,7 +412,7 @@ fn process_file(parameters: &Parameters,
                     try!(output.write(&post.to_string().into_bytes())
                                .map_err(|err| err.to_string()));
                 }
-                Ok(true) // TODO
+                return Ok(true); // TODO
             } else if re.is_match(&text) {
                 try!(output.write(&pre.to_string().into_bytes())
                            .map_err(|err| err.to_string()));
@@ -504,7 +436,9 @@ fn process_file(parameters: &Parameters,
                 }
                 try!(output.write(&post.to_string().into_bytes())
                            .map_err(|err| err.to_string()));
-                Ok(true) // TODO
+                return Ok(true); // TODO
+            } else {
+                return Ok(false); // TODO
             }
         };
 
@@ -523,3 +457,91 @@ fn process_file(parameters: &Parameters,
     }
     Ok(found_matches)
 }
+
+/*
+struct Sources {
+    parameters: Parameters,
+    globs: Vec<String>,
+    globs_iterator: Box<Iterator<Item = String>>,
+    walkdir_iterator: Option<Box<walkdir::IterFilterEntry<walkdir::Iter, FnMut(&DirEntry)>>>,
+}
+
+impl Sources {
+    pub fn new(parameters: &Parameters) -> Sources {
+        let globs = parameters.globs.clone();
+        let mut globs_iterator = Box::new(globs.clone().into_iter());
+        let walkdir_iterator = Sources::make_walkdir_iterator(&parameters, globs_iterator.next());
+        Sources {
+            parameters: parameters.clone(),
+            globs: globs,
+            globs_iterator: globs_iterator,
+            walkdir_iterator: walkdir_iterator,
+        }
+    }
+
+    fn make_walkdir_iterator(parameters: &Parameters,
+                             glob: Option<String>)
+                             -> Option<Box<walkdir::IterFilterEntry<walkdir::Iter, i32>>> {
+        match glob {
+            Some(glob) => {
+                let mut walkdir = WalkDir::new(glob).follow_links(parameters.follow);
+                if !parameters.recursive {
+                    walkdir = walkdir.max_depth(1);
+                }
+                let walkdir_iterator = walkdir.into_iter().filter_entry(|entry| {
+                    if let Some(file_name) = entry.path().file_name() {
+                        if let Some(file_name) = file_name.to_str() {
+                                return
+                                    (entry.file_type().is_file() &&
+                                        (parameters.includes.len() == 0 ||
+                                         parameters.includes.iter().any(|pattern| pattern.matches(file_name)) &&
+                                         !parameters.excludes.iter().any(|pattern| pattern.matches(file_name))) ||
+                                    entry.file_type().is_dir() &&
+                                        !parameters.exclude_dirs.iter().any(|pattern| pattern.matches(file_name))) &&
+                                    (parameters.all || !file_name.starts_with("."));
+                        }
+                    }
+                    false
+                });
+                Some(Box::new(walkdir_iterator))
+            }
+            None => None,
+        }
+    }
+}
+
+impl Iterator for Sources {
+    type Item = Source;
+
+    fn next(&mut self) -> Option<Source> {
+        loop {
+            if let Some(ref mut walkdir_iterator) = self.walkdir_iterator {
+                if let Some(entry) = walkdir_iterator.next() {
+                    match entry {
+                        Ok(entry) => {
+                            let path = entry.path();
+                            match OpenOptions::new()
+                                         .read(true)
+                                         .write(self.parameters.replace.is_some())
+                                         .open(path) {
+                                Ok(file) => return Some(Source::File(Box::new(file))),
+                                Err(err) => {
+                                    // TODO: write err to stdout
+                                }
+                            }
+                        }
+                        Err(err) => {
+                            // TODO: write err to stdout
+                        }
+                    }
+                }
+            }
+            self.walkdir_iterator = Sources::make_walkdir_iterator(&self.parameters, self.globs_iterator.next());
+            if self.walkdir_iterator.is_none() {
+                return None;
+            }
+            return None;
+        }
+    }
+}
+*/
