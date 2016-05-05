@@ -18,11 +18,11 @@ use std::{env, path, process};
 use walkdir::{WalkDir, WalkDirIterator};
 
 #[cfg(test)]
-//mod test_files;
+// mod test_files;
 #[cfg(test)]
-//mod test_general;
+// mod test_general;
 #[cfg(test)]
-//mod test_matches;
+// mod test_matches;
 
 enum Source {
     Stdin(Box<Read>),
@@ -69,12 +69,11 @@ struct Parameters {
 struct Sources {
     parameters: Parameters,
     globs: Vec<String>,
-    globs_iterator: Box<Iterator<Item=String>>,
+    globs_iterator: Box<Iterator<Item = String>>,
     walkdir_iterator: Option<Box<walkdir::Iter>>,
 }
 
 impl Sources {
-
     pub fn new(parameters: &Parameters) -> Sources {
         let globs = parameters.globs.clone();
         let mut globs_iterator = Box::new(globs.clone().into_iter());
@@ -87,7 +86,9 @@ impl Sources {
         }
     }
 
-    fn make_walkdir_iterator(parameters: &Parameters, glob: Option<String>) -> Option<Box<walkdir::Iter>> {
+    fn make_walkdir_iterator(parameters: &Parameters,
+                             glob: Option<String>)
+                             -> Option<Box<walkdir::Iter>> {
         match glob {
             Some(glob) => {
                 let mut walkdir = WalkDir::new(glob).follow_links(parameters.follow);
@@ -97,7 +98,7 @@ impl Sources {
                 let walkdir_iterator = walkdir.into_iter();
                 Some(Box::new(walkdir_iterator))
             }
-            None => None
+            None => None,
         }
     }
 }
@@ -222,10 +223,13 @@ fn get_parameters(opts: &Options, args: &Vec<String>) -> Result<Parameters, Stri
     let re;
 
     if matches.opt_present("pattern") {
-        let pattern = add_re_options_to_pattern(&matches, &matches.opt_str("pattern").expect("Bug, already checked that pattern is present."));
+        let pattern = add_re_options_to_pattern(&matches,
+                                                &matches.opt_str("pattern")
+                                                        .expect("Bug, already checked that \
+                                                                 pattern is present."));
         re = Some(try!(Regex::new(&pattern).map_err(|err| err.to_string())));
         globs = matches.free.iter().map(|glob| glob.clone()).collect::<Vec<String>>();
-    } else if  matches.free.len() > 0 {
+    } else if matches.free.len() > 0 {
         let pattern = add_re_options_to_pattern(&matches, &matches.free[0]);
         re = Some(try!(Regex::new(&pattern).map_err(|err| err.to_string())));
         globs = matches.free.iter().skip(1).map(|glob| glob.clone()).collect::<Vec<String>>();
@@ -252,12 +256,12 @@ fn get_parameters(opts: &Options, args: &Vec<String>) -> Result<Parameters, Stri
         exclude_dirs.push(pattern);
     }
 
-    let replace =  matches.opt_str("replace");
+    let replace = matches.opt_str("replace");
     let stdout = matches.opt_present("stdout");
 
     Ok(Parameters {
         all: matches.opt_present("all"),
-        colors:  matches.opt_present("colors") && (stdout || replace.is_none()),
+        colors: matches.opt_present("colors") && (stdout || replace.is_none()),
         excludes: excludes,
         exclude_dirs: exclude_dirs,
         follow: matches.opt_present("follow"),
@@ -380,7 +384,10 @@ fn process_files(parameters: &Parameters, mut output: &mut Write) -> Result<bool
     Ok(found_matches)
 }
 
-fn process_file(parameters: &Parameters, source: &mut Source, mut output: &mut Write) -> Result<bool, String> {
+fn process_file(parameters: &Parameters,
+                source: &mut Source,
+                mut output: &mut Write)
+                -> Result<bool, String> {
     let color = Red.bold();
 
     let mut content;
@@ -463,6 +470,7 @@ fn process_file(parameters: &Parameters, source: &mut Source, mut output: &mut W
                     try!(output.write(&post.to_string().into_bytes())
                                .map_err(|err| err.to_string()));
                 }
+                Ok(true) // TODO
             } else if parameters.no_match {
                 if !re.is_match(&text) {
                     try!(output.write(&pre.to_string().into_bytes())
@@ -472,6 +480,7 @@ fn process_file(parameters: &Parameters, source: &mut Source, mut output: &mut W
                     try!(output.write(&post.to_string().into_bytes())
                                .map_err(|err| err.to_string()));
                 }
+                Ok(true) // TODO
             } else if re.is_match(&text) {
                 try!(output.write(&pre.to_string().into_bytes())
                            .map_err(|err| err.to_string()));
@@ -490,12 +499,13 @@ fn process_file(parameters: &Parameters, source: &mut Source, mut output: &mut W
                     if parameters.colors {
                         text = re.replace_all(&text, color.paint("$0").to_string().as_str());
                     }
-                    try!(output.write(&text.to_string().into_bytes()).map_err(|err| err.to_string()));
+                    try!(output.write(&text.to_string().into_bytes())
+                               .map_err(|err| err.to_string()));
                 }
                 try!(output.write(&post.to_string().into_bytes())
                            .map_err(|err| err.to_string()));
+                Ok(true) // TODO
             }
-            Ok(true) // TODO
         };
 
         if parameters.line_oriented {
