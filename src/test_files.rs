@@ -11,7 +11,7 @@ fn no_recursion() {
     test(&args, &expected_file_names);
 }
 
-// #[test]
+#[test]
 fn no_recursion_all() {
 
     let args = "pattern --all test";
