@@ -117,32 +117,15 @@ impl Iterator for Files {
                                                                     .any(|pattern| {
                                                                         pattern.matches(file_name)
                                                                     });
-                                            let excluded_dir = entry.file_type().is_dir() &&
-                                                               self.parameters
-                                                                   .exclude_dirs
-                                                                   .iter()
-                                                                   .any(|pattern| {
-                                                                       pattern.matches(file_name)
-                                                                   });
+                                            // let excluded_dir = entry.file_type().is_dir() &&
+                                            //                    self.parameters
+                                            //                        .exclude_dirs
+                                            //                        .iter()
+                                            //                        .any(|pattern| {
+                                            //                            pattern.matches(file_name)
+                                            //                        });
                                             let all = self.parameters.all;
                                             let hidden = file_name.starts_with(".");
-                                            println!("
-file_name {:?}
-included_file {:?}
-excluded_file {:?}
-excluded_dir {:?}
-all {:?}
-hidden {:?}
-included {:?}
-",
-                                                     file_name,
-                                                     included_file,
-                                                     excluded_file,
-                                                     excluded_dir,
-                                                     all,
-                                                     hidden,
-                                                     included_file && !excluded_file &&
-                                                     (all || !hidden));
                                             if included_file && !excluded_file && (all || !hidden) {
                                                 return Some(Box::new(entry.path().to_path_buf()));
                                             }
