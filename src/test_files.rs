@@ -44,7 +44,7 @@ fn recursion() {
     test(&args, &expected_file_names);
 }
 
-// #[test]
+#[test]
 fn recursion_all() {
 
     let args = "pattern --recursive --all test";
@@ -53,7 +53,7 @@ fn recursion_all() {
                                "file3.txt",
                                "file2.txt",
                                "file5.txt",
-                               "hidden_file2",
+                               ".hidden_file2",
                                ".hidden_file1",
                                "file4.txt",
                                "file1.txt"];
