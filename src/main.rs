@@ -18,10 +18,10 @@ use std::string::String;
 use std::{env, path, process};
 use walkdir::{DirEntry, Error, WalkDir};
 
-// #[cfg(test)]
+#[cfg(test)]
 // mod test_files;
 // #[cfg(test)]
-// mod test_general;
+mod test_general;
 #[cfg(test)]
 mod test_matches;
 
