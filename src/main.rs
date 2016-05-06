@@ -19,9 +19,9 @@ use std::{env, path, process};
 use walkdir::{DirEntry, Error, WalkDir};
 
 #[cfg(test)]
-// mod test_files;
+mod test_files;
 // #[cfg(test)]
-mod test_general;
+// mod test_general;
 #[cfg(test)]
 mod test_matches;
 
@@ -90,6 +90,7 @@ impl Iterator for Files {
     type Item = Box<PathBuf>;
 
     fn next(&mut self) -> Option<Box<PathBuf>> {
+        println!("{:?}", self.parameters.excludes);
         loop {
             match self.walkdirs {
                 Some(ref mut walkdirs) => {
@@ -99,23 +100,50 @@ impl Iterator for Files {
                                 Ok(entry) => {
                                     if let Some(file_name) = entry.path().file_name() {
                                         if let Some(file_name) = file_name.to_str() {
-                                            if !entry.file_type().is_dir() &&
-                                               (self.parameters.includes.len() == 0 ||
-                                                self.parameters
-                                                    .includes
-                                                    .iter()
-                                                    .any(|pattern| pattern.matches(file_name)) &&
-                                                !self.parameters
-                                                     .excludes
-                                                     .iter()
-                                                     .any(|pattern| pattern.matches(file_name)) ||
-                                                entry.file_type().is_dir() &&
-                                                !self.parameters
-                                                     .exclude_dirs
-                                                     .iter()
-                                                     .any(|pattern| pattern.matches(file_name))) &&
-                                               (self.parameters.all ||
-                                                !file_name.starts_with(".")) {
+                                            let file_type = entry.file_type();
+                                            let included_file = file_type.is_file() &&
+                                                                (self.parameters.includes.len() ==
+                                                                 0 ||
+                                                                 self.parameters
+                                                                     .includes
+                                                                     .iter()
+                                                                     .any(|pattern| {
+                                                                         pattern.matches(file_name)
+                                                                     }));
+                                            let excluded_file = file_type.is_file() &&
+                                                                self.parameters
+                                                                    .excludes
+                                                                    .iter()
+                                                                    .any(|pattern| {
+                                                                        pattern.matches(file_name)
+                                                                    });
+                                            let excluded_dir = entry.file_type().is_dir() &&
+                                                               self.parameters
+                                                                   .exclude_dirs
+                                                                   .iter()
+                                                                   .any(|pattern| {
+                                                                       pattern.matches(file_name)
+                                                                   });
+                                            let all = self.parameters.all;
+                                            let hidden = file_name.starts_with(".");
+                                            println!("
+file_name {:?}
+included_file {:?}
+excluded_file {:?}
+excluded_dir {:?}
+all {:?}
+hidden {:?}
+included {:?}
+",
+                                                     file_name,
+                                                     included_file,
+                                                     excluded_file,
+                                                     excluded_dir,
+                                                     all,
+                                                     hidden,
+                                                     included_file && !excluded_file &&
+                                                     (all || !hidden));
+                                            if included_file && !excluded_file && (all || !hidden) {
                                                 return Some(Box::new(entry.path().to_path_buf()));
                                             }
                                         }
