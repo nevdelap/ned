@@ -13,7 +13,6 @@ use std::fs::{File, OpenOptions};
 use std::io::Cursor;
 use std::io::{self, Read, Seek, SeekFrom, Write};
 use std::iter::Iterator;
-// use std::path::Path;
 use std::string::String;
 use std::{env, path, process};
 use walkdir::{DirEntry, Error, WalkDir};
