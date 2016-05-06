@@ -13,6 +13,7 @@ use std::fs::{File, OpenOptions};
 use std::io::Cursor;
 use std::io::{self, Read, Seek, SeekFrom, Write};
 use std::iter::Iterator;
+use std::path::PathBuf;
 use std::string::String;
 use std::{env, path, process};
 use walkdir::{DirEntry, Error, WalkDir};
@@ -53,14 +54,14 @@ struct Parameters {
     version: bool,
 }
 
-struct Sources {
+struct Files {
     parameters: Parameters,
     walkdirs: Option<Box<Iterator<Item = Result<DirEntry, Error>>>>,
 }
 
-impl Sources {
-    pub fn new(parameters: &Parameters) -> Sources {
-        Sources {
+impl Files {
+    pub fn new(parameters: &Parameters) -> Files {
+        Files {
             parameters: parameters.clone(),
             walkdirs: if parameters.globs.len() > 0 {
                 let mut walkdirs: Box<Iterator<Item = _>> =
@@ -85,10 +86,10 @@ impl Sources {
     }
 }
 
-impl Iterator for Sources {
-    type Item = Source;
+impl Iterator for Files {
+    type Item = Box<PathBuf>;
 
-    fn next(&mut self) -> Option<Source> {
+    fn next(&mut self) -> Option<Box<PathBuf>> {
         loop {
             match self.walkdirs {
                 Some(ref mut walkdirs) => {
@@ -115,25 +116,13 @@ impl Iterator for Sources {
                                                      .any(|pattern| pattern.matches(file_name))) &&
                                                (self.parameters.all ||
                                                 !file_name.starts_with(".")) {
-                                                match OpenOptions::new()
-                                                          .read(true)
-                                                          .write(self.parameters
-                                                                     .replace
-                                                                     .is_some())
-                                                          .open(entry.path()) {
-                                                    Ok(file) => {
-                                                        return Some(Source::File(Box::new(file)))
-                                                    }
-                                                    Err(_err) => {
-                                                        // TODO: write err to stdout
-                                                        continue;
-                                                    }
-                                                }
+                                                return Some(Box::new(entry.path().to_path_buf()));
                                             }
                                         }
                                     }
                                 }
-                                Err(_err) => {
+                                Err(err) => {
+                                    panic!("Ouch! {}", err);
                                     // err to stdout, call self again
                                     continue;
                                 }
@@ -373,8 +362,22 @@ fn add_re_options_to_pattern(matches: &Matches, pattern: &str) -> String {
 
 fn process_files(parameters: &Parameters, mut output: &mut Write) -> Result<bool, String> {
     let mut found_matches = false;
-    for mut source in &mut Sources::new(&parameters) {
-        found_matches |= try!(process_file(&parameters, &mut source, output));
+    for path_buf in &mut Files::new(&parameters) {
+        match OpenOptions::new()
+                  .read(true)
+                  .write(parameters.replace
+                                   .is_some())
+                  .open(path_buf.as_path()) {
+            Ok(file) => {
+                let mut source = Source::File(Box::new(file));
+                found_matches |= try!(process_file(&parameters, &mut source, output));
+            }
+            Err(err) => {
+                panic!("Ouch! {}", err);
+                // TODO: write err to stdout
+                continue;
+            }
+        }
     }
     try!(output.flush().map_err(|err| err.to_string()));
     Ok(found_matches)

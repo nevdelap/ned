@@ -1,39 +1,38 @@
 /// Test file related functionality - recursion, inclusion, exclusion, symlinks, etc.
 
-use std::path::Path;
-use {get_files, make_opts};
+use {get_parameters, make_opts, Files};
 
 #[test]
 fn no_recursion() {
 
-    let options = "test";
+    let args = "test";
     let expected_file_names = ["file1.txt"];
 
-    test(&options, &expected_file_names);
+    test(&args, &expected_file_names);
 }
 
 #[test]
 fn no_recursion_all() {
 
-    let options = "test --all";
+    let args = "test --all";
     let expected_file_names = [".hidden_file1", "file1.txt"];
 
-    test(&options, &expected_file_names);
+    test(&args, &expected_file_names);
 }
 
 #[test]
 fn no_recursion_follow() {
 
-    let options = "test --follow";
+    let args = "test --follow";
     let expected_file_names = ["file7.txt", "file1.txt"];
 
-    test(&options, &expected_file_names);
+    test(&args, &expected_file_names);
 }
 
 #[test]
 fn recursion() {
 
-    let options = "test --recursive";
+    let args = "test --recursive";
     let expected_file_names = ["file6.txt",
                                "file7.txt",
                                "file3.txt",
@@ -42,13 +41,13 @@ fn recursion() {
                                "file4.txt",
                                "file1.txt"];
 
-    test(&options, &expected_file_names);
+    test(&args, &expected_file_names);
 }
 
 #[test]
 fn recursion_all() {
 
-    let options = "test --recursive --all";
+    let args = "test --recursive --all";
     let expected_file_names = ["file6.txt",
                                "file7.txt",
                                "file3.txt",
@@ -59,22 +58,22 @@ fn recursion_all() {
                                "file4.txt",
                                "file1.txt"];
 
-    test(&options, &expected_file_names);
+    test(&args, &expected_file_names);
 }
 
 #[test]
 fn include_files() {
 
-    let options = "-R test --include file7*";
+    let args = "-R test --include file7*";
     let expected_file_names = ["file7.txt"];
 
-    test(&options, &expected_file_names);
+    test(&args, &expected_file_names);
 }
 
 #[test]
 fn exclude_files() {
 
-    let options = "-R test --exclude file7*";
+    let args = "-R test --exclude file7*";
     let expected_file_names = ["file6.txt",
                                "file3.txt",
                                "file2.txt",
@@ -82,29 +81,27 @@ fn exclude_files() {
                                "file4.txt",
                                "file1.txt"];
 
-    test(&options, &expected_file_names);
+    test(&args, &expected_file_names);
 }
 
 #[test]
 fn exclude_directory() {
 
-    let options = "-R test --exclude-dir dir4";
+    let args = "-R test --exclude-dir dir4";
     let expected_file_names = ["file3.txt", "file2.txt", "file5.txt", "file4.txt", "file1.txt"];
 
-    test(&options, &expected_file_names);
+    test(&args, &expected_file_names);
 }
 
-fn get_path_name(path: &Path) -> Result<String, String> {
-    Ok(path.file_name().unwrap().to_str().unwrap().to_string().clone())
-}
-
-fn test(options: &str, expected_file_names: &[&str]) {
+fn test(args: &str, expected_file_names: &[&str]) {
     let opts = make_opts();
-    let options: Vec<&str> = options.split_whitespace().collect();
-    let matches = opts.parse(&options).unwrap();
-    let file_names = matches.free.iter().collect::<Vec<_>>();
-    let files = get_files(&matches, &file_names, get_path_name).unwrap();
-    assert_eq!(&files,
+    let args = args.split_whitespace().map(|arg| arg.to_string()).collect::<Vec<String>>();
+    let parameters = get_parameters(&opts, &args).unwrap();
+    let paths = Files::new(&parameters);
+    println!("{:?}", paths.count());
+    let paths = Files::new(&parameters);
+    let file_names = paths.map(|path| path.file_name().unwrap().to_str().unwrap().to_string()).collect::<Vec<String>>();
+    assert_eq!(&file_names,
                &expected_file_names.iter()
                                    .map(|file_name| file_name.to_string())
                                    .collect::<Vec<String>>());
