@@ -29,7 +29,7 @@ fn no_recursion_follow() {
     test(&args, &expected_file_names);
 }
 
-// #[test]
+#[test]
 fn recursion() {
 
     let args = "pattern --recursive test";
