@@ -124,7 +124,7 @@ impl Iterator for Files {
                                 Err(err) => {
                                     panic!("Ouch! {}", err);
                                     // err to stdout, call self again
-                                    continue;
+                                    // continue;
                                 }
                             }
                         }
@@ -375,7 +375,7 @@ fn process_files(parameters: &Parameters, mut output: &mut Write) -> Result<bool
             Err(err) => {
                 panic!("Ouch! {}", err);
                 // TODO: write err to stdout
-                continue;
+                // continue;
             }
         }
     }
