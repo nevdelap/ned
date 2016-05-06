@@ -12,18 +12,18 @@ use std::fs::{File, OpenOptions};
 #[cfg(test)]
 use std::io::Cursor;
 use std::io::{self, Read, Seek, SeekFrom, Write};
-use std::iter::{Iterator};
-//use std::path::Path;
+use std::iter::Iterator;
+// use std::path::Path;
 use std::string::String;
 use std::{env, path, process};
 use walkdir::{DirEntry, Error, WalkDir};
 
-#[cfg(test)]
+// #[cfg(test)]
 // mod test_files;
-#[cfg(test)]
+// #[cfg(test)]
 // mod test_general;
 #[cfg(test)]
-// mod test_matches;
+mod test_matches;
 
 enum Source {
     Stdin(Box<Read>),
@@ -54,59 +54,35 @@ struct Parameters {
     version: bool,
 }
 
-// Doing this, with recursion, inclusions, excludes, hidden file
-// handling, as an Iterator that lazily opens the files specified
-// by the given globs. Errors are written to stderr and iteration
-// continues until all directories and files have been walked.
-//
-// for glob in globs {
-//     for entry in WalkDir::new(glob) {
-//         yield Some(entry); // If we could yield.
-//     }
-// }
-// None
-//
-
 struct Sources {
     parameters: Parameters,
-    walkdirs: Option<Box<Iterator<Item=Result<DirEntry, Error>>>>
+    walkdirs: Option<Box<Iterator<Item = Result<DirEntry, Error>>>>,
 }
-
-/*
-    if let Some(file_name) = entry.path().file_name() {
-        if let Some(file_name) = file_name.to_str() {
-                return
-                    (entry.file_type().is_file() &&
-                        (parameters.includes.len() == 0 ||
-                         parameters.includes.iter().any(|pattern| pattern.matches(file_name)) &&
-                         !parameters.excludes.iter().any(|pattern| pattern.matches(file_name))) ||
-                    entry.file_type().is_dir() &&
-                        !parameters.exclude_dirs.iter().any(|pattern| pattern.matches(file_name))) &&
-                    (parameters.all || !file_name.starts_with("."));
-        }
-    }
-    false
-
-    if !parameters.recursive {
-        walkdir = walkdir.max_depth(1);
-    }
-*/
 
 impl Sources {
     pub fn new(parameters: &Parameters) -> Sources {
         Sources {
             parameters: parameters.clone(),
-            walkdirs:
-                if parameters.globs.len() > 0 {
-                    let mut walkdirs: Box<Iterator<Item = _>> = Box::new(WalkDir::new(&parameters.globs[0]).follow_links(parameters.follow).into_iter());
-                    for glob in parameters.globs.iter().skip(1) {
-                        walkdirs = Box::new(walkdirs.chain(WalkDir::new(glob).follow_links(parameters.follow).into_iter()));
-                    }
-                    Some(walkdirs)
-                } else {
-                    None
+            walkdirs: if parameters.globs.len() > 0 {
+                let mut walkdirs: Box<Iterator<Item = _>> =
+                    Box::new(Self::make_walkdir(&parameters, &parameters.globs[0]).into_iter());
+                for glob in parameters.globs.iter().skip(1) {
+                    walkdirs = Box::new(walkdirs.chain(Self::make_walkdir(&parameters, &glob)
+                                                           .into_iter()));
                 }
+                Some(walkdirs)
+            } else {
+                None
+            },
         }
+    }
+
+    fn make_walkdir(parameters: &Parameters, glob: &String) -> walkdir::WalkDir {
+        let mut walkdir = WalkDir::new(&glob).follow_links(parameters.follow);
+        if !parameters.recursive {
+            walkdir = walkdir.max_depth(1);
+        }
+        walkdir
     }
 }
 
@@ -121,28 +97,53 @@ impl Iterator for Sources {
                         Some(entry) => {
                             match entry {
                                 Ok(entry) => {
-                                    let path = entry.path();
-                                    match OpenOptions::new()
-                                                 .read(true)
-                                                 .write(self.parameters.replace.is_some())
-                                                 .open(path) {
-                                        Ok(file) => return Some(Source::File(Box::new(file))),
-                                        Err(_err) => {
-                                            // TODO: write err to stdout
-                                            continue
+                                    if let Some(file_name) = entry.path().file_name() {
+                                        if let Some(file_name) = file_name.to_str() {
+                                            if !entry.file_type().is_dir() &&
+                                               (self.parameters.includes.len() == 0 ||
+                                                self.parameters
+                                                    .includes
+                                                    .iter()
+                                                    .any(|pattern| pattern.matches(file_name)) &&
+                                                !self.parameters
+                                                     .excludes
+                                                     .iter()
+                                                     .any(|pattern| pattern.matches(file_name)) ||
+                                                entry.file_type().is_dir() &&
+                                                !self.parameters
+                                                     .exclude_dirs
+                                                     .iter()
+                                                     .any(|pattern| pattern.matches(file_name))) &&
+                                               (self.parameters.all ||
+                                                !file_name.starts_with(".")) {
+                                                match OpenOptions::new()
+                                                          .read(true)
+                                                          .write(self.parameters
+                                                                     .replace
+                                                                     .is_some())
+                                                          .open(entry.path()) {
+                                                    Ok(file) => {
+                                                        return Some(Source::File(Box::new(file)))
+                                                    }
+                                                    Err(_err) => {
+                                                        // TODO: write err to stdout
+                                                        continue;
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
                                 Err(_err) => {
                                     // err to stdout, call self again
-                                    continue
+                                    continue;
                                 }
                             }
-                        },
-                        None => return None
+                        }
+                        None => return None,
                     }
                 }
-                None => return None
+                None => return None,
             }
         }
     }
