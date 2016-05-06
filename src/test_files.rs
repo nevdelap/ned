@@ -24,7 +24,7 @@ fn no_recursion_all() {
 fn no_recursion_follow() {
 
     let args = "pattern --follow test";
-    let expected_file_names = ["file7.txt", "file1.txt"];
+    let expected_file_names = ["file8.txt", "file1.txt"];
 
     test(&args, &expected_file_names);
 }
