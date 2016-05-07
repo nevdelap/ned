@@ -60,7 +60,7 @@ struct Parameters {
 /// to simply use filter_entry() in make_walkdir() and move
 /// the filtering into it from Files::next(), the type
 /// signature for the P on WalkDirIterator for the closure
-/// toe filter_entry() is busting my a...
+/// passed to filter_entry() is busting my a...
 struct Files {
     parameters: Parameters,
     walkdirs: Option<Vec<Box<walkdir::Iter>>>,
