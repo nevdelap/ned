@@ -54,6 +54,9 @@ struct Parameters {
     version: bool,
 }
 
+/// Files walks a vector of walkdir::Iter's so that we have
+/// access to them to call skip_current_dir as we filter them.
+/// I can't figure out how to chain WalkDirIterators.
 struct Files {
     parameters: Parameters,
     walkdirs: Option<Vec<Box<walkdir::Iter>>>,
