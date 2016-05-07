@@ -1,11 +1,3 @@
-// TODO:
-// exit_codes, put back in tests.
-// make it to stdin if there are globs.
-// remove the Option from walkdirs.
-// stderr in Files.
-// write a test for files: check behaviour if Files is passed zero globs.
-// move Source, Files, Parameters, opts funcs, constants to their own files.
-
 extern crate ansi_term;
 extern crate getopts;
 extern crate glob;
