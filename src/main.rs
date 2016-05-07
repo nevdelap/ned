@@ -55,8 +55,12 @@ struct Parameters {
 }
 
 /// Files walks a vector of walkdir::Iter's so that we have
-/// access to them to call skip_current_dir as we filter them.
-/// I can't figure out how to chain WalkDirIterators.
+/// access to them to call skip_current_dir() as we filter them.
+/// I can't figure out how to chain WalkDirIterators inorder
+/// to simply use filter_entry() in make_walkdir() and move
+/// the filtering into it from Files::next(), the type
+/// signature for the P on WalkDirIterator for the closure
+/// toe filter_entry() is busting my a...
 struct Files {
     parameters: Parameters,
     walkdirs: Option<Vec<Box<walkdir::Iter>>>,
@@ -173,7 +177,8 @@ fn main() {
     let (program, args) = get_program_and_args();
 
     // Output is passed here so that tests can
-    // call ned() directly read the output.
+    // call ned() directly to read the output
+    // that will go to stdout.
     let mut output = io::stdout();
     match ned(&program, &args, &mut output) {
         Ok(exit_code) => process::exit(exit_code),
