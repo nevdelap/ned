@@ -430,7 +430,7 @@ fn really_test(input: &str,
     let mut file = Source::Cursor(Box::new(cursor));
     let mut screen_output: Vec<u8> = vec![];
 
-    let found_matches = process_file(&mut parameters, &mut file, &mut screen_output).unwrap();
+    let found_matches = process_file(&parameters, &mut file, &mut screen_output).unwrap();
 
     let screen_output = String::from_utf8(screen_output).unwrap();
 
