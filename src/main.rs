@@ -22,8 +22,6 @@ use getopts::{Options, ParsingStyle};
 use parameters::{get_parameters, Parameters};
 use source::Source;
 use std::fs::OpenOptions;
-#[cfg(test)]
-use std::io::Cursor;
 use std::io::{self, Read, Seek, SeekFrom, Write};
 use std::iter::Iterator;
 use std::string::String;

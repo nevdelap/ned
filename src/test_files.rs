@@ -1,7 +1,7 @@
 /// Test file related functionality - recursion, inclusion, exclusion, symlinks, etc.
 
 use make_opts;
-use parameters::{get_parameters, Parameters};
+use parameters::get_parameters;
 use files::Files;
 
 #[test]

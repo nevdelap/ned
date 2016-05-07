@@ -3,8 +3,6 @@ extern crate regex;
 use getopts::{Matches, Options};
 use glob::Pattern;
 use regex::Regex;
-#[cfg(test)]
-use std::io::Cursor;
 use std::iter::Iterator;
 use std::string::String;
 
