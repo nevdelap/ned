@@ -56,7 +56,7 @@ struct Parameters {
 
 /// Files walks a vector of walkdir::Iter's so that we have
 /// access to them to call skip_current_dir() as we filter them.
-/// I can't figure out how to chain WalkDirIterators inorder
+/// I can't figure out how to chain WalkDirIterators in order
 /// to simply use filter_entry() in make_walkdir() and move
 /// the filtering into it from Files::next(), the type
 /// signature for the P on WalkDirIterator for the closure
