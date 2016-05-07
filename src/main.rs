@@ -16,7 +16,7 @@ use std::iter::Iterator;
 use std::path::PathBuf;
 use std::string::String;
 use std::{env, path, process};
-use walkdir::{DirEntry, Error, WalkDir, WalkDirIterator};
+use walkdir::{WalkDir, WalkDirIterator};
 
 #[cfg(test)]
 mod test_files;
