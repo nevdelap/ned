@@ -18,9 +18,7 @@ mod source;
 
 use ansi_term::Colour::Red;
 use files::Files;
-use getopts::{Matches, Options, ParsingStyle};
-use glob::Pattern;
-use regex::Regex;
+use getopts::{Options, ParsingStyle};
 use parameters::{get_parameters, Parameters};
 use source::Source;
 use std::fs::OpenOptions;

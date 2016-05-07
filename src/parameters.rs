@@ -1,16 +1,12 @@
 extern crate regex;
 
-use ansi_term::Colour::Red;
-use getopts::{Matches, Options, ParsingStyle};
+use getopts::{Matches, Options};
 use glob::Pattern;
 use regex::Regex;
-use std::fs::OpenOptions;
 #[cfg(test)]
 use std::io::Cursor;
-use std::io::{self, Read, Seek, SeekFrom, Write};
 use std::iter::Iterator;
 use std::string::String;
-use std::{env, path, process};
 
 #[derive(Clone)]
 pub struct Parameters {
