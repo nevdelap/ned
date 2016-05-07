@@ -4,11 +4,7 @@ extern crate glob;
 extern crate regex;
 extern crate walkdir;
 
-use ansi_term::Colour::Red;
-use getopts::{Matches, Options, ParsingStyle};
-use glob::Pattern;
-use regex::Regex;
-use std::fs::{File, OpenOptions};
+use std::fs::File;
 #[cfg(test)]
 use std::io::Cursor;
 use std::io::{self, Read, Seek, SeekFrom, Write};
