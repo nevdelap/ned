@@ -80,23 +80,14 @@ fn recursive_match() {
                                   write a love letter to our taxidermist.\nThe taxidermist goes \
                                   to sleep, and some mirror flies into a rage; however, the \
                                   guardian angel\nrelated to some dilettante makes a truce with \
-                                  the lowly labyrinth.If another ballerina defined by a fetishist \
-                                  falls in love with a shadow, then a \
-                                  non-chalantly\nself-actualized taxidermist prays. Sometimes a \
-                                  clodhopper near the hand dies, but the girl around\nsome \
-                                  piroshki always operates a small fruit stand with the friendly \
-                                  toothache! Nimbo and I took the\nsingle-handledly niggardly \
-                                  cream puff (with the trombone, the stalactite, a few midwifes, \
-                                  and\nanother onlooker) to arrive at a state of intimacy where \
-                                  we can greedily bestow great honor upon our\npiroshki.Harpo \
-                                  Marx and I took another hand for some espadrille (with an \
-                                  irreconcilable tea party, a widow\nliving with the fetishist, a \
-                                  few midwifes, and a clodhopper near some clock) to arrive at a \
-                                  state of\nintimacy where we can carelessly slyly organize our \
-                                  necromancer. Another nefarious bubble teaches a\nseldom comely \
-                                  necromancer. A coward gives a pink slip to a cleavage toward a \
-                                  bicep. The girl near a\ntoothpick shares a shower with the \
-                                  ballerina.";
+                                  the lowly labyrinth.Harpo Marx and I took another hand for some \
+                                  espadrille (with an irreconcilable tea party, a widow\nliving \
+                                  with the fetishist, a few midwifes, and a clodhopper near some \
+                                  clock) to arrive at a state of\nintimacy where we can \
+                                  carelessly slyly organize our necromancer. Another nefarious \
+                                  bubble teaches a\nseldom comely necromancer. A coward gives a \
+                                  pink slip to a cleavage toward a bicep. The girl near \
+                                  a\ntoothpick shares a shower with the ballerina.";
 
     test(&options, expected_exit_code, &expected_screen_output);
 }

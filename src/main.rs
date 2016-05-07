@@ -20,8 +20,8 @@ use walkdir::{WalkDir, WalkDirIterator};
 
 #[cfg(test)]
 mod test_files;
-// #[cfg(test)]
-// mod test_general;
+#[cfg(test)]
+mod test_general;
 #[cfg(test)]
 mod test_matches;
 
