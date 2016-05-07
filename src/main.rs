@@ -47,7 +47,6 @@ struct Parameters {
     exclude_dirs: Vec<Pattern>,
     excludes: Vec<Pattern>,
     follow: bool,
-    globs: Vec<String>,
     group: Option<String>,
     help: bool,
     includes: Vec<Pattern>,
@@ -62,43 +61,21 @@ struct Parameters {
     version: bool,
 }
 
-/// Files walks a vector of walkdir::Iter's so that we have
-/// access to them to call skip_current_dir() as we filter them.
-/// I can't figure out how to chain WalkDirIterators in order
-/// to simply use filter_entry() in make_walkdir() and move
-/// the filtering into it from Files::next(), the type
-/// signature for the P on WalkDirIterator for the closure
-/// passed to filter_entry() is busting my a...
 struct Files {
     parameters: Parameters,
-    walkdirs: Option<Vec<Box<walkdir::Iter>>>,
-    current: usize,
+    walkdir: Box<walkdir::Iter>,
 }
 
 impl Files {
-    pub fn new(parameters: &Parameters) -> Files {
-        let walkdirs = if parameters.globs.len() > 0 {
-            let mut walkdirs = Vec::with_capacity(parameters.globs.len());
-            for glob in parameters.globs.iter() {
-                walkdirs.push(Box::new(Self::make_walkdir(&parameters, &glob).into_iter()));
-            }
-            Some(walkdirs)
-        } else {
-            None
-        };
-        Files {
-            parameters: parameters.clone(),
-            walkdirs: walkdirs,
-            current: 0,
-        }
-    }
-
-    fn make_walkdir(parameters: &Parameters, glob: &String) -> walkdir::WalkDir {
+    pub fn new(parameters: &Parameters, glob: &String) -> Files {
         let mut walkdir = WalkDir::new(&glob).follow_links(parameters.follow);
         if !parameters.recursive {
             walkdir = walkdir.max_depth(1);
         }
-        walkdir
+        Files {
+            parameters: parameters.clone(),
+            walkdir: Box::new(walkdir.into_iter()),
+        }
     }
 }
 
@@ -107,74 +84,56 @@ impl Iterator for Files {
 
     fn next(&mut self) -> Option<Box<PathBuf>> {
         loop {
-            let len = {
-                match self.walkdirs {
-                    Some(ref mut walkdirs) => walkdirs.len(),
-                    None => 0,
-                }
-            };
-            if self.current >= len {
-                self.walkdirs = None;
-                return None;
-            }
-            match self.walkdirs {
-                Some(ref mut walkdirs) => {
-                    let walkdir = &mut walkdirs[self.current];
-                    match walkdir.next() {
-                        Some(entry) => {
-                            match entry {
-                                Ok(entry) => {
-                                    if let Some(file_name) = entry.path().file_name() {
-                                        if let Some(file_name) = file_name.to_str() {
-                                            let file_type = entry.file_type();
-                                            let excluded_dir = entry.file_type().is_dir() &&
-                                                               self.parameters
-                                                                   .exclude_dirs
-                                                                   .iter()
-                                                                   .any(|pattern| {
-                                                                       pattern.matches(file_name)
-                                                                   });
-                                            if excluded_dir {
-                                                walkdir.skip_current_dir();
-                                            }
-                                            let included_file = file_type.is_file() &&
-                                                                (self.parameters.includes.len() ==
-                                                                 0 ||
-                                                                 self.parameters
-                                                                     .includes
-                                                                     .iter()
-                                                                     .any(|pattern| {
-                                                                         pattern.matches(file_name)
-                                                                     }));
-                                            let excluded_file = file_type.is_file() &&
-                                                                self.parameters
-                                                                    .excludes
-                                                                    .iter()
-                                                                    .any(|pattern| {
-                                                                        pattern.matches(file_name)
-                                                                    });
-                                            let all = self.parameters.all;
-                                            let hidden = file_name.starts_with(".");
-                                            if included_file && !excluded_file && (all || !hidden) {
-                                                return Some(Box::new(entry.path().to_path_buf()));
-                                            }
-                                        }
+            match self.walkdir.next() {
+                Some(entry) => {
+                    match entry {
+                        Ok(entry) => {
+                            if let Some(file_name) = entry.path().file_name() {
+                                if let Some(file_name) = file_name.to_str() {
+                                    let file_type = entry.file_type();
+                                    let excluded_dir = entry.file_type().is_dir() &&
+                                                       self.parameters
+                                                           .exclude_dirs
+                                                           .iter()
+                                                           .any(|pattern| {
+                                                               pattern.matches(file_name)
+                                                           });
+                                    if excluded_dir {
+                                        self.walkdir.skip_current_dir();
                                     }
-                                }
-                                Err(err) => {
-                                    panic!("Ouch! {}", err);
-                                    // err to stdout, call self again
-                                    // continue;
+                                    let included_file = file_type.is_file() &&
+                                                        (self.parameters.includes.len() == 0 ||
+                                                         self.parameters
+                                                             .includes
+                                                             .iter()
+                                                             .any(|pattern| {
+                                                                 pattern.matches(file_name)
+                                                             }));
+                                    let excluded_file = file_type.is_file() &&
+                                                        self.parameters
+                                                            .excludes
+                                                            .iter()
+                                                            .any(|pattern| {
+                                                                pattern.matches(file_name)
+                                                            });
+                                    let all = self.parameters.all;
+                                    let hidden = file_name.starts_with(".");
+                                    if included_file && !excluded_file && (all || !hidden) {
+                                        return Some(Box::new(entry.path().to_path_buf()));
+                                    }
                                 }
                             }
                         }
-                        None => {
-                            self.current += 1;
-                            continue;
+                        Err(err) => {
+                            panic!("Ouch! {}", err);
+                            // err to stdout, call self again
+                            // continue;
                         }
                     }
                 }
-                None => return None,
+                None => {
+                    return None;
+                }
             }
         }
     }
@@ -216,14 +175,14 @@ fn get_program_and_args() -> (String, Vec<String>) {
 fn ned(program: &str, args: &Vec<String>, mut output: &mut Write) -> Result<i32, String> {
 
     let opts = make_opts();
-    let parameters = try!(get_parameters(&opts, args));
+    let (parameters, globs) = try!(get_parameters(&opts, args));
 
     if parameters.version {
         println!("{}{}", &VERSION, &LICENSE);
         process::exit(1);
     }
 
-    if parameters.globs.len() == 0 && !parameters.re.is_none() || parameters.help {
+    if globs.len() == 0 && !parameters.re.is_none() || parameters.help {
         let brief = format!("Usage: {} {}\n{}",
                             program,
                             &OPTS_AND_ARGS,
@@ -236,7 +195,7 @@ fn ned(program: &str, args: &Vec<String>, mut output: &mut Write) -> Result<i32,
         process::exit(1);
     }
 
-    let found_matches = try!(process_files(&parameters, &mut output));
+    let found_matches = try!(process_files(&parameters, &globs, &mut output));
     Ok(if found_matches {
         0
     } else {
@@ -244,7 +203,7 @@ fn ned(program: &str, args: &Vec<String>, mut output: &mut Write) -> Result<i32,
     })
 }
 
-fn get_parameters(opts: &Options, args: &Vec<String>) -> Result<Parameters, String> {
+fn get_parameters(opts: &Options, args: &Vec<String>) -> Result<(Parameters, Vec<String>), String> {
 
     let matches = try!(opts.parse(args).map_err(|err| err.to_string()));
 
@@ -288,13 +247,12 @@ fn get_parameters(opts: &Options, args: &Vec<String>) -> Result<Parameters, Stri
     let replace = matches.opt_str("replace");
     let stdout = matches.opt_present("stdout");
 
-    Ok(Parameters {
+    Ok((Parameters {
         all: matches.opt_present("all"),
         colors: matches.opt_present("colors") && (stdout || replace.is_none()),
         excludes: excludes,
         exclude_dirs: exclude_dirs,
         follow: matches.opt_present("follow"),
-        globs: globs,
         group: matches.opt_str("group"),
         help: matches.opt_present("help"),
         includes: includes,
@@ -307,7 +265,8 @@ fn get_parameters(opts: &Options, args: &Vec<String>) -> Result<Parameters, Stri
         replace: replace,
         stdout: stdout,
         version: matches.opt_present("version"),
-    })
+    },
+        globs))
 }
 
 static OPTS_AND_ARGS: &'static str = "[OPTION]... [-p] <PATTERN> [FILE]...";
@@ -404,22 +363,27 @@ fn add_re_options_to_pattern(matches: &Matches, pattern: &str) -> String {
     }
 }
 
-fn process_files(parameters: &Parameters, mut output: &mut Write) -> Result<bool, String> {
+fn process_files(parameters: &Parameters,
+                 globs: &Vec<String>,
+                 mut output: &mut Write)
+                 -> Result<bool, String> {
     let mut found_matches = false;
-    for path_buf in &mut Files::new(&parameters) {
-        match OpenOptions::new()
-                  .read(true)
-                  .write(parameters.replace
-                                   .is_some())
-                  .open(path_buf.as_path()) {
-            Ok(file) => {
-                let mut source = Source::File(Box::new(file));
-                found_matches |= try!(process_file(&parameters, &mut source, output));
-            }
-            Err(err) => {
-                panic!("Ouch! {}", err);
-                // TODO: write err to stdout
-                // continue;
+    for glob in globs {
+        for path_buf in &mut Files::new(&parameters, &glob) {
+            match OpenOptions::new()
+                      .read(true)
+                      .write(parameters.replace
+                                       .is_some())
+                      .open(path_buf.as_path()) {
+                Ok(file) => {
+                    let mut source = Source::File(Box::new(file));
+                    found_matches |= try!(process_file(&parameters, &mut source, output));
+                }
+                Err(err) => {
+                    panic!("Ouch! {}", err);
+                    // TODO: write err to stdout
+                    // continue;
+                }
             }
         }
     }

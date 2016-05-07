@@ -422,7 +422,7 @@ fn really_test(input: &str,
     let opts = make_opts();
     let mut args = args.split_whitespace().map(|arg| arg.to_string()).collect::<Vec<String>>();
     args.insert(0, pattern.to_string());
-    let mut parameters = get_parameters(&opts, &args).unwrap();
+    let (mut parameters, globs) = get_parameters(&opts, &args).unwrap();
 
     let mut cursor = Cursor::<Vec<u8>>::new(vec![]);
     cursor.write(&input.to_string().into_bytes()).unwrap();
