@@ -1,8 +1,9 @@
 /// Test match related functionality - different types of matches, matches with color, quiet, etc.
 /// The use of re, not re itself.
 
+use {get_parameters, make_opts, process_file};
+use source::Source;
 use std::io::{Cursor, Read, Seek, SeekFrom, Write};
-use {get_parameters, make_opts, process_file, Source};
 
 #[test]
 fn basic_match_quiet_and_not_quiet() {

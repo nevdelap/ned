@@ -12,10 +12,15 @@ extern crate glob;
 extern crate regex;
 extern crate walkdir;
 
+mod parameters;
+mod source;
+
 use ansi_term::Colour::Red;
 use getopts::{Matches, Options, ParsingStyle};
 use glob::Pattern;
 use regex::Regex;
+use parameters::Parameters;
+use source::Source;
 use std::fs::{File, OpenOptions};
 #[cfg(test)]
 use std::io::Cursor;
@@ -32,35 +37,6 @@ mod test_files;
 mod test_general;
 #[cfg(test)]
 mod test_matches;
-
-enum Source {
-    Stdin(Box<Read>),
-    File(Box<File>),
-    #[cfg(test)]
-    Cursor(Box<Cursor<Vec<u8>>>),
-}
-
-#[derive(Clone)]
-struct Parameters {
-    all: bool,
-    colors: bool,
-    exclude_dirs: Vec<Pattern>,
-    excludes: Vec<Pattern>,
-    follow: bool,
-    globs: Vec<String>,
-    group: Option<String>,
-    help: bool,
-    includes: Vec<Pattern>,
-    line_oriented: bool,
-    no_match: bool,
-    only_matches: bool,
-    quiet: bool,
-    re: Option<Regex>,
-    recursive: bool,
-    replace: Option<String>,
-    stdout: bool,
-    version: bool,
-}
 
 struct Files {
     parameters: Parameters,
