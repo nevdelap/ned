@@ -84,7 +84,7 @@ fn exclude_files() {
     test(&args, &expected_file_names);
 }
 
-// #[test]
+#[test]
 fn exclude_directory() {
 
     let args = "pattern -R test --exclude-dir dir4";
