@@ -67,7 +67,6 @@ impl Files {
             for glob in parameters.globs.iter() {
                 walkdirs.push(Box::new(Self::make_walkdir(&parameters, &glob).into_iter()));
             }
-            println!("{}", walkdirs.len());
             Some(walkdirs)
         } else {
             None
@@ -99,7 +98,6 @@ impl Iterator for Files {
                     None => 0,
                 }
             };
-            println!("{} {}", self.current, len);
             if self.current >= len {
                 self.walkdirs = None;
                 return None;
