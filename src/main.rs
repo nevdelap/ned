@@ -21,7 +21,7 @@ use glob::Pattern;
 use regex::Regex;
 use parameters::Parameters;
 use source::Source;
-use std::fs::{File, OpenOptions};
+use std::fs::OpenOptions;
 #[cfg(test)]
 use std::io::Cursor;
 use std::io::{self, Read, Seek, SeekFrom, Write};
