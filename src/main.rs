@@ -47,6 +47,7 @@ struct Parameters {
     exclude_dirs: Vec<Pattern>,
     excludes: Vec<Pattern>,
     follow: bool,
+    globs: Vec<String>,
     group: Option<String>,
     help: bool,
     includes: Vec<Pattern>,
@@ -175,14 +176,14 @@ fn get_program_and_args() -> (String, Vec<String>) {
 fn ned(program: &str, args: &Vec<String>, mut output: &mut Write) -> Result<i32, String> {
 
     let opts = make_opts();
-    let (parameters, globs) = try!(get_parameters(&opts, args));
+    let parameters = try!(get_parameters(&opts, args));
 
     if parameters.version {
         println!("{}{}", &VERSION, &LICENSE);
         process::exit(1);
     }
 
-    if globs.len() == 0 && !parameters.re.is_none() || parameters.help {
+    if parameters.globs.len() == 0 && !parameters.re.is_none() || parameters.help {
         let brief = format!("Usage: {} {}\n{}",
                             program,
                             &OPTS_AND_ARGS,
@@ -195,7 +196,7 @@ fn ned(program: &str, args: &Vec<String>, mut output: &mut Write) -> Result<i32,
         process::exit(1);
     }
 
-    let found_matches = try!(process_files(&parameters, &globs, &mut output));
+    let found_matches = try!(process_files(&parameters, &mut output));
     Ok(if found_matches {
         0
     } else {
@@ -203,7 +204,7 @@ fn ned(program: &str, args: &Vec<String>, mut output: &mut Write) -> Result<i32,
     })
 }
 
-fn get_parameters(opts: &Options, args: &Vec<String>) -> Result<(Parameters, Vec<String>), String> {
+fn get_parameters(opts: &Options, args: &Vec<String>) -> Result<Parameters, String> {
 
     let matches = try!(opts.parse(args).map_err(|err| err.to_string()));
 
@@ -247,12 +248,13 @@ fn get_parameters(opts: &Options, args: &Vec<String>) -> Result<(Parameters, Vec
     let replace = matches.opt_str("replace");
     let stdout = matches.opt_present("stdout");
 
-    Ok((Parameters {
+    Ok(Parameters {
         all: matches.opt_present("all"),
         colors: matches.opt_present("colors") && (stdout || replace.is_none()),
         excludes: excludes,
         exclude_dirs: exclude_dirs,
         follow: matches.opt_present("follow"),
+        globs: globs,
         group: matches.opt_str("group"),
         help: matches.opt_present("help"),
         includes: includes,
@@ -265,8 +267,7 @@ fn get_parameters(opts: &Options, args: &Vec<String>) -> Result<(Parameters, Vec
         replace: replace,
         stdout: stdout,
         version: matches.opt_present("version"),
-    },
-        globs))
+    })
 }
 
 static OPTS_AND_ARGS: &'static str = "[OPTION]... [-p] <PATTERN> [FILE]...";
@@ -363,12 +364,9 @@ fn add_re_options_to_pattern(matches: &Matches, pattern: &str) -> String {
     }
 }
 
-fn process_files(parameters: &Parameters,
-                 globs: &Vec<String>,
-                 mut output: &mut Write)
-                 -> Result<bool, String> {
+fn process_files(parameters: &Parameters, mut output: &mut Write) -> Result<bool, String> {
     let mut found_matches = false;
-    for glob in globs {
+    for glob in &parameters.globs {
         for path_buf in &mut Files::new(&parameters, &glob) {
             match OpenOptions::new()
                       .read(true)

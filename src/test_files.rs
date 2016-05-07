@@ -96,9 +96,8 @@ fn exclude_directory() {
 fn test(args: &str, expected_file_names: &[&str]) {
     let opts = make_opts();
     let args = args.split_whitespace().map(|arg| arg.to_string()).collect::<Vec<String>>();
-    let (parameters, globs) = get_parameters(&opts, &args).unwrap();
-    assert_eq!(globs.len(), 1);
-    let paths = Files::new(&parameters, &globs[0]);
+    let parameters = get_parameters(&opts, &args).unwrap();
+    let paths = Files::new(&parameters, &parameters.globs[0]);
     let file_names = paths.map(|path| path.file_name().unwrap().to_str().unwrap().to_string())
                           .collect::<Vec<String>>();
     assert_eq!(&file_names,
