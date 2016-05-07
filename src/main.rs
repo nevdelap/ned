@@ -16,7 +16,7 @@ use std::iter::Iterator;
 use std::path::PathBuf;
 use std::string::String;
 use std::{env, path, process};
-use walkdir::{DirEntry, Error, WalkDir};
+use walkdir::{DirEntry, Error, WalkDir, WalkDirIterator};
 
 #[cfg(test)]
 mod test_files;
@@ -56,24 +56,26 @@ struct Parameters {
 
 struct Files {
     parameters: Parameters,
-    walkdirs: Option<Box<Iterator<Item = Result<DirEntry, Error>>>>,
+    walkdirs: Option<Vec<Box<walkdir::Iter>>>,
+    current: usize,
 }
 
 impl Files {
     pub fn new(parameters: &Parameters) -> Files {
+        let walkdirs = if parameters.globs.len() > 0 {
+            let mut walkdirs = Vec::with_capacity(parameters.globs.len());
+            for glob in parameters.globs.iter() {
+                walkdirs.push(Box::new(Self::make_walkdir(&parameters, &glob).into_iter()));
+            }
+            println!("{}", walkdirs.len());
+            Some(walkdirs)
+        } else {
+            None
+        };
         Files {
             parameters: parameters.clone(),
-            walkdirs: if parameters.globs.len() > 0 {
-                let mut walkdirs: Box<Iterator<Item = _>> =
-                    Box::new(Self::make_walkdir(&parameters, &parameters.globs[0]).into_iter());
-                for glob in parameters.globs.iter().skip(1) {
-                    walkdirs = Box::new(walkdirs.chain(Self::make_walkdir(&parameters, &glob)
-                                                           .into_iter()));
-                }
-                Some(walkdirs)
-            } else {
-                None
-            },
+            walkdirs: walkdirs,
+            current: 0,
         }
     }
 
@@ -90,17 +92,38 @@ impl Iterator for Files {
     type Item = Box<PathBuf>;
 
     fn next(&mut self) -> Option<Box<PathBuf>> {
-        println!("{:?}", self.parameters.excludes);
         loop {
+            let len = {
+                match self.walkdirs {
+                    Some(ref mut walkdirs) => walkdirs.len(),
+                    None => 0,
+                }
+            };
+            println!("{} {}", self.current, len);
+            if self.current >= len {
+                self.walkdirs = None;
+                return None;
+            }
             match self.walkdirs {
                 Some(ref mut walkdirs) => {
-                    match walkdirs.next() {
+                    let walkdir = &mut walkdirs[self.current];
+                    match walkdir.next() {
                         Some(entry) => {
                             match entry {
                                 Ok(entry) => {
                                     if let Some(file_name) = entry.path().file_name() {
                                         if let Some(file_name) = file_name.to_str() {
                                             let file_type = entry.file_type();
+                                            let excluded_dir = entry.file_type().is_dir() &&
+                                                               self.parameters
+                                                                   .exclude_dirs
+                                                                   .iter()
+                                                                   .any(|pattern| {
+                                                                       pattern.matches(file_name)
+                                                                   });
+                                            if excluded_dir {
+                                                walkdir.skip_current_dir();
+                                            }
                                             let included_file = file_type.is_file() &&
                                                                 (self.parameters.includes.len() ==
                                                                  0 ||
@@ -117,13 +140,6 @@ impl Iterator for Files {
                                                                     .any(|pattern| {
                                                                         pattern.matches(file_name)
                                                                     });
-                                            // let excluded_dir = entry.file_type().is_dir() &&
-                                            //                    self.parameters
-                                            //                        .exclude_dirs
-                                            //                        .iter()
-                                            //                        .any(|pattern| {
-                                            //                            pattern.matches(file_name)
-                                            //                        });
                                             let all = self.parameters.all;
                                             let hidden = file_name.starts_with(".");
                                             if included_file && !excluded_file && (all || !hidden) {
@@ -139,7 +155,10 @@ impl Iterator for Files {
                                 }
                             }
                         }
-                        None => return None,
+                        None => {
+                            self.current += 1;
+                            continue;
+                        }
                     }
                 }
                 None => return None,
