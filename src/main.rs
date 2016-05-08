@@ -54,7 +54,7 @@ fn get_args() -> Vec<String> {
     args
 }
 
-fn ned(args: &Vec<String>, mut output: &mut Write) -> Result<i32, String> {
+fn ned(args: &[String], mut output: &mut Write) -> Result<i32, String> {
 
     let opts = make_opts();
     let parameters = try!(get_parameters(&opts, args));
