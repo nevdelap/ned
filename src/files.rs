@@ -71,7 +71,7 @@ impl Iterator for Files {
                         }
                         Err(err) => {
                             io::stderr()
-                                .write(&format!("{}: {}", PROGRAM, err.to_string()).into_bytes())
+                                .write(&format!("{}: {}\n", PROGRAM, err.to_string()).into_bytes())
                                 .expect("Can't write to stderr!");
                             continue;
                         }

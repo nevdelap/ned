@@ -1,3 +1,6 @@
+// TODO:
+// - Add file names to error messages.
+
 extern crate ansi_term;
 extern crate getopts;
 extern crate glob;
@@ -93,7 +96,7 @@ fn process_files(parameters: &Parameters, output: &mut Write) -> Result<bool, St
                             Ok(found_matches) => found_matches,
                             Err(err) => {
                                 io::stderr()
-                                    .write(&format!("{}: {}", PROGRAM, err.to_string())
+                                    .write(&format!("{}: {}\n", PROGRAM, err.to_string())
                                                 .into_bytes())
                                     .expect("Can't write to stderr!");
                                 false
@@ -102,7 +105,7 @@ fn process_files(parameters: &Parameters, output: &mut Write) -> Result<bool, St
                     }
                     Err(err) => {
                         io::stderr()
-                            .write(&format!("{}: {}", PROGRAM, err.to_string()).into_bytes())
+                            .write(&format!("{}: {}\n", PROGRAM, err.to_string()).into_bytes())
                             .expect("Can't write to stderr!");
                     }
                 }
