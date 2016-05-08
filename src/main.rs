@@ -120,15 +120,7 @@ fn process_file(parameters: &Parameters,
         };
         let mut buffer = Vec::new();
         let _ = try!(read.read_to_end(&mut buffer).map_err(|err| err.to_string()));
-        content = match String::from_utf8(buffer) {
-            Ok(content) => content,
-            Err(err) => {
-                io::stderr()
-                    .write(&format!("{}: {}", PROGRAM, err.to_string()).into_bytes())
-                    .expect("Can't write to stderr!");
-                return Ok(false);
-            }
-        }
+        content = try!(String::from_utf8(buffer).map_err(|err| err.to_string()));
     }
 
     let re = parameters.re.clone().expect("Bug, already checked parameters.");
@@ -248,10 +240,26 @@ fn process_file(parameters: &Parameters,
                 } else {
                     ""
                 };
-                found_matches |= try!(process_text(pre, &line, "\n"));
+                found_matches |= match process_text(pre, &line, "\n") {
+                    Ok(found_matches) => found_matches,
+                    Err(err) => {
+                        io::stderr()
+                            .write(&format!("{}: {}", PROGRAM, err.to_string()).into_bytes())
+                            .expect("Can't write to stderr!");
+                        false
+                    }
+                }
             }
         } else {
-            found_matches = try!(process_text("", &content, ""));
+            found_matches |= match process_text("", &content, "") {
+                Ok(found_matches) => found_matches,
+                Err(err) => {
+                    io::stderr()
+                        .write(&format!("{}: {}", PROGRAM, err.to_string()).into_bytes())
+                        .expect("Can't write to stderr!");
+                    false
+                }
+            }
         }
     }
     Ok(found_matches)
