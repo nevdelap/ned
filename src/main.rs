@@ -19,7 +19,6 @@ mod source;
 
 use ansi_term::Colour::Red;
 use files::Files;
-use getopts::{Options, ParsingStyle};
 use opts::{make_opts, usage_version, usage_full};
 use parameters::{get_parameters, Parameters};
 use source::Source;

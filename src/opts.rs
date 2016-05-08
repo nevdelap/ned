@@ -1,13 +1,5 @@
-use ansi_term::Colour::Red;
-use files::Files;
 use getopts::{Options, ParsingStyle};
-use parameters::{get_parameters, Parameters};
-use source::Source;
-use std::fs::OpenOptions;
-use std::io::{self, Read, Seek, SeekFrom, Write};
-use std::iter::Iterator;
 use std::string::String;
-use std::{env, path, process};
 
 static OPTS_AND_ARGS: &'static str = "[OPTION]... [-p] <PATTERN> [FILE]...";
 static PRE_DESCRIPTION: &'static str = "
