@@ -1,5 +1,13 @@
+use ansi_term::Colour::Red;
+use files::Files;
 use getopts::{Options, ParsingStyle};
+use parameters::{get_parameters, Parameters};
+use source::Source;
+use std::fs::OpenOptions;
+use std::io::{self, Read, Seek, SeekFrom, Write};
+use std::iter::Iterator;
 use std::string::String;
+use std::{env, path, process};
 
 static OPTS_AND_ARGS: &'static str = "[OPTION]... [-p] <PATTERN> [FILE]...";
 static PRE_DESCRIPTION: &'static str = "
@@ -85,11 +93,16 @@ pub fn usage_version() -> String {
     format!("{}{}", &VERSION, &LICENSE)
 }
 
-pub fn usage_full(program: &str, opt: &Options) -> String {
-    format!("\nUsage: {} {}\n{}{}{}{}",
+pub fn usage_brief(program: &str) -> String {
+    format!("Usage: {} {}\n{}",
             program,
             &OPTS_AND_ARGS,
-            &PRE_DESCRIPTION,
+            &PRE_DESCRIPTION)
+}
+
+pub fn usage_full(program: &str, opts: &Options) -> String {
+    format!("\n{}{}{}{}",
+            opts.usage(&usage_brief(program)),
             &POST_DESCRIPTION,
             &VERSION,
             &LICENSE)
