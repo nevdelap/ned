@@ -4,7 +4,6 @@
 // remove the Option from walkdirs.
 // stderr in Files.
 // write a test for files: check behaviour if Files is passed zero globs.
-// move opts funcs, constants to their own files.
 
 extern crate ansi_term;
 extern crate getopts;
