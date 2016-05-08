@@ -29,11 +29,7 @@ use std::string::String;
 use std::{env, path, process};
 
 #[cfg(test)]
-mod test_files;
-#[cfg(test)]
-mod test_general;
-#[cfg(test)]
-mod test_matches;
+mod tests;
 
 fn main() {
 
