@@ -73,7 +73,7 @@ fn ned(program: &str, args: &Vec<String>, mut output: &mut Write) -> Result<i32,
         process::exit(1);
     }
 
-    if parameters.globs.len() == 0 && !parameters.re.is_none() || parameters.help {
+    if parameters.re.is_none() || parameters.help {
         println!("{}", usage_full(program, &opts));
         process::exit(1);
     }
