@@ -43,7 +43,8 @@ pub fn make_opts() -> Options {
                 "PATTERN");
     opts.optopt("r",
                 "replace",
-                "replace matches, may include named groups",
+                "replace matches, may include named groups. replaces are always operate on whole \
+                 files",
                 "REPLACEMENT");
     // opts.optopt("n", "number", "match/replace N occurrences", "N");
     // opts.optopt("k",
@@ -62,7 +63,7 @@ pub fn make_opts() -> Options {
                  "multiline, ^ and $ match beginning and end of each line");
     opts.optflag("w",
                  "whole-files",
-                 "operate on while files, rather than lines");
+                 "operate on whole files, rather than lines. matches are by default line oriented");
     opts.optflag("x", "extended", "ignore whitespace and # comments");
     opts.optflag("o", "only-matches", "show only matches");
     opts.optopt("g",
