@@ -17,7 +17,6 @@ pub struct Parameters {
     pub group: Option<String>,
     pub help: bool,
     pub includes: Vec<Pattern>,
-    pub line_oriented: bool,
     pub no_match: bool,
     pub only_matches: bool,
     pub quiet: bool,
@@ -26,6 +25,7 @@ pub struct Parameters {
     pub replace: Option<String>,
     pub stdout: bool,
     pub version: bool,
+    pub whole_files: bool,
 }
 
 pub fn get_parameters(opts: &Options, args: &[String]) -> Result<Parameters, String> {
@@ -82,7 +82,6 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> Result<Parameters, Str
         group: matches.opt_str("group"),
         help: matches.opt_present("help"),
         includes: includes,
-        line_oriented: matches.opt_present("line-oriented"),
         no_match: matches.opt_present("no-match"),
         only_matches: matches.opt_present("only-matches"),
         quiet: matches.opt_present("quiet"),
@@ -91,6 +90,7 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> Result<Parameters, Str
         replace: replace,
         stdout: stdout,
         version: matches.opt_present("version"),
+        whole_files: matches.opt_present("whole-files"),
     })
 }
 

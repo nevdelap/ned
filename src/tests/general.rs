@@ -5,7 +5,7 @@ use ned;
 #[test]
 fn basic_match() {
 
-    let options = "accidentally test";
+    let options = "accidentally test --whole-files";
     let expected_exit_code = 0;
     let expected_screen_output = "The accidentally ghastly hand plans an escape from a cream puff \
                                   the placid widow. A slovenly\nonlooker rejoices, because some \
@@ -21,7 +21,7 @@ fn basic_match() {
 #[test]
 fn only_matches() {
 
-    let options = "accidentally.*hand test --only-matches";
+    let options = "accidentally.*hand test --whole-files --only-matches";
     let expected_exit_code = 0;
     let expected_screen_output = "accidentally ghastly hand";
 
@@ -31,7 +31,7 @@ fn only_matches() {
 #[test]
 fn colored_match() {
 
-    let options = "accidentally.*hand test --colors";
+    let options = "accidentally.*hand test --whole-files --colors";
     let expected_exit_code = 0;
     let expected_screen_output = "The \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans an \
                                   escape from a cream puff the placid widow. A slovenly\nonlooker \
@@ -48,7 +48,7 @@ fn colored_match() {
 #[test]
 fn recursive_match() {
 
-    let options = "her test -R";
+    let options = "her test --whole-files --recursive";
     let expected_exit_code = 0;
     let expected_screen_output = "The shadow conquers the hand related to a mastadon. Jespera and \
                                   I took a cup around a toothache\n(with a lunatic around some \

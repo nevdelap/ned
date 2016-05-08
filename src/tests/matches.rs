@@ -12,7 +12,7 @@ fn basic_match_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "is";
-    let args = "";
+    let args = "--whole-files";
     let expected_found_matches = true;
     let expected_screen_output = "This is a test.";
     let expected_file_content = &input;
@@ -37,7 +37,7 @@ tests because no one
 would want to read it.
 ";
     let pattern = "wiggle";
-    let args = "";
+    let args = "--whole-files";
     let expected_found_matches = false;
     let expected_screen_output = "";
     let expected_file_content = &input;
@@ -55,7 +55,7 @@ fn ignore_case_match_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "IS";
-    let args = "--ignore-case";
+    let args = "--whole-files --ignore-case";
     let expected_found_matches = true;
     let expected_screen_output = "This is a test.";
     let expected_file_content = &input;
@@ -80,7 +80,7 @@ tests because no one
 would want to read it.
 ";
     let pattern = r"^\nThis.*read it.\n$";
-    let args = "--single";
+    let args = "--whole-files --single";
     let expected_found_matches = true;
     let expected_screen_output = &input;
     let expected_file_content = &input;
@@ -105,7 +105,7 @@ tests because no one
 would want to read it.
 ";
     let pattern = r"\A\nThis(.|[\n])+read it.\n\z";
-    let args = "--multiline";
+    let args = "--whole-files --multiline";
     let expected_found_matches = true;
     let expected_screen_output = &input;
     let expected_file_content = &input;
@@ -130,7 +130,7 @@ tests because no one
 would want to read it.
 ";
     let pattern = r"^multiple(.|[\n])+for$";
-    let args = "--multiline";
+    let args = "--whole-files --multiline";
     let expected_found_matches = true;
     let expected_screen_output = &input;
     let expected_file_content = &input;
@@ -155,7 +155,7 @@ tests because no one
 would want to read it.
 ";
     let pattern = r"\A\nThis.+read it.\n\z";
-    let args = "--single --multiline";
+    let args = "--whole-files --single --multiline";
     let expected_found_matches = true;
     let expected_screen_output = &input;
     let expected_file_content = &input;
@@ -178,7 +178,7 @@ fn extended_match_quiet_and_not_quiet() {
 # the word is.
 is # Look, that's it!
 # Cool magool.";
-    let args = "--extended";
+    let args = "--whole-files --extended";
     let expected_found_matches = true;
     let expected_screen_output = "This is a test.";
     let expected_file_content = &input;
@@ -196,7 +196,7 @@ fn only_matches_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "is";
-    let args = "--only-matches";
+    let args = "--whole-files --only-matches";
     let expected_found_matches = true;
     let expected_screen_output = "isis";
     let expected_file_content = &input;
@@ -221,7 +221,7 @@ tests because no one
 would want to read it.
 ";
     let pattern = "on";
-    let args = "--line-oriented";
+    let args = "";
     let expected_found_matches = true;
     let expected_screen_output = "\
 uninteresting content
@@ -250,7 +250,7 @@ tests because no one
 would want to read it.
 ";
     let pattern = "wiggle";
-    let args = "--no-match";
+    let args = "--whole-files --no-match";
     let expected_found_matches = false;
     let expected_screen_output = &input;
     let expected_file_content = &input;
@@ -275,7 +275,7 @@ tests because no one
 would want to read it.
 ";
     let pattern = "wiggle";
-    let args = "--no-match --line-oriented";
+    let args = "--whole-files --no-match";
     let expected_found_matches = false;
     let expected_screen_output = "
 This is a test with
@@ -300,7 +300,7 @@ fn group_0_match_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "Th(is)";
-    let args = "--group 0";
+    let args = "--whole-files --group 0";
     let expected_found_matches = true;
     let expected_screen_output = "This";
     let expected_file_content = &input;
@@ -318,7 +318,7 @@ fn group_1_match_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "Th(is)";
-    let args = "--group 1";
+    let args = "--whole-files --group 1";
     let expected_found_matches = true;
     let expected_screen_output = "is";
     let expected_file_content = &input;
@@ -336,7 +336,7 @@ fn group_2_match_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "is (a) (test)";
-    let args = "--group 2";
+    let args = "--whole-files --group 2";
     let expected_found_matches = true;
     let expected_screen_output = "test";
     let expected_file_content = &input;
@@ -354,7 +354,7 @@ fn named_group_match_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "is (a) (?P<dave>test)";
-    let args = "--group dave";
+    let args = "--whole-files --group dave";
     let expected_found_matches = true;
     let expected_screen_output = "test";
     let expected_file_content = &input;
@@ -372,7 +372,7 @@ fn colored_match_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "is";
-    let args = "--colors";
+    let args = "--whole-files --colors";
     let expected_found_matches = true;
     let expected_screen_output = "Th\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.";
     let expected_file_content = &input;
@@ -390,7 +390,7 @@ fn basic_replace_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "is";
-    let args = "--replace=at";
+    let args = "--whole-files --replace=at";
     let expected_found_matches = true;
     let expected_screen_output = "";
     let expected_file_content = "That at a test.";
@@ -408,7 +408,7 @@ fn basic_replace_to_stdout_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "is";
-    let args = "--replace=at --stdout";
+    let args = "--whole-files --replace=at --stdout";
     let expected_found_matches = true;
     let expected_screen_output = "That at a test.";
     let expected_file_content = &input;

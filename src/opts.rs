@@ -60,7 +60,9 @@ pub fn make_opts() -> Options {
     opts.optflag("m",
                  "multiline",
                  "multiline, ^ and $ match beginning and end of each line");
-    opts.optflag("l", "line-oriented", "operate on lines");
+    opts.optflag("w",
+                 "whole-files",
+                 "operate on while files, rather than lines");
     opts.optflag("x", "extended", "ignore whitespace and # comments");
     opts.optflag("o", "only-matches", "show only matches");
     opts.optopt("g",

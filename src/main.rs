@@ -1,4 +1,5 @@
 // TODO:
+// - Add file names to grep output.
 // - Add file names to error messages.
 
 extern crate ansi_term;
@@ -245,7 +246,7 @@ fn process_file(parameters: &Parameters,
             }
         };
 
-        if parameters.line_oriented {
+        if !parameters.whole_files {
             for (line_number, line) in content.lines().enumerate() {
                 let pre = if line_number == 0 && line.starts_with("\n") {
                     "\n"
