@@ -1,5 +1,4 @@
 // TODO:
-// make it to stdin if there are globs.
 // write a test for files: check behaviour if Files is passed zero globs.
 
 extern crate ansi_term;
@@ -78,7 +77,7 @@ fn ned(args: &Vec<String>, mut output: &mut Write) -> Result<i32, String> {
     })
 }
 
-fn process_files(parameters: &Parameters, mut output: &mut Write) -> Result<bool, String> {
+fn process_files(parameters: &Parameters, output: &mut Write) -> Result<bool, String> {
     let mut found_matches = false;
     if parameters.globs.len() == 0 {
         let mut source = Source::Stdin(Box::new(io::stdin()));
