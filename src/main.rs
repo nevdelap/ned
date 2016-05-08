@@ -1,6 +1,3 @@
-// TODO:
-// write a test for files: check behaviour if Files is passed zero globs.
-
 extern crate ansi_term;
 extern crate getopts;
 extern crate glob;
