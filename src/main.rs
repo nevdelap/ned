@@ -12,6 +12,8 @@ mod files;
 mod opts;
 mod parameters;
 mod source;
+#[cfg(test)]
+mod tests;
 
 use ansi_term::Colour::Red;
 use files::Files;
@@ -25,9 +27,6 @@ use std::string::String;
 use std::{env, process};
 
 static PROGRAM: &'static str = "ned";
-
-#[cfg(test)]
-mod tests;
 
 fn main() {
 
@@ -81,21 +80,26 @@ fn ned(args: &Vec<String>, mut output: &mut Write) -> Result<i32, String> {
 
 fn process_files(parameters: &Parameters, mut output: &mut Write) -> Result<bool, String> {
     let mut found_matches = false;
-    for glob in &parameters.globs {
-        for path_buf in &mut Files::new(&parameters, &glob) {
-            match OpenOptions::new()
-                      .read(true)
-                      .write(parameters.replace
-                                       .is_some())
-                      .open(path_buf.as_path()) {
-                Ok(file) => {
-                    let mut source = Source::File(Box::new(file));
-                    found_matches |= try!(process_file(&parameters, &mut source, output));
-                }
-                Err(err) => {
-                    io::stderr()
-                        .write(&format!("{}: {}", PROGRAM, err.to_string()).into_bytes())
-                        .expect("Can't write to stderr!");
+    if parameters.globs.len() == 0 {
+        let mut source = Source::Stdin(Box::new(io::stdin()));
+        found_matches |= try!(process_file(&parameters, &mut source, output));
+    } else {
+        for glob in &parameters.globs {
+            for path_buf in &mut Files::new(&parameters, &glob) {
+                match OpenOptions::new()
+                          .read(true)
+                          .write(parameters.replace
+                                           .is_some())
+                          .open(path_buf.as_path()) {
+                    Ok(file) => {
+                        let mut source = Source::File(Box::new(file));
+                        found_matches |= try!(process_file(&parameters, &mut source, output));
+                    }
+                    Err(err) => {
+                        io::stderr()
+                            .write(&format!("{}: {}", PROGRAM, err.to_string()).into_bytes())
+                            .expect("Can't write to stderr!");
+                    }
                 }
             }
         }
