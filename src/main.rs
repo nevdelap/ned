@@ -117,7 +117,7 @@ fn process_file(parameters: &Parameters,
                 -> Result<bool, String> {
     let color = Red.bold();
 
-    let mut content;
+    let content;
     {
         let read: &mut Read = match source {
             &mut Source::Stdin(ref mut read) => read,
@@ -131,34 +131,35 @@ fn process_file(parameters: &Parameters,
     }
 
     let re = parameters.re.clone().expect("Bug, already checked parameters.");
+    let mut found_matches = false;
 
-    let mut found_matches = true; // TODO
     if let Some(mut replace) = parameters.replace.clone() {
         if parameters.colors {
             replace = color.paint(replace.as_str()).to_string();
         }
-        content = re.replace_all(&content, replace.as_str());
+        let new_content = re.replace_all(&content, replace.as_str());
+        found_matches = new_content != content;
         if parameters.stdout {
             if !parameters.quiet {
-                try!(output.write(&content.into_bytes()).map_err(|err| err.to_string()));
+                try!(output.write(&new_content.into_bytes()).map_err(|err| err.to_string()));
             }
         } else {
             match source {
                 &mut Source::File(ref mut file) => {
                     try!(file.seek(SeekFrom::Start(0)).map_err(|err| err.to_string()));
-                    try!(file.write(&content.into_bytes()).map_err(|err| err.to_string()));
+                    try!(file.write(&new_content.into_bytes()).map_err(|err| err.to_string()));
                 }
                 #[cfg(test)]
                 &mut Source::Cursor(ref mut cursor) => {
                     try!(cursor.seek(SeekFrom::Start(0)).map_err(|err| err.to_string()));
-                    try!(cursor.write(&content.into_bytes()).map_err(|err| err.to_string()));
+                    try!(cursor.write(&new_content.into_bytes()).map_err(|err| err.to_string()));
                 }
                 _ => {}
             }
         }
     } else if parameters.quiet {
         // Quiet match only is shortcut by the more performant is_match() .
-        found_matches = re.is_match(&content)
+        found_matches = re.is_match(&content);
     } else {
         let mut process_text = |pre: &str, text: &str, post: &str| -> Result<bool, String> {
             if let Some(ref group) = parameters.group {
@@ -196,8 +197,9 @@ fn process_file(parameters: &Parameters,
                     }
                     try!(output.write(&post.to_string().into_bytes())
                                .map_err(|err| err.to_string()));
+                    return Ok(true);
                 }
-                return Ok(true); // TODO
+                return Ok(false);
             } else if parameters.no_match {
                 if !re.is_match(&text) {
                     try!(output.write(&pre.to_string().into_bytes())
@@ -207,7 +209,7 @@ fn process_file(parameters: &Parameters,
                     try!(output.write(&post.to_string().into_bytes())
                                .map_err(|err| err.to_string()));
                 }
-                return Ok(true); // TODO
+                return Ok(false);
             } else if re.is_match(&text) {
                 try!(output.write(&pre.to_string().into_bytes())
                            .map_err(|err| err.to_string()));
@@ -231,9 +233,9 @@ fn process_file(parameters: &Parameters,
                 }
                 try!(output.write(&post.to_string().into_bytes())
                            .map_err(|err| err.to_string()));
-                return Ok(true); // TODO
+                return Ok(true);
             } else {
-                return Ok(false); // TODO
+                return Ok(false);
             }
         };
 
@@ -244,10 +246,10 @@ fn process_file(parameters: &Parameters,
                 } else {
                     ""
                 };
-                try!(process_text(pre, &line, "\n"));
+                found_matches |= try!(process_text(pre, &line, "\n"));
             }
         } else {
-            try!(process_text("", &content, ""));
+            found_matches = try!(process_text("", &content, ""));
         }
     }
     Ok(found_matches)

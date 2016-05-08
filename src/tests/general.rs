@@ -98,11 +98,9 @@ fn test(options: &str, expected_exit_code: i32, expected_screen_output: &str) {
                                    .map(|arg| arg.to_string())
                                    .collect::<Vec<String>>();
     let mut screen_output: Vec<u8> = vec![];
-
     let exit_code = ned(&program, &args, &mut screen_output).unwrap();
-
     let screen_output = String::from_utf8(screen_output).unwrap();
 
-    // assert_eq!(exit_code, expected_exit_code);
+    assert_eq!(exit_code, expected_exit_code);
     assert_eq!(screen_output, expected_screen_output);
 }

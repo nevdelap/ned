@@ -26,6 +26,31 @@ fn basic_match_quiet_and_not_quiet() {
 }
 
 #[test]
+fn no_match_quiet_and_not_quiet() {
+
+    let input = "
+This is a test with
+multiple lines of very
+uninteresting content
+that is only good for
+tests because no one
+would want to read it.
+";
+    let pattern = "wiggle";
+    let args = "";
+    let expected_found_matches = false;
+    let expected_screen_output = "";
+    let expected_file_content = &input;
+
+    test(input,
+         pattern,
+         args,
+         expected_found_matches,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
 fn ignore_case_match_quiet_and_not_quiet() {
 
     let input = "This is a test.";
@@ -214,7 +239,7 @@ tests because no one
 }
 
 #[test]
-fn no_match_quiet_and_not_quiet() {
+fn show_unmatched_lines_quiet_and_not_quiet() {
 
     let input = "
 This is a test with
@@ -224,10 +249,10 @@ that is only good for
 tests because no one
 would want to read it.
 ";
-    let pattern = "on";
+    let pattern = "wiggle";
     let args = "--no-match";
-    let expected_found_matches = true;
-    let expected_screen_output = "";
+    let expected_found_matches = false;
+    let expected_screen_output = &input;
     let expected_file_content = &input;
 
     test(input,
@@ -239,7 +264,7 @@ would want to read it.
 }
 
 #[test]
-fn no_match_line_oriented_quiet_and_not_quiet() {
+fn show_unmatched_lines_oriented_quiet_and_not_quiet() {
 
     let input = "
 This is a test with
@@ -249,12 +274,15 @@ that is only good for
 tests because no one
 would want to read it.
 ";
-    let pattern = "on";
+    let pattern = "wiggle";
     let args = "--no-match --line-oriented";
-    let expected_found_matches = true;
+    let expected_found_matches = false;
     let expected_screen_output = "
 This is a test with
 multiple lines of very
+uninteresting content
+that is only good for
+tests because no one
 would want to read it.
 ";
     let expected_file_content = &input;
