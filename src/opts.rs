@@ -1,3 +1,4 @@
+use PROGRAM;
 use getopts::{Options, ParsingStyle};
 use std::string::String;
 
@@ -85,16 +86,16 @@ pub fn usage_version() -> String {
     format!("{}{}", &VERSION, &LICENSE)
 }
 
-pub fn usage_brief(program: &str) -> String {
+pub fn usage_brief() -> String {
     format!("Usage: {} {}\n{}",
-            program,
+            PROGRAM,
             &OPTS_AND_ARGS,
             &PRE_DESCRIPTION)
 }
 
-pub fn usage_full(program: &str, opts: &Options) -> String {
+pub fn usage_full(opts: &Options) -> String {
     format!("\n{}{}{}{}",
-            opts.usage(&usage_brief(program)),
+            opts.usage(&usage_brief()),
             &POST_DESCRIPTION,
             &VERSION,
             &LICENSE)

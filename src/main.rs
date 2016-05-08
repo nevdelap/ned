@@ -25,45 +25,41 @@ use std::fs::OpenOptions;
 use std::io::{self, Read, Seek, SeekFrom, Write};
 use std::iter::Iterator;
 use std::string::String;
-use std::{env, path, process};
+use std::{env, process};
+
+static PROGRAM: &'static str = "ned";
 
 #[cfg(test)]
 mod tests;
 
 fn main() {
 
-    let (program, args) = get_program_and_args();
+    let args = get_args();
 
     // Output is passed here so that tests can
     // call ned() directly to read the output
     // that will go to stdout.
     let mut output = io::stdout();
-    match ned(&program, &args, &mut output) {
+    match ned(&args, &mut output) {
         Ok(exit_code) => process::exit(exit_code),
         Err(err) => {
-            println!("{}: {}", &program, err.to_string());
+            println!("{}: {}", PROGRAM, err.to_string());
             process::exit(1)
         }
     }
 }
 
-fn get_program_and_args() -> (String, Vec<String>) {
-    let args: Vec<String> = env::args().collect();
-    let program = path::Path::new(&args[0])
-                      .file_name()
-                      .expect("Bug, could't get bin name.")
-                      .to_str()
-                      .expect("Bug, could't get bin name.");
-    let mut args: Vec<String> = args.iter().skip(1).map(|arg| arg.clone()).collect();
+fn get_args() -> Vec<String> {
+    let mut args: Vec<String> = env::args().skip(1).collect();
     if let Ok(default_args) = env::var("NED_DEFAULTS") {
         let old_args = args;
         args = default_args.split_whitespace().map(|s| s.to_string()).collect::<Vec<String>>();
         args.extend(old_args);;
     }
-    (program.to_string(), args)
+    args
 }
 
-fn ned(program: &str, args: &Vec<String>, mut output: &mut Write) -> Result<i32, String> {
+fn ned(args: &Vec<String>, mut output: &mut Write) -> Result<i32, String> {
 
     let opts = make_opts();
     let parameters = try!(get_parameters(&opts, args));
@@ -74,7 +70,7 @@ fn ned(program: &str, args: &Vec<String>, mut output: &mut Write) -> Result<i32,
     }
 
     if parameters.re.is_none() || parameters.help {
-        println!("{}", usage_full(program, &opts));
+        println!("{}", usage_full(&opts));
         process::exit(1);
     }
 
@@ -100,9 +96,9 @@ fn process_files(parameters: &Parameters, mut output: &mut Write) -> Result<bool
                     found_matches |= try!(process_file(&parameters, &mut source, output));
                 }
                 Err(err) => {
-                    panic!("Ouch! {}", err);
-                    // TODO: write err to stdout
-                    // continue;
+                    io::stderr()
+                        .write(&format!("{}: {}", PROGRAM, err.to_string()).into_bytes())
+                        .expect("Can't write to stderr!");
                 }
             }
         }

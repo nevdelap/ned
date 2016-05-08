@@ -1,4 +1,6 @@
+use PROGRAM;
 use parameters::Parameters;
+use std::io::{self, Write};
 use std::iter::Iterator;
 use std::path::PathBuf;
 use std::string::String;
@@ -68,9 +70,9 @@ impl Iterator for Files {
                             }
                         }
                         Err(err) => {
-                            panic!("Ouch! {}", err);
-                            // err to stdout, call self again
-                            // continue;
+                            io::stderr()
+                                .write(&format!("{}: {}", PROGRAM, err.to_string()).into_bytes())
+                                .expect("Can't write to stderr!");
                         }
                     }
                 }

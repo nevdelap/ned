@@ -93,12 +93,11 @@ fn recursive_match() {
 }
 
 fn test(options: &str, expected_exit_code: i32, expected_screen_output: &str) {
-    let program = "ned";
     let args: Vec<String> = options.split_whitespace()
                                    .map(|arg| arg.to_string())
                                    .collect::<Vec<String>>();
     let mut screen_output: Vec<u8> = vec![];
-    let exit_code = ned(&program, &args, &mut screen_output).unwrap();
+    let exit_code = ned(&args, &mut screen_output).unwrap();
     let screen_output = String::from_utf8(screen_output).unwrap();
 
     assert_eq!(exit_code, expected_exit_code);
