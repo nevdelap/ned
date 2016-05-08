@@ -23,7 +23,7 @@ Quiet:
     Quiet matches are more performant than non-quiet matches.
 ";
 static VERSION: &'static str = "
-ned 0.1.0 Copyright (C) 2016 Nev Delap - https://github.com/nevdelap/ned
+ned 0.1.1 Copyright (C) 2016 Nev Delap - https://github.com/nevdelap/ned
 ";
 static LICENSE: &'static str = "
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
