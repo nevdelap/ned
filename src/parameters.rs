@@ -28,7 +28,7 @@ pub struct Parameters {
     pub version: bool,
 }
 
-pub fn get_parameters(opts: &Options, args: &Vec<String>) -> Result<Parameters, String> {
+pub fn get_parameters(opts: &Options, args: &[String]) -> Result<Parameters, String> {
 
     let matches = try!(opts.parse(args).map_err(|err| err.to_string()));
 
