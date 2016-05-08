@@ -201,7 +201,8 @@ fn process_file(parameters: &Parameters,
                 }
                 return Ok(false);
             } else if parameters.no_match {
-                if !re.is_match(&text) {
+                let found_matches = re.is_match(&text);
+                if !found_matches {
                     try!(output.write(&pre.to_string().into_bytes())
                                .map_err(|err| err.to_string()));
                     try!(output.write(&text.to_string().into_bytes())
@@ -209,7 +210,7 @@ fn process_file(parameters: &Parameters,
                     try!(output.write(&post.to_string().into_bytes())
                                .map_err(|err| err.to_string()));
                 }
-                return Ok(false);
+                return Ok(found_matches);
             } else if re.is_match(&text) {
                 try!(output.write(&pre.to_string().into_bytes())
                            .map_err(|err| err.to_string()));
