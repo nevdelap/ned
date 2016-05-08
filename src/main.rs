@@ -89,7 +89,16 @@ fn process_files(parameters: &Parameters, output: &mut Write) -> Result<bool, St
                           .open(path_buf.as_path()) {
                     Ok(file) => {
                         let mut source = Source::File(Box::new(file));
-                        found_matches |= try!(process_file(&parameters, &mut source, output));
+                        found_matches |= match process_file(&parameters, &mut source, output) {
+                            Ok(found_matches) => found_matches,
+                            Err(err) => {
+                                io::stderr()
+                                    .write(&format!("{}: {}", PROGRAM, err.to_string())
+                                                .into_bytes())
+                                    .expect("Can't write to stderr!");
+                                false
+                            }
+                        }
                     }
                     Err(err) => {
                         io::stderr()
@@ -240,26 +249,10 @@ fn process_file(parameters: &Parameters,
                 } else {
                     ""
                 };
-                found_matches |= match process_text(pre, &line, "\n") {
-                    Ok(found_matches) => found_matches,
-                    Err(err) => {
-                        io::stderr()
-                            .write(&format!("{}: {}", PROGRAM, err.to_string()).into_bytes())
-                            .expect("Can't write to stderr!");
-                        false
-                    }
-                }
+                found_matches |= try!(process_text(pre, &line, "\n"));
             }
         } else {
-            found_matches |= match process_text("", &content, "") {
-                Ok(found_matches) => found_matches,
-                Err(err) => {
-                    io::stderr()
-                        .write(&format!("{}: {}", PROGRAM, err.to_string()).into_bytes())
-                        .expect("Can't write to stderr!");
-                    false
-                }
-            }
+            found_matches = try!(process_text("", &content, ""));
         }
     }
     Ok(found_matches)
