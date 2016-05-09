@@ -1,7 +1,3 @@
-// TODO:
-// - Add file names to grep output, in purple.
-// - Add file names to error messages.
-
 extern crate ansi_term;
 extern crate getopts;
 extern crate glob;
@@ -202,9 +198,7 @@ fn process_file(parameters: &Parameters,
         // Quiet match only is shortcut by the more performant is_match() .
         found_matches = re.is_match(&content);
     } else {
-
         let mut process_text = |pre: &str, text: &str, post: &str| -> Result<bool, String> {
-
             if let Some(ref group) = parameters.group {
                 if let Some(captures) = re.captures(&text) {
                     try!(output.write(&pre.to_string().into_bytes())
