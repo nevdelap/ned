@@ -198,11 +198,9 @@ fn process_file(parameters: &Parameters,
         // Quiet match only is shortcut by the more performant is_match() .
         found_matches = re.is_match(&content);
     } else {
-        let mut process_text = |pre: &str, text: &str, post: &str| -> Result<bool, String> {
+        let mut process_text = |text: &str| -> Result<bool, String> {
             if let Some(ref group) = parameters.group {
                 if let Some(captures) = re.captures(&text) {
-                    try!(output.write(&pre.to_string().into_bytes())
-                               .map_err(|err| err.to_string()));
                     let matched = match group.trim().parse::<usize>() {
                         Ok(index) => captures.at(index),
                         Err(_) => captures.name(group),
@@ -222,17 +220,17 @@ fn process_file(parameters: &Parameters,
                         }
                         try!(output.write(&matched.to_string().into_bytes())
                                    .map_err(|err| err.to_string()));
+                        if !matched.ends_with("\n") {
+                            try!(output.write(&"\n".to_string().into_bytes())
+                                       .map_err(|err| err.to_string()));
+                        }
                     }
-                    try!(output.write(&post.to_string().into_bytes())
-                               .map_err(|err| err.to_string()));
                     return Ok(true);
                 }
                 return Ok(false);
             } else if parameters.no_match {
                 let found_matches = re.is_match(&text);
                 if !found_matches {
-                    try!(output.write(&pre.to_string().into_bytes())
-                               .map_err(|err| err.to_string()));
                     if let Some(ref file_name) = file_name {
                         try!(output.write(&file_name.to_string()
                                                     .into_bytes())
@@ -240,13 +238,13 @@ fn process_file(parameters: &Parameters,
                     }
                     try!(output.write(&text.to_string().into_bytes())
                                .map_err(|err| err.to_string()));
-                    try!(output.write(&post.to_string().into_bytes())
-                               .map_err(|err| err.to_string()));
+                    if !text.ends_with("\n") {
+                        try!(output.write(&"\n".to_string().into_bytes())
+                                   .map_err(|err| err.to_string()));
+                    }
                 }
                 return Ok(found_matches);
             } else if re.is_match(&text) {
-                try!(output.write(&pre.to_string().into_bytes())
-                           .map_err(|err| err.to_string()));
                 if parameters.only_matches {
                     if let Some(ref file_name) = file_name {
                         try!(output.write(&file_name.to_string()
@@ -261,6 +259,10 @@ fn process_file(parameters: &Parameters,
                         }
                         try!(output.write(&matched.to_string().into_bytes())
                                    .map_err(|err| err.to_string()));
+                        if !matched.ends_with("\n") {
+                            try!(output.write(&"\n".to_string().into_bytes())
+                                       .map_err(|err| err.to_string()));
+                        }
                     }
                 } else {
                     if let Some(ref file_name) = file_name {
@@ -274,9 +276,11 @@ fn process_file(parameters: &Parameters,
                     }
                     try!(output.write(&text.to_string().into_bytes())
                                .map_err(|err| err.to_string()));
+                    if !text.ends_with("\n") {
+                        try!(output.write(&"\n".to_string().into_bytes())
+                                   .map_err(|err| err.to_string()));
+                    }
                 }
-                try!(output.write(&post.to_string().into_bytes())
-                           .map_err(|err| err.to_string()));
                 return Ok(true);
             } else {
                 return Ok(false);
@@ -284,16 +288,11 @@ fn process_file(parameters: &Parameters,
         };
 
         if !parameters.whole_files {
-            for (line_number, line) in content.lines().enumerate() {
-                let pre = if line_number == 0 && line.starts_with("\n") {
-                    "\n"
-                } else {
-                    ""
-                };
-                found_matches |= try!(process_text(pre, &line, "\n"));
+            for line in content.lines() {
+                found_matches |= try!(process_text(&line));
             }
         } else {
-            found_matches = try!(process_text("", &content, ""));
+            found_matches = try!(process_text(&content));
         }
     }
     Ok(found_matches)

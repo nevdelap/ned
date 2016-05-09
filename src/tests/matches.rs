@@ -15,7 +15,7 @@ fn basic_match_quiet_and_not_quiet() {
     let pattern = "is";
     let args = "--whole-files";
     let expected_found_matches = true;
-    let expected_screen_output = "bogus_file.txt:\nThis is a test.";
+    let expected_screen_output = "bogus_file.txt:\nThis is a test.\n";
     let expected_file_content = &input;
 
     test(input,
@@ -58,7 +58,7 @@ fn ignore_case_match_quiet_and_not_quiet() {
     let pattern = "IS";
     let args = "--whole-files --ignore-case";
     let expected_found_matches = true;
-    let expected_screen_output = "bogus_file.txt:\nThis is a test.";
+    let expected_screen_output = "bogus_file.txt:\nThis is a test.\n";
     let expected_file_content = &input;
 
     test(input,
@@ -181,7 +181,7 @@ is # Look, that's it!
 # Cool magool.";
     let args = "--whole-files --extended";
     let expected_found_matches = true;
-    let expected_screen_output = "bogus_file.txt:\nThis is a test.";
+    let expected_screen_output = "bogus_file.txt:\nThis is a test.\n";
     let expected_file_content = &input;
 
     test(input,
@@ -199,7 +199,7 @@ fn only_matches_quiet_and_not_quiet() {
     let pattern = "is";
     let args = "--whole-files --only-matches";
     let expected_found_matches = true;
-    let expected_screen_output = "bogus_file.txt:\nisis";
+    let expected_screen_output = "bogus_file.txt:\nis\nis\n";
     let expected_file_content = &input;
 
     test(input,
@@ -300,7 +300,7 @@ fn group_0_match_quiet_and_not_quiet() {
     let pattern = "Th(is)";
     let args = "--whole-files --group 0";
     let expected_found_matches = true;
-    let expected_screen_output = "bogus_file.txt:\nThis";
+    let expected_screen_output = "bogus_file.txt:\nThis\n";
     let expected_file_content = &input;
 
     test(input,
@@ -318,7 +318,7 @@ fn group_1_match_quiet_and_not_quiet() {
     let pattern = "Th(is)";
     let args = "--whole-files --group 1";
     let expected_found_matches = true;
-    let expected_screen_output = "bogus_file.txt:\nis";
+    let expected_screen_output = "bogus_file.txt:\nis\n";
     let expected_file_content = &input;
 
     test(input,
@@ -336,7 +336,7 @@ fn group_2_match_quiet_and_not_quiet() {
     let pattern = "is (a) (test)";
     let args = "--whole-files --group 2";
     let expected_found_matches = true;
-    let expected_screen_output = "bogus_file.txt:\ntest";
+    let expected_screen_output = "bogus_file.txt:\ntest\n";
     let expected_file_content = &input;
 
     test(input,
@@ -354,7 +354,7 @@ fn named_group_match_quiet_and_not_quiet() {
     let pattern = "is (a) (?P<dave>test)";
     let args = "--whole-files --group dave";
     let expected_found_matches = true;
-    let expected_screen_output = "bogus_file.txt:\ntest";
+    let expected_screen_output = "bogus_file.txt:\ntest\n";
     let expected_file_content = &input;
 
     test(input,
@@ -373,7 +373,7 @@ fn colored_match_quiet_and_not_quiet() {
     let args = "--whole-files --colors";
     let expected_found_matches = true;
     let expected_screen_output = "\u{1b}[35mbogus_file.txt\u{1b}[0m:\nTh\u{1b}[1;31mis\u{1b}[0m \
-                                  \u{1b}[1;31mis\u{1b}[0m a test.";
+                                  \u{1b}[1;31mis\u{1b}[0m a test.\n";
     let expected_file_content = &input;
 
     test(input,
