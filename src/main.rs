@@ -159,6 +159,7 @@ fn process_file(parameters: &Parameters,
             }
         } else {
             match source {
+                // A better way???
                 &mut Source::File(ref mut file) => {
                     try!(file.seek(SeekFrom::Start(0)).map_err(|err| err.to_string()));
                     try!(file.write(&new_content.into_bytes()).map_err(|err| err.to_string()));
@@ -180,34 +181,20 @@ fn process_file(parameters: &Parameters,
                 if let Some(captures) = re.captures(&text) {
                     try!(output.write(&pre.to_string().into_bytes())
                                .map_err(|err| err.to_string()));
-                    match group.trim().parse::<usize>() {
-                        Ok(index) => {
-                            // if there are captures exit_code = 1
-                            if let Some(matched) = captures.at(index) {
-                                let mut matched = matched.to_string();
-                                if parameters.colors {
-                                    matched = re.replace_all(&matched,
-                                                             red.paint("$0")
-                                                                .to_string()
-                                                                .as_str());
-                                }
-                                try!(output.write(&matched.to_string().into_bytes())
-                                           .map_err(|err| err.to_string()));
-                            }
+                    let matched = match group.trim().parse::<usize>() {
+                        Ok(index) => captures.at(index),
+                        Err(_) => captures.name(group),
+                    };
+                    if let Some(matched) = matched {
+                        let mut matched = matched.to_string();
+                        if parameters.colors {
+                            matched = re.replace_all(&matched,
+                                                     red.paint("$0")
+                                                        .to_string()
+                                                        .as_str());
                         }
-                        Err(_) => {
-                            if let Some(matched) = captures.name(group) {
-                                let mut matched = matched.to_string();
-                                if parameters.colors {
-                                    matched = re.replace_all(&matched,
-                                                             red.paint("$0")
-                                                                .to_string()
-                                                                .as_str());
-                                }
-                                try!(output.write(&matched.to_string().into_bytes())
-                                           .map_err(|err| err.to_string()));
-                            }
-                        }
+                        try!(output.write(&matched.to_string().into_bytes())
+                                   .map_err(|err| err.to_string()));
                     }
                     try!(output.write(&post.to_string().into_bytes())
                                .map_err(|err| err.to_string()));
