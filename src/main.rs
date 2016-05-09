@@ -1,5 +1,5 @@
 // TODO:
-// - Add file names to grep output.
+// - Add file names to grep output, in purple.
 // - Add file names to error messages.
 
 extern crate ansi_term;
@@ -65,7 +65,7 @@ fn ned(args: &[String], mut output: &mut Write) -> Result<i32, String> {
         process::exit(1);
     }
 
-    if parameters.re.is_none() || parameters.help {
+    if parameters.regex.is_none() || parameters.help {
         println!("{}", usage_full(&opts));
         process::exit(1);
     }
@@ -136,7 +136,7 @@ fn process_file(parameters: &Parameters,
         content = try!(String::from_utf8(buffer).map_err(|err| err.to_string()));
     }
 
-    let re = parameters.re.clone().expect("Bug, already checked parameters.");
+    let re = parameters.regex.clone().expect("Bug, already checked parameters.");
     let mut found_matches = false;
 
     if let Some(mut replace) = parameters.replace.clone() {

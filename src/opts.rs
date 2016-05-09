@@ -17,11 +17,9 @@ Exit codes:
     1                   no matches
 
 Quiet:
-    When -q --quiet is  specified ned tests for matches and returns an exit
-    code of 0 if a match is found in ANY file. When -a --all is combined with
-    quiet it returns an exit code of 0 if a match is found in ALL files. Quiet
-    any matches will only read only as many files as needed to find a match.
-    Quiet matches are more performant than non-quiet matches.
+    When -q --quiet is  specified ned tests for matches and returns an exit code of 0 if a
+    match is found in ANY file. Quiet matches will only read only as many files as needed
+    to find a match. Quiet matches are more performant than non-quiet matches.
 ";
 static VERSION: &'static str = "
 ned 0.1.2.1 Copyright (C) 2016 Nev Delap - https://github.com/nevdelap/ned
@@ -76,12 +74,12 @@ pub fn make_opts() -> Options {
     opts.optmulti("", "include", "match only files that match GLOB", "GLOB");
     opts.optmulti("", "exclude", "skip files matching GLOB", "GLOB");
     opts.optmulti("", "exclude-dir", "skip directories matching GLOB", "GLOB");
-    opts.optflag("c", "colors", "show matches in color");
+    opts.optflag("c", "colors", "show filenames and matches in color");
     opts.optflag("", "stdout", "output to stdout");
     opts.optflag("q", "quiet", "suppress all normal output");
     opts.optflag("a", "all", "do not ignore entries starting with .");
     opts.optflag("V", "version", "output version information and exit");
-    opts.optflag("h", "help", "print this help menu and exit");
+    opts.optflag("h", "help", "print this help and exit");
     opts
 }
 
