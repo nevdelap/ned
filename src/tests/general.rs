@@ -100,7 +100,7 @@ fn recursive_match() {
     test(&args, expected_exit_code, &expected_screen_output);
 }
 
-// This test looks for each of the file's matches it expects to be in the output, which
+// These tests look for each of the file's matches it expects to be in the output, which
 // can be in any order, because the order that walkdir walks directories is undefined.
 fn test(args: &str, expected_exit_code: i32, expected_screen_output: &[&str]) {
     let args: Vec<String> = args.split_whitespace()
