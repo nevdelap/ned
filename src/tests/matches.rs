@@ -15,7 +15,7 @@ fn basic_match_quiet_and_not_quiet() {
     let pattern = "is";
     let args = "--whole-files";
     let expected_found_matches = true;
-    let expected_screen_output = "bogus_file.txt: This is a test.";
+    let expected_screen_output = "bogus_file.txt:\nThis is a test.";
     let expected_file_content = &input;
 
     test(input,
@@ -58,7 +58,7 @@ fn ignore_case_match_quiet_and_not_quiet() {
     let pattern = "IS";
     let args = "--whole-files --ignore-case";
     let expected_found_matches = true;
-    let expected_screen_output = "bogus_file.txt: This is a test.";
+    let expected_screen_output = "bogus_file.txt:\nThis is a test.";
     let expected_file_content = &input;
 
     test(input,
@@ -83,7 +83,7 @@ would want to read it.
     let pattern = r"^\nThis.*read it.\n$";
     let args = "--whole-files --single";
     let expected_found_matches = true;
-    let expected_screen_output = &format!("bogus_file.txt: {}", input);
+    let expected_screen_output = &format!("bogus_file.txt:\n{}", input);
     let expected_file_content = &input;
 
     test(input,
@@ -108,7 +108,7 @@ would want to read it.
     let pattern = r"\A\nThis(.|[\n])+read it.\n\z";
     let args = "--whole-files --multiline";
     let expected_found_matches = true;
-    let expected_screen_output = &format!("bogus_file.txt: {}", &input);
+    let expected_screen_output = &format!("bogus_file.txt:\n{}", &input);
     let expected_file_content = &input;
 
     test(input,
@@ -133,7 +133,7 @@ would want to read it.
     let pattern = r"^multiple(.|[\n])+for$";
     let args = "--whole-files --multiline";
     let expected_found_matches = true;
-    let expected_screen_output = &format!("bogus_file.txt: {}", input);
+    let expected_screen_output = &format!("bogus_file.txt:\n{}", input);
     let expected_file_content = &input;
 
     test(input,
@@ -158,7 +158,7 @@ would want to read it.
     let pattern = r"\A\nThis.+read it.\n\z";
     let args = "--whole-files --single --multiline";
     let expected_found_matches = true;
-    let expected_screen_output = &format!("bogus_file.txt: {}", input);
+    let expected_screen_output = &format!("bogus_file.txt:\n{}", input);
     let expected_file_content = &input;
 
     test(input,
@@ -181,7 +181,7 @@ is # Look, that's it!
 # Cool magool.";
     let args = "--whole-files --extended";
     let expected_found_matches = true;
-    let expected_screen_output = "bogus_file.txt: This is a test.";
+    let expected_screen_output = "bogus_file.txt:\nThis is a test.";
     let expected_file_content = &input;
 
     test(input,
@@ -199,7 +199,7 @@ fn only_matches_quiet_and_not_quiet() {
     let pattern = "is";
     let args = "--whole-files --only-matches";
     let expected_found_matches = true;
-    let expected_screen_output = "bogus_file.txt: isis";
+    let expected_screen_output = "bogus_file.txt:\nisis";
     let expected_file_content = &input;
 
     test(input,
@@ -250,7 +250,7 @@ would want to read it.
     let pattern = "wiggle";
     let args = "--whole-files --no-match";
     let expected_found_matches = false;
-    let expected_screen_output = &format!("bogus_file.txt: {}", input);
+    let expected_screen_output = &format!("bogus_file.txt:\n{}", input);
     let expected_file_content = &input;
 
     test(input,
@@ -275,7 +275,7 @@ would want to read it.
     let pattern = "wiggle";
     let args = "--whole-files --no-match";
     let expected_found_matches = false;
-    let expected_screen_output = "bogus_file.txt: \n\
+    let expected_screen_output = "bogus_file.txt:\n
 This is a test with
 multiple lines of very
 uninteresting content
@@ -300,7 +300,7 @@ fn group_0_match_quiet_and_not_quiet() {
     let pattern = "Th(is)";
     let args = "--whole-files --group 0";
     let expected_found_matches = true;
-    let expected_screen_output = "bogus_file.txt: This";
+    let expected_screen_output = "bogus_file.txt:\nThis";
     let expected_file_content = &input;
 
     test(input,
@@ -318,7 +318,7 @@ fn group_1_match_quiet_and_not_quiet() {
     let pattern = "Th(is)";
     let args = "--whole-files --group 1";
     let expected_found_matches = true;
-    let expected_screen_output = "bogus_file.txt: is";
+    let expected_screen_output = "bogus_file.txt:\nis";
     let expected_file_content = &input;
 
     test(input,
@@ -336,7 +336,7 @@ fn group_2_match_quiet_and_not_quiet() {
     let pattern = "is (a) (test)";
     let args = "--whole-files --group 2";
     let expected_found_matches = true;
-    let expected_screen_output = "bogus_file.txt: test";
+    let expected_screen_output = "bogus_file.txt:\ntest";
     let expected_file_content = &input;
 
     test(input,
@@ -354,7 +354,7 @@ fn named_group_match_quiet_and_not_quiet() {
     let pattern = "is (a) (?P<dave>test)";
     let args = "--whole-files --group dave";
     let expected_found_matches = true;
-    let expected_screen_output = "bogus_file.txt: test";
+    let expected_screen_output = "bogus_file.txt:\ntest";
     let expected_file_content = &input;
 
     test(input,
@@ -372,7 +372,7 @@ fn colored_match_quiet_and_not_quiet() {
     let pattern = "is";
     let args = "--whole-files --colors";
     let expected_found_matches = true;
-    let expected_screen_output = "\u{1b}[35mbogus_file.txt\u{1b}[0m: Th\u{1b}[1;31mis\u{1b}[0m \
+    let expected_screen_output = "\u{1b}[35mbogus_file.txt\u{1b}[0m:\nTh\u{1b}[1;31mis\u{1b}[0m \
                                   \u{1b}[1;31mis\u{1b}[0m a test.";
     let expected_file_content = &input;
 
@@ -409,7 +409,7 @@ fn basic_replace_to_stdout_quiet_and_not_quiet() {
     let pattern = "is";
     let args = "--whole-files --replace=at --stdout";
     let expected_found_matches = true;
-    let expected_screen_output = "bogus_file.txt: That at a test.";
+    let expected_screen_output = "bogus_file.txt:\nThat at a test.";
     let expected_file_content = &input;
 
     test(input,

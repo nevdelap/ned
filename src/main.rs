@@ -140,7 +140,12 @@ fn process_file(parameters: &Parameters,
         if parameters.colors {
             file_name = purple.paint(file_name).to_string();
         }
-        Some(Cow::Owned(format!("{}: ", file_name)))
+        file_name = if parameters.whole_files {
+            format!("{}:\n", file_name)
+        } else {
+            format!("{}: ", file_name)
+        };
+        Some(Cow::Owned(file_name))
     } else {
         None
     };
