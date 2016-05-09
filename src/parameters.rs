@@ -23,6 +23,7 @@ pub struct Parameters {
     pub regex: Option<Regex>,
     pub recursive: bool,
     pub replace: Option<String>,
+    pub stdin: bool,
     pub stdout: bool,
     pub version: bool,
     pub whole_files: bool,
@@ -70,6 +71,7 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> Result<Parameters, Str
     }
 
     let replace = matches.opt_str("replace");
+    let stdin = globs.len() == 0;
     let stdout = matches.opt_present("stdout");
 
     Ok(Parameters {
@@ -88,6 +90,7 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> Result<Parameters, Str
         regex: regex,
         recursive: matches.opt_present("recursive"),
         replace: replace,
+        stdin: stdin,
         stdout: stdout,
         version: matches.opt_present("version"),
         whole_files: matches.opt_present("whole-files"),
