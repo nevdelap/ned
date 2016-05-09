@@ -71,8 +71,8 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> Result<Parameters, Str
     }
 
     let replace = matches.opt_str("replace");
-    let stdin = globs.len() == 0;
     let stdout = matches.opt_present("stdout");
+    let stdin = globs.len() == 0 || stdout;
 
     Ok(Parameters {
         all: matches.opt_present("all"),

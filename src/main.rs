@@ -78,7 +78,7 @@ fn ned(args: &[String], mut output: &mut Write) -> Result<i32, String> {
 
 fn process_files(parameters: &Parameters, output: &mut Write) -> Result<bool, String> {
     let mut found_matches = false;
-    if parameters.globs.len() == 0 {
+    if parameters.stdin {
         let mut source = Source::Stdin(Box::new(io::stdin()));
         found_matches |= try!(process_file(&parameters, &mut source, output));
     } else {
