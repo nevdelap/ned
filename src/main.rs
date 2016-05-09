@@ -150,6 +150,8 @@ fn process_file(parameters: &Parameters,
             replace = red.paint(replace.as_str()).to_string();
         }
         let new_content = re.replace_all(&content, replace.as_str());
+        // The replace has to do at least on allocation, so keep the old copy
+        // to figure out if there where patches, to save unncessary regex match.
         found_matches = new_content != content;
         if parameters.stdout {
             if !parameters.quiet {
