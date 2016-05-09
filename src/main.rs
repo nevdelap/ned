@@ -15,7 +15,7 @@ mod source;
 #[cfg(test)]
 mod tests;
 
-use ansi_term::Colour::Red;
+use ansi_term::Colour::{Purple, Red};
 use files::Files;
 use opts::{make_opts, PROGRAM, usage_full, usage_version};
 use parameters::{get_parameters, Parameters};
@@ -32,7 +32,7 @@ fn main() {
 
     // Output is passed here so that tests can
     // call ned() directly to read the output
-    // that will go to stdout.
+    // that would go to stdout.
     let mut output = io::stdout();
     match ned(&args, &mut output) {
         Ok(exit_code) => process::exit(exit_code),
@@ -48,7 +48,7 @@ fn get_args() -> Vec<String> {
     if let Ok(default_args) = env::var("NED_DEFAULTS") {
         let old_args = args;
         args = default_args.split_whitespace().map(|s| s.to_string()).collect::<Vec<String>>();
-        args.extend(old_args);;
+        args.extend(old_args);
     }
     args
 }
@@ -103,8 +103,10 @@ fn process_files(parameters: &Parameters, output: &mut Write) -> Result<bool, St
                         }
                     }
                     Err(err) => {
+                        let file_name = path_buf.as_path().to_str().unwrap_or("???");
                         io::stderr()
-                            .write(&format!("{}: {}\n", PROGRAM, err.to_string()).into_bytes())
+                            .write(&format!("{}: {} {}\n", PROGRAM, file_name, err.to_string())
+                                        .into_bytes())
                             .expect("Can't write to stderr!");
                     }
                 }
@@ -119,7 +121,8 @@ fn process_file(parameters: &Parameters,
                 source: &mut Source,
                 mut output: &mut Write)
                 -> Result<bool, String> {
-    let color = Red.bold();
+    let purple = Purple;
+    let red = Red.bold();
 
     let content;
     {
@@ -139,7 +142,7 @@ fn process_file(parameters: &Parameters,
 
     if let Some(mut replace) = parameters.replace.clone() {
         if parameters.colors {
-            replace = color.paint(replace.as_str()).to_string();
+            replace = red.paint(replace.as_str()).to_string();
         }
         let new_content = re.replace_all(&content, replace.as_str());
         found_matches = new_content != content;
@@ -177,9 +180,9 @@ fn process_file(parameters: &Parameters,
                                 let mut matched = matched.to_string();
                                 if parameters.colors {
                                     matched = re.replace_all(&matched,
-                                                             color.paint("$0")
-                                                                  .to_string()
-                                                                  .as_str());
+                                                             red.paint("$0")
+                                                                .to_string()
+                                                                .as_str());
                                 }
                                 try!(output.write(&matched.to_string().into_bytes())
                                            .map_err(|err| err.to_string()));
@@ -190,9 +193,9 @@ fn process_file(parameters: &Parameters,
                                 let mut matched = matched.to_string();
                                 if parameters.colors {
                                     matched = re.replace_all(&matched,
-                                                             color.paint("$0")
-                                                                  .to_string()
-                                                                  .as_str());
+                                                             red.paint("$0")
+                                                                .to_string()
+                                                                .as_str());
                                 }
                                 try!(output.write(&matched.to_string().into_bytes())
                                            .map_err(|err| err.to_string()));
@@ -223,7 +226,7 @@ fn process_file(parameters: &Parameters,
                         let mut matched = text[start..end].to_string();
                         if parameters.colors {
                             matched = re.replace_all(&matched,
-                                                     color.paint("$0").to_string().as_str());
+                                                     red.paint("$0").to_string().as_str());
                         }
                         try!(output.write(&matched.to_string().into_bytes())
                                    .map_err(|err| err.to_string()));
@@ -231,7 +234,7 @@ fn process_file(parameters: &Parameters,
                 } else {
                     let mut text = text.to_string();
                     if parameters.colors {
-                        text = re.replace_all(&text, color.paint("$0").to_string().as_str());
+                        text = re.replace_all(&text, red.paint("$0").to_string().as_str());
                     }
                     try!(output.write(&text.to_string().into_bytes())
                                .map_err(|err| err.to_string()));
