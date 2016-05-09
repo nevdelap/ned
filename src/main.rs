@@ -95,7 +95,10 @@ fn process_files(parameters: &Parameters, output: &mut Write) -> Result<bool, St
                             Ok(found_matches) => found_matches,
                             Err(err) => {
                                 io::stderr()
-                                    .write(&format!("{}: {}\n", PROGRAM, err.to_string())
+                                    .write(&format!("{}: {} {}\n",
+                                                    PROGRAM,
+                                                    path_buf.as_path().to_string_lossy(),
+                                                    err.to_string())
                                                 .into_bytes())
                                     .expect("Can't write to stderr!");
                                 false
@@ -103,9 +106,11 @@ fn process_files(parameters: &Parameters, output: &mut Write) -> Result<bool, St
                         }
                     }
                     Err(err) => {
-                        let file_name = path_buf.as_path().to_str().unwrap_or("???");
                         io::stderr()
-                            .write(&format!("{}: {} {}\n", PROGRAM, file_name, err.to_string())
+                            .write(&format!("{}: {} {}\n",
+                                            PROGRAM,
+                                            path_buf.as_path().to_string_lossy(),
+                                            err.to_string())
                                         .into_bytes())
                             .expect("Can't write to stderr!");
                     }
