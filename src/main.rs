@@ -20,6 +20,7 @@ use files::Files;
 use opts::{make_opts, PROGRAM, usage_full, usage_version};
 use parameters::{get_parameters, Parameters};
 use source::Source;
+use std::borrow::Cow;
 use std::fs::OpenOptions;
 use std::io::{self, Read, Seek, SeekFrom, Write};
 use std::iter::Iterator;
@@ -80,7 +81,7 @@ fn process_files(parameters: &Parameters, output: &mut Write) -> Result<bool, St
     let mut found_matches = false;
     if parameters.stdin {
         let mut source = Source::Stdin(Box::new(io::stdin()));
-        found_matches |= try!(process_file(&parameters, &mut source, output));
+        found_matches |= try!(process_file(&parameters, None, &mut source, output));
     } else {
         for glob in &parameters.globs {
             for path_buf in &mut Files::new(&parameters, &glob) {
@@ -91,7 +92,11 @@ fn process_files(parameters: &Parameters, output: &mut Write) -> Result<bool, St
                           .open(path_buf.as_path()) {
                     Ok(file) => {
                         let mut source = Source::File(Box::new(file));
-                        found_matches |= match process_file(&parameters, &mut source, output) {
+                        found_matches |= match process_file(&parameters,
+                                                            Some(path_buf.as_path()
+                                                                         .to_string_lossy()),
+                                                            &mut source,
+                                                            output) {
                             Ok(found_matches) => found_matches,
                             Err(err) => {
                                 io::stderr()
@@ -123,11 +128,22 @@ fn process_files(parameters: &Parameters, output: &mut Write) -> Result<bool, St
 }
 
 fn process_file(parameters: &Parameters,
+                file_name: Option<Cow<str>>,
                 source: &mut Source,
                 mut output: &mut Write)
                 -> Result<bool, String> {
     let purple = Purple;
     let red = Red.bold();
+
+    let file_name: Option<Cow<str>> = if let Some(file_name) = file_name {
+        let mut file_name = file_name.to_string();
+        if parameters.colors {
+            file_name = purple.paint(file_name).to_string();
+        }
+        Some(Cow::Owned(format!("{}: ", file_name)))
+    } else {
+        None
+    };
 
     let content;
     {
@@ -155,6 +171,11 @@ fn process_file(parameters: &Parameters,
         found_matches = new_content != content;
         if parameters.stdout {
             if !parameters.quiet {
+                if let Some(ref file_name) = file_name {
+                    try!(output.write(&file_name.to_string()
+                                                .into_bytes())
+                               .map_err(|err| err.to_string()));
+                }
                 try!(output.write(&new_content.into_bytes()).map_err(|err| err.to_string()));
             }
         } else {
@@ -176,7 +197,9 @@ fn process_file(parameters: &Parameters,
         // Quiet match only is shortcut by the more performant is_match() .
         found_matches = re.is_match(&content);
     } else {
+
         let mut process_text = |pre: &str, text: &str, post: &str| -> Result<bool, String> {
+
             if let Some(ref group) = parameters.group {
                 if let Some(captures) = re.captures(&text) {
                     try!(output.write(&pre.to_string().into_bytes())
@@ -193,6 +216,11 @@ fn process_file(parameters: &Parameters,
                                                         .to_string()
                                                         .as_str());
                         }
+                        if let Some(ref file_name) = file_name {
+                            try!(output.write(&file_name.to_string()
+                                                        .into_bytes())
+                                       .map_err(|err| err.to_string()));
+                        }
                         try!(output.write(&matched.to_string().into_bytes())
                                    .map_err(|err| err.to_string()));
                     }
@@ -206,6 +234,11 @@ fn process_file(parameters: &Parameters,
                 if !found_matches {
                     try!(output.write(&pre.to_string().into_bytes())
                                .map_err(|err| err.to_string()));
+                    if let Some(ref file_name) = file_name {
+                        try!(output.write(&file_name.to_string()
+                                                    .into_bytes())
+                                   .map_err(|err| err.to_string()));
+                    }
                     try!(output.write(&text.to_string().into_bytes())
                                .map_err(|err| err.to_string()));
                     try!(output.write(&post.to_string().into_bytes())
@@ -216,6 +249,11 @@ fn process_file(parameters: &Parameters,
                 try!(output.write(&pre.to_string().into_bytes())
                            .map_err(|err| err.to_string()));
                 if parameters.only_matches {
+                    if let Some(ref file_name) = file_name {
+                        try!(output.write(&file_name.to_string()
+                                                    .into_bytes())
+                                   .map_err(|err| err.to_string()));
+                    }
                     for (start, end) in re.find_iter(&text) {
                         let mut matched = text[start..end].to_string();
                         if parameters.colors {
@@ -226,6 +264,11 @@ fn process_file(parameters: &Parameters,
                                    .map_err(|err| err.to_string()));
                     }
                 } else {
+                    if let Some(ref file_name) = file_name {
+                        try!(output.write(&file_name.to_string()
+                                                    .into_bytes())
+                                   .map_err(|err| err.to_string()));
+                    }
                     let mut text = text.to_string();
                     if parameters.colors {
                         text = re.replace_all(&text, red.paint("$0").to_string().as_str());
