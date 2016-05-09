@@ -47,7 +47,9 @@ fn colored_match() {
     test(&options, expected_exit_code, &expected_screen_output);
 }
 
-#[test]
+// This test needs to be made to work given the non-deterministic
+// (across file systems) order that walkdir returns the files.
+// #[test]
 fn recursive_match() {
 
     let options = "her test --whole-files --recursive";

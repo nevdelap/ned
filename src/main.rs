@@ -41,7 +41,7 @@ fn main() {
 }
 
 fn get_args() -> Vec<String> {
-    let mut args: Vec<String> = env::args().skip(1).collect();
+    let mut args = env::args().skip(1).collect();
     if let Ok(default_args) = env::var("NED_DEFAULTS") {
         let old_args = args;
         args = default_args.split_whitespace().map(|s| s.to_string()).collect::<Vec<String>>();
