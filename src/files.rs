@@ -3,7 +3,6 @@ use parameters::Parameters;
 use std::io::{self, Write};
 use std::iter::Iterator;
 use std::path::PathBuf;
-use std::string::String;
 use walkdir::{self, WalkDir, WalkDirIterator};
 
 pub struct Files {
