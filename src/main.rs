@@ -1,3 +1,5 @@
+// TODO: Shortcut if quiet matches - stop once a match is found.
+
 extern crate ansi_term;
 extern crate getopts;
 extern crate glob;
