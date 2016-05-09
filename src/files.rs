@@ -12,7 +12,7 @@ pub struct Files {
 }
 
 impl Files {
-    pub fn new(parameters: &Parameters, glob: &String) -> Files {
+    pub fn new(parameters: &Parameters, glob: &str) -> Files {
         let mut walkdir = WalkDir::new(&glob).follow_links(parameters.follow);
         if !parameters.recursive {
             walkdir = walkdir.max_depth(1);

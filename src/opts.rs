@@ -43,7 +43,7 @@ pub fn make_opts() -> Options {
                 "PATTERN");
     opts.optopt("r",
                 "replace",
-                "replace matches, may include named groups. replaces are always operate on whole \
+                "replace matches, may include named groups. replaces always operate on whole \
                  files",
                 "REPLACEMENT");
     // opts.optopt("n", "number", "match/replace N occurrences", "N");
