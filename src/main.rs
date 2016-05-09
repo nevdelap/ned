@@ -17,7 +17,7 @@ mod tests;
 
 use ansi_term::Colour::Red;
 use files::Files;
-use opts::{make_opts, usage_version, usage_full};
+use opts::{make_opts, PROGRAM, usage_full, usage_version};
 use parameters::{get_parameters, Parameters};
 use source::Source;
 use std::fs::OpenOptions;
@@ -25,8 +25,6 @@ use std::io::{self, Read, Seek, SeekFrom, Write};
 use std::iter::Iterator;
 use std::string::String;
 use std::{env, process};
-
-static PROGRAM: &'static str = "ned";
 
 fn main() {
 

@@ -1,4 +1,4 @@
-use PROGRAM;
+use opts::PROGRAM;
 use parameters::Parameters;
 use std::io::{self, Write};
 use std::iter::Iterator;

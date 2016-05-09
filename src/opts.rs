@@ -1,7 +1,7 @@
-use PROGRAM;
 use getopts::{Options, ParsingStyle};
 use std::string::String;
 
+pub static PROGRAM: &'static str = "ned";
 static OPTS_AND_ARGS: &'static str = "[OPTION]... [-p] <PATTERN> [FILE]...";
 static PRE_DESCRIPTION: &'static str = "
 ned is a bit like grep and a bit like sed, but not really. FILEs are ascii or
@@ -22,7 +22,7 @@ Quiet:
     to find a match. Quiet matches are more performant than non-quiet matches.
 ";
 static VERSION: &'static str = "
-ned 0.1.2.1 Copyright (C) 2016 Nev Delap - https://github.com/nevdelap/ned
+ned 0.1.3 Copyright (C) 2016 Nev Delap - https://github.com/nevdelap/ned
 ";
 static LICENSE: &'static str = "
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
