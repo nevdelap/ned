@@ -32,13 +32,13 @@ Options:
     -w, --whole-files   operate on whole files, rather than lines. otherwise
                         matches are line oriented
     -v, --no-match      show only non-matching
-    -R, --recursive     recurse
     -f, --files-with-matches
                         (not yet implemented) show only filenames containing
                         matches
     -F, --files-without-matches
                         (not yet implemented) show only filenames containing
                         no match
+    -R, --recursive     recurse
     -l, --follow        follow symlinks
         --include GLOB  match only files that match GLOB
         --exclude GLOB  skip files matching GLOB
