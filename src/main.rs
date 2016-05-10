@@ -44,7 +44,11 @@ fn main() {
 
 fn get_args() -> Vec<String> {
     let mut args = env::args().skip(1).collect();
-    if let Ok(default_args) = env::var("NED_DEFAULTS") {
+    if let Ok(mut default_args) = env::var("NED_DEFAULTS") {
+        // This replace of ASCII RS character (what the?) is special - it is for
+        // if when using fish shell someone has done "set NED_DEFAULTS -u -c" rather
+        // than this "set NED_DEFAULTS '-u -c'" they don't get a cryptic complaint.
+        default_args = default_args.replace("\u{1e}", " ");
         let old_args = args;
         args = default_args.split_whitespace().map(|s| s.to_string()).collect::<Vec<String>>();
         args.extend(old_args);
