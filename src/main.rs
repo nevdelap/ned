@@ -6,7 +6,9 @@ extern crate glob;
 extern crate regex;
 extern crate walkdir;
 
+
 mod files;
+mod ned_error;
 mod opts;
 mod parameters;
 mod source;
