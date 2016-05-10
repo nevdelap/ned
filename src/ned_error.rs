@@ -9,3 +9,5 @@ impl From<io::Error> for NedError {
         NedError::Io(err)
     }
 }
+
+type NedResult<T> = Result<T, NedError>;
