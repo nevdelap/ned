@@ -73,12 +73,12 @@ pub fn make_opts() -> Options {
                  "operate on whole files, rather than lines. otherwise matches are line oriented");
     opts.optflag("v", "no-match", "show only non-matching");
     opts.optflag("R", "recursive", "recurse");
-    opts.optflag("",
-                 "files-with-matches",
-                 "show only filenames containing matches");
-    opts.optflag("",
-                 "files-without-matches",
-                 "show only filenames containing no match");
+    // opts.optflag("",
+    //              "files-with-matches",
+    //              "show only filenames containing matches");
+    // opts.optflag("",
+    //              "files-without-matches",
+    //              "show only filenames containing no match");
     opts.optflag("f", "follow", "follow symlinks");
     opts.optmulti("", "include", "match only files that match GLOB", "GLOB");
     opts.optmulti("", "exclude", "skip files matching GLOB", "GLOB");

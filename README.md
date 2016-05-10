@@ -28,10 +28,6 @@ Options:
                         matches are line oriented
     -v, --no-match      show only non-matching
     -R, --recursive     recurse
-        --files-with-matches 
-                        show only filenames containing matches
-        --files-without-matches 
-                        show only filenames containing no match
     -f, --follow        follow symlinks
         --include GLOB  match only files that match GLOB
         --exclude GLOB  skip files matching GLOB
