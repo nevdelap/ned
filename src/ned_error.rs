@@ -83,6 +83,12 @@ impl error::Error for NedError {
 
 pub type NedResult<T> = Result<T, NedError>;
 
+pub fn stderr_write_err(err: &error::Error) {
+    io::stderr()
+        .write(&format!("{}: {}\n", PROGRAM, err.to_string()).into_bytes())
+        .expect("Can't write to stderr!");
+}
+
 pub fn stderr_write_file_err(path_buf: &path::PathBuf, err: &error::Error) {
     io::stderr()
         .write(&format!("{}: {} {}\n",

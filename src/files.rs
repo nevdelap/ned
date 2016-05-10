@@ -1,3 +1,4 @@
+use ned_error::stderr_write_err;
 use opts::PROGRAM;
 use parameters::Parameters;
 use std::io::{self, Write};
@@ -69,9 +70,7 @@ impl Iterator for Files {
                             }
                         }
                         Err(err) => {
-                            io::stderr()
-                                .write(&format!("{}: {}\n", PROGRAM, err.to_string()).into_bytes())
-                                .expect("Can't write to stderr!");
+                            stderr_write_err(&err);
                             continue;
                         }
                     }
