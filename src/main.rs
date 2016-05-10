@@ -23,7 +23,7 @@ use parameters::{get_parameters, Parameters};
 use source::Source;
 use std::borrow::Cow;
 use std::fs::OpenOptions;
-use std::io::{self, Read, Seek, SeekFrom, Write};
+use std::io::{self, Read, Seek, SeekFrom, stderr, stdin, stdout, Write};
 use std::iter::Iterator;
 use std::string::String;
 use std::{env, process};
@@ -35,7 +35,7 @@ fn main() {
     // Output is passed here so that tests can
     // call ned() directly to read the output
     // that would go to stdout.
-    let mut output = io::stdout();
+    let mut output = stdout();
     match ned(&args, &mut output) {
         Ok(exit_code) => process::exit(exit_code),
         Err(err) => {
@@ -81,7 +81,7 @@ fn ned(args: &[String], mut output: &mut Write) -> NedResult<i32> {
 fn process_files(parameters: &Parameters, output: &mut Write) -> NedResult<bool> {
     let mut found_matches = false;
     if parameters.stdin {
-        let mut source = Source::Stdin(Box::new(io::stdin()));
+        let mut source = Source::Stdin(Box::new(stdin()));
         found_matches = try!(process_file(&parameters, None, &mut source, output));
     } else {
         for glob in &parameters.globs {
@@ -100,7 +100,7 @@ fn process_files(parameters: &Parameters, output: &mut Write) -> NedResult<bool>
                                                             output) {
                             Ok(found_matches) => found_matches,
                             Err(err) => {
-                                io::stderr()
+                                stderr()
                                     .write(&format!("{}: {} {}\n",
                                                     PROGRAM,
                                                     path_buf.as_path().to_string_lossy(),
@@ -112,7 +112,7 @@ fn process_files(parameters: &Parameters, output: &mut Write) -> NedResult<bool>
                         }
                     }
                     Err(err) => {
-                        io::stderr()
+                        stderr()
                             .write(&format!("{}: {} {}\n",
                                             PROGRAM,
                                             path_buf.as_path().to_string_lossy(),
@@ -128,7 +128,7 @@ fn process_files(parameters: &Parameters, output: &mut Write) -> NedResult<bool>
         }
     }
     try!(output.flush());
-    try!(io::stderr().flush());
+    try!(stderr().flush());
     Ok(found_matches)
 }
 
