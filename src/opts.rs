@@ -77,13 +77,13 @@ pub fn make_opts() -> Options {
                       "operate on whole files, rather than lines. otherwise matches are line \
                        oriented");
     opts.optflagmulti("v", "no-match", "show only non-matching");
-    opts.optflagmulti("R", "recursive", "recurse");
     opts.optflagmulti("f",
                       "files-with-matches",
                       "(not yet implemented) show only filenames containing matches");
     opts.optflagmulti("F",
                       "files-without-matches",
                       "(not yet implemented) show only filenames containing no match");
+    opts.optflagmulti("R", "recursive", "recurse");
     opts.optflagmulti("l", "follow", "follow symlinks");
     opts.optmulti("", "include", "match only files that match GLOB", "GLOB");
     opts.optmulti("", "exclude", "skip files matching GLOB", "GLOB");
@@ -92,10 +92,10 @@ pub fn make_opts() -> Options {
                       "ignore-non-utf8",
                       "quietly ignore files that cannot be parsed as UTF-8 (or ascii). this \
                        requires reading the file. the --exclude option should be preferred");
+    opts.optflagmulti("a", "all", "do not ignore entries starting with .");
     opts.optflagmulti("c", "colors", "show filenames and matches in color");
     opts.optflagmulti("", "stdout", "output to stdout");
     opts.optflagmulti("q", "quiet", "suppress all normal output");
-    opts.optflagmulti("a", "all", "do not ignore entries starting with .");
     opts.optflagmulti("V", "version", "output version information and exit");
     opts.optflagmulti("h", "help", "print this help and exit");
     opts
