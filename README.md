@@ -16,6 +16,11 @@ Options:
     -r, --replace REPLACEMENT
                         replace matches, may include named groups. replaces
                         always operate on whole files
+    -n, --number N      (not yet implemented) match/replace N occurrences
+    -k, --skip N        (not yet implemented) skip N occurrences before
+                        matching/replacing
+    -b, --backwards     (not yet implemented) -n --number and -k --skip
+                        options count backwards
     -i, --ignore-case   ignore case
     -s, --single        . matches newlines, ^ and $ match beginning and end of
                         each file. use with --whole-files
@@ -28,12 +33,18 @@ Options:
                         matches are line oriented
     -v, --no-match      show only non-matching
     -R, --recursive     recurse
-    -f, --follow        follow symlinks
+    -f, --files-with-matches
+                        (not yet implemented) show only filenames containing
+                        matches
+    -F, --files-without-matches
+                        (not yet implemented) show only filenames containing
+                        no match
+    -l, --follow        follow symlinks
         --include GLOB  match only files that match GLOB
         --exclude GLOB  skip files matching GLOB
         --exclude-dir GLOB
                         skip directories matching GLOB
-    -u, --ignore-non-utf8 
+    -u, --ignore-non-utf8
                         quietly ignore files that cannot be parsed as UTF-8
                         (or ascii). this requires reading the file. the
                         --exclude option should be preferred
@@ -63,6 +74,7 @@ ned 0.1.6 Copyright (C) 2016 Nev Delap - https://github.com/nevdelap/ned
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
+
 
 ```
 
