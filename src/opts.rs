@@ -51,44 +51,46 @@ pub fn make_opts() -> Options {
     // "skip",
     // "skip N occurrences before matching/replacing",
     // "N");
-    // opts.optflag("b",
+    // opts.optflagmulti("b",
     // "backwards",
     // "-n --number and -k --skip options count backwards");
-    opts.optflag("i", "ignore-case", "ignore case");
-    opts.optflag("s",
-                 "single",
-                 ". matches newlines, ^ and $ match beginning and end of each file. use with \
-                  --whole-files");
-    opts.optflag("m",
-                 "multiline",
-                 "multiline, ^ and $ match beginning and end of each line. use with --whole-files");
-    opts.optflag("x", "extended", "ignore whitespace and # comments");
-    opts.optflag("o", "only-matches", "show only matches");
+    opts.optflagmulti("i", "ignore-case", "ignore case");
+    opts.optflagmulti("s",
+                      "single",
+                      ". matches newlines, ^ and $ match beginning and end of each file. use \
+                       with --whole-files");
+    opts.optflagmulti("m",
+                      "multiline",
+                      "multiline, ^ and $ match beginning and end of each line. use with \
+                       --whole-files");
+    opts.optflagmulti("x", "extended", "ignore whitespace and # comments");
+    opts.optflagmulti("o", "only-matches", "show only matches");
     opts.optopt("g",
                 "group",
                 "show the match group, specified by number or name",
                 "GROUP");
-    opts.optflag("w",
-                 "whole-files",
-                 "operate on whole files, rather than lines. otherwise matches are line oriented");
-    opts.optflag("v", "no-match", "show only non-matching");
-    opts.optflag("R", "recursive", "recurse");
-    // opts.optflag("",
+    opts.optflagmulti("w",
+                      "whole-files",
+                      "operate on whole files, rather than lines. otherwise matches are line \
+                       oriented");
+    opts.optflagmulti("v", "no-match", "show only non-matching");
+    opts.optflagmulti("R", "recursive", "recurse");
+    // opts.optflagmulti("",
     //              "files-with-matches",
     //              "show only filenames containing matches");
-    // opts.optflag("",
+    // opts.optflagmulti("",
     //              "files-without-matches",
     //              "show only filenames containing no match");
-    opts.optflag("f", "follow", "follow symlinks");
+    opts.optflagmulti("f", "follow", "follow symlinks");
     opts.optmulti("", "include", "match only files that match GLOB", "GLOB");
     opts.optmulti("", "exclude", "skip files matching GLOB", "GLOB");
     opts.optmulti("", "exclude-dir", "skip directories matching GLOB", "GLOB");
-    opts.optflag("c", "colors", "show filenames and matches in color");
-    opts.optflag("", "stdout", "output to stdout");
-    opts.optflag("q", "quiet", "suppress all normal output");
-    opts.optflag("a", "all", "do not ignore entries starting with .");
-    opts.optflag("V", "version", "output version information and exit");
-    opts.optflag("h", "help", "print this help and exit");
+    opts.optflagmulti("c", "colors", "show filenames and matches in color");
+    opts.optflagmulti("", "stdout", "output to stdout");
+    opts.optflagmulti("q", "quiet", "suppress all normal output");
+    opts.optflagmulti("a", "all", "do not ignore entries starting with .");
+    opts.optflagmulti("V", "version", "output version information and exit");
+    opts.optflagmulti("h", "help", "print this help and exit");
     opts
 }
 
