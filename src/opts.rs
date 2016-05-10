@@ -4,7 +4,7 @@ use std::string::String;
 pub static PROGRAM: &'static str = "ned";
 static OPTS_AND_ARGS: &'static str = "[OPTION]... [-p] <PATTERN> [FILE]...";
 static PRE_DESCRIPTION: &'static str = "
-ned is a bit like grep and a bit like sed, but not really. FILEs are ascii or
+ned is a bit like grep and a bit like sed, but not really. FILEs are ASCII or
 UTF-8 text files.
 
 For regex syntax see: http://rust-lang-nursery.github.io/regex/regex/#syntax";
@@ -90,7 +90,7 @@ pub fn make_opts() -> Options {
     opts.optmulti("", "exclude-dir", "skip directories matching GLOB", "GLOB");
     opts.optflagmulti("u",
                       "ignore-non-utf8",
-                      "quietly ignore files that cannot be parsed as UTF-8 (or ascii). this \
+                      "quietly ignore files that cannot be parsed as UTF-8 (or ASCII). this \
                        requires reading the file. the --exclude option should be preferred");
     opts.optflagmulti("a", "all", "do not ignore entries starting with .");
     opts.optflagmulti("c", "colors", "show filenames and matches in color");
