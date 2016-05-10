@@ -27,7 +27,7 @@ use std::{env, process};
 
 fn main() {
 
-    let args = get_args();
+    let args = env::args().skip(1).collect::<Vec<String>>();
 
     // Output is passed here so that tests can
     // call ned() directly to read the output
@@ -40,16 +40,6 @@ fn main() {
             process::exit(1)
         }
     }
-}
-
-fn get_args() -> Vec<String> {
-    let mut args = env::args().skip(1).collect();
-    if let Ok(default_args) = env::var("NED_DEFAULTS") {
-        let old_args = args;
-        args = default_args.split_whitespace().map(|s| s.to_string()).collect::<Vec<String>>();
-        args.extend(old_args);
-    }
-    args
 }
 
 fn ned(args: &[String], mut output: &mut Write) -> NedResult<i32> {
