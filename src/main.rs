@@ -4,7 +4,6 @@ extern crate glob;
 extern crate regex;
 extern crate walkdir;
 
-
 mod files;
 mod ned_error;
 mod opts;
@@ -60,12 +59,12 @@ fn ned(args: &[String], mut output: &mut Write) -> NedResult<i32> {
 
     if parameters.version {
         println!("{}", usage_version());
-        process::exit(1);
+        process::exit(0);
     }
 
     if parameters.regex.is_none() || parameters.help {
         println!("{}", usage_full(&opts));
-        process::exit(1);
+        process::exit(0);
     }
 
     let found_matches = try!(process_files(&parameters, &mut output));
