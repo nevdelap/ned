@@ -128,6 +128,7 @@ fn process_files(parameters: &Parameters, output: &mut Write) -> NedResult<bool>
         }
     }
     try!(output.flush());
+    try!(io::stderr().flush());
     Ok(found_matches)
 }
 
