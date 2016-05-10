@@ -48,6 +48,24 @@ fn colored_match() {
 }
 
 #[test]
+fn duplicate_options() {
+
+    let args = "accidentally.*hand test --whole-files --colors --colors -c";
+    let expected_exit_code = 0;
+    let expected_screen_output = ["\u{1b}[35mtest/file1.txt\u{1b}[0m:\nThe \
+                                   \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans an \
+                                   escape from a cream puff the placid widow. A \
+                                   slovenly\nonlooker rejoices, because some single-handledly \
+                                   sheepish stalactite knowingly avoids contact with a\nwisely \
+                                   rhetorical ballerina. Sometimes the waif about a swamp \
+                                   rejoices, but a ruffian always barely\nbefriends an unseemly \
+                                   dilettante! Unlike so many mastadons who have made their \
+                                   lovely widow\nabhorrent to us, waifs remain womanly.\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
 fn recursive_match() {
 
     let args = "her test --whole-files --recursive";
