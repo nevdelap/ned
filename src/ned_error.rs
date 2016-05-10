@@ -2,19 +2,25 @@ use getopts;
 use glob;
 use opts::PROGRAM;
 use regex;
-use std::string;
 use std::error;
 use std::fmt;
 use std::io::{self, Write};
 use std::path;
+use std::string;
 
 #[derive(Debug)]
 pub enum NedError {
+    FromUtf8(string::FromUtf8Error),
     GetOpts(getopts::Fail),
     GlobPattern(glob::PatternError),
     Io(io::Error),
     Regex(regex::Error),
-    FromUtf8(string::FromUtf8Error),
+}
+
+impl From<string::FromUtf8Error> for NedError {
+    fn from(err: string::FromUtf8Error) -> NedError {
+        NedError::FromUtf8(err)
+    }
 }
 
 impl From<getopts::Fail> for NedError {
@@ -41,20 +47,14 @@ impl From<regex::Error> for NedError {
     }
 }
 
-impl From<string::FromUtf8Error> for NedError {
-    fn from(err: string::FromUtf8Error) -> NedError {
-        NedError::FromUtf8(err)
-    }
-}
-
 impl fmt::Display for NedError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
+            NedError::FromUtf8(ref err) => write!(f, "{}", err),
             NedError::GetOpts(ref err) => write!(f, "{}", err),
             NedError::GlobPattern(ref err) => write!(f, "{}", err),
             NedError::Io(ref err) => write!(f, "{}", err),
             NedError::Regex(ref err) => write!(f, "{}", err),
-            NedError::FromUtf8(ref err) => write!(f, "{}", err),
         }
     }
 }
@@ -62,21 +62,21 @@ impl fmt::Display for NedError {
 impl error::Error for NedError {
     fn description(&self) -> &str {
         match *self {
+            NedError::FromUtf8(ref err) => err.description(),
             NedError::GetOpts(ref err) => err.description(),
             NedError::GlobPattern(ref err) => err.description(),
             NedError::Io(ref err) => err.description(),
             NedError::Regex(ref err) => err.description(),
-            NedError::FromUtf8(ref err) => err.description(),
         }
     }
 
     fn cause(&self) -> Option<&error::Error> {
         match *self {
+            NedError::FromUtf8(ref err) => Some(err),
             NedError::GetOpts(ref err) => Some(err),
             NedError::GlobPattern(ref err) => Some(err),
             NedError::Io(ref err) => Some(err),
             NedError::Regex(ref err) => Some(err),
-            NedError::FromUtf8(ref err) => Some(err),
         }
     }
 }
