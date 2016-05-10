@@ -37,7 +37,7 @@ pub fn make_opts() -> Options {
     opts.parsing_style(ParsingStyle::FloatingFrees);
     opts.optopt("p",
                 "pattern",
-                "specify pattern, if the option isn't used the pattern must precede the files, \
+                "specify pattern. if the option isn't used the pattern must precede the files. \
                  the option allows the pattern to be put after the files for more convenient \
                  editing",
                 "PATTERN");
