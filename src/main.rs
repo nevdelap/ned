@@ -15,7 +15,7 @@ mod tests;
 
 use ansi_term::Colour::{Purple, Red};
 use files::Files;
-use ned_error::{NedResult, stderr_write_err};
+use ned_error::{NedResult, stderr_write_file_err};
 use opts::{make_opts, PROGRAM, usage_full, usage_version};
 use parameters::{get_parameters, Parameters};
 use source::Source;
@@ -98,12 +98,12 @@ fn process_files(parameters: &Parameters, output: &mut Write) -> NedResult<bool>
                                                             output) {
                             Ok(found_matches) => found_matches,
                             Err(err) => {
-                                stderr_write_err(&path_buf, &err);
+                                stderr_write_file_err(&path_buf, &err);
                                 false
                             }
                         }
                     }
-                    Err(err) => stderr_write_err(&path_buf, &err),
+                    Err(err) => stderr_write_file_err(&path_buf, &err),
                 }
             }
             if parameters.quiet && found_matches {

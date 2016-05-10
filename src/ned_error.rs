@@ -83,7 +83,7 @@ impl error::Error for NedError {
 
 pub type NedResult<T> = Result<T, NedError>;
 
-pub fn stderr_write_err(path_buf: &path::PathBuf, err: &error::Error) {
+pub fn stderr_write_file_err(path_buf: &path::PathBuf, err: &error::Error) {
     io::stderr()
         .write(&format!("{}: {} {}\n",
                         PROGRAM,
