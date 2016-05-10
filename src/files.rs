@@ -1,7 +1,5 @@
 use ned_error::stderr_write_err;
-use opts::PROGRAM;
 use parameters::Parameters;
-use std::io::{self, Write};
 use std::iter::Iterator;
 use std::path::PathBuf;
 use walkdir::{self, WalkDir, WalkDirIterator};
