@@ -23,7 +23,7 @@ use parameters::{get_parameters, Parameters};
 use source::Source;
 use std::borrow::Cow;
 use std::fs::OpenOptions;
-use std::io::{self, Read, Seek, SeekFrom, stderr, stdin, stdout, Write};
+use std::io::{Read, Seek, SeekFrom, stderr, stdin, stdout, Write};
 use std::iter::Iterator;
 use std::string::String;
 use std::{env, process};
