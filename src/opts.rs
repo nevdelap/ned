@@ -75,13 +75,13 @@ pub fn make_opts() -> Options {
                        oriented");
     opts.optflagmulti("v", "no-match", "show only non-matching");
     opts.optflagmulti("R", "recursive", "recurse");
-    // opts.optflagmulti("",
+    // opts.optflagmulti("f",
     //              "files-with-matches",
     //              "show only filenames containing matches");
-    // opts.optflagmulti("",
+    // opts.optflagmulti("F",
     //              "files-without-matches",
     //              "show only filenames containing no match");
-    opts.optflagmulti("f", "follow", "follow symlinks");
+    opts.optflagmulti("l", "follow", "follow symlinks");
     opts.optmulti("", "include", "match only files that match GLOB", "GLOB");
     opts.optmulti("", "exclude", "skip files matching GLOB", "GLOB");
     opts.optmulti("", "exclude-dir", "skip directories matching GLOB", "GLOB");
