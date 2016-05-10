@@ -55,21 +55,28 @@ pub fn make_opts() -> Options {
     opts.optflag("i", "ignore-case", "ignore case");
     opts.optflag("s",
                  "single",
-                 ". matches newlines, ^ and $ match beginning and end of each file");
+                 ". matches newlines, ^ and $ match beginning and end of each file. use with \
+                  --whole-files");
     opts.optflag("m",
                  "multiline",
-                 "multiline, ^ and $ match beginning and end of each line");
-    opts.optflag("w",
-                 "whole-files",
-                 "operate on whole files, rather than lines. matches are by default line oriented");
+                 "multiline, ^ and $ match beginning and end of each line. use with --whole-files");
     opts.optflag("x", "extended", "ignore whitespace and # comments");
     opts.optflag("o", "only-matches", "show only matches");
     opts.optopt("g",
                 "group",
                 "show the match group, specified by number or name",
                 "GROUP");
+    opts.optflag("w",
+                 "whole-files",
+                 "operate on whole files, rather than lines. otherwise matches are line oriented");
     opts.optflag("v", "no-match", "show only non-matching");
     opts.optflag("R", "recursive", "recurse");
+    opts.optflag("",
+                 "files-with-matches",
+                 "show only filenames containing matches");
+    opts.optflag("",
+                 "files-without-matches",
+                 "show only filenames containing no match");
     opts.optflag("f", "follow", "follow symlinks");
     opts.optmulti("", "include", "match only files that match GLOB", "GLOB");
     opts.optmulti("", "exclude", "skip files matching GLOB", "GLOB");
