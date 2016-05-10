@@ -58,7 +58,7 @@ Quiet:
     shortcutting behaviour quiet matches are more performant than non-quiet
     matches.
 
-ned 0.1.5 Copyright (C) 2016 Nev Delap - https://github.com/nevdelap/ned
+ned 0.1.6 Copyright (C) 2016 Nev Delap - https://github.com/nevdelap/ned
 
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it.
