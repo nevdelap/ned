@@ -1,5 +1,3 @@
-// TODO: Shortcut if quiet matches - stop once a match is found.
-
 extern crate ansi_term;
 extern crate getopts;
 extern crate glob;
@@ -17,7 +15,7 @@ mod tests;
 
 use ansi_term::Colour::{Purple, Red};
 use files::Files;
-use ned_error::NedResult;
+use ned_error::{NedResult, stderr_write_err};
 use opts::{make_opts, PROGRAM, usage_full, usage_version};
 use parameters::{get_parameters, Parameters};
 use source::Source;
@@ -100,26 +98,12 @@ fn process_files(parameters: &Parameters, output: &mut Write) -> NedResult<bool>
                                                             output) {
                             Ok(found_matches) => found_matches,
                             Err(err) => {
-                                stderr()
-                                    .write(&format!("{}: {} {}\n",
-                                                    PROGRAM,
-                                                    path_buf.as_path().to_string_lossy(),
-                                                    err.to_string())
-                                                .into_bytes())
-                                    .expect("Can't write to stderr!");
+                                stderr_write_err(&path_buf, &err);
                                 false
                             }
                         }
                     }
-                    Err(err) => {
-                        stderr()
-                            .write(&format!("{}: {} {}\n",
-                                            PROGRAM,
-                                            path_buf.as_path().to_string_lossy(),
-                                            err.to_string())
-                                        .into_bytes())
-                            .expect("Can't write to stderr!");
-                    }
+                    Err(err) => stderr_write_err(&path_buf, &err),
                 }
             }
             if parameters.quiet && found_matches {
@@ -176,8 +160,8 @@ fn process_file(parameters: &Parameters,
             replace = red.paint(replace.as_str()).to_string();
         }
         let new_content = re.replace_all(&content, replace.as_str());
-        // The replace has to do at least on allocation, so keep the old copy
-        // to figure out if there where patches, to save unncessary regex match.
+        // The replace has to do at least one allocation, so keep the old copy
+        // to figure out if there where patches, to save an unnecessary regex match.
         found_matches = new_content != content;
         if parameters.stdout {
             if !parameters.quiet {

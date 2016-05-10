@@ -1,10 +1,12 @@
 use getopts;
 use glob;
+use opts::PROGRAM;
 use regex;
 use std::string;
 use std::error;
 use std::fmt;
-use std::io;
+use std::io::{self, Write};
+use std::path;
 
 #[derive(Debug)]
 pub enum NedError {
@@ -80,3 +82,13 @@ impl error::Error for NedError {
 }
 
 pub type NedResult<T> = Result<T, NedError>;
+
+pub fn stderr_write_err(path_buf: &path::PathBuf, err: &error::Error) {
+    io::stderr()
+        .write(&format!("{}: {} {}\n",
+                        PROGRAM,
+                        path_buf.as_path().to_string_lossy(),
+                        err.to_string())
+                    .into_bytes())
+        .expect("Can't write to stderr!");
+}
