@@ -1,4 +1,5 @@
-   Compiling ned v0.1.5 (file:///home/nev/dev/ned)
+```
+
      Running `target/debug/ned --help`
 
 Usage: ned [OPTION]... [-p] <PATTERN> [FILE]...
@@ -63,7 +64,4 @@ This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 
 ```
-` > README.md
-  and cargo run -- --help >> README.md
-  and echo -e ```
-`
+
