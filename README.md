@@ -1,6 +1,5 @@
 ```
 
-     Running `target/debug/ned --help`
 
 Usage: ned [OPTION]... [-p] <PATTERN> [FILE]...
 
