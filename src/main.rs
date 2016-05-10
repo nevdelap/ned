@@ -82,7 +82,7 @@ fn process_files(parameters: &Parameters, output: &mut Write) -> NedResult<bool>
     let mut found_matches = false;
     if parameters.stdin {
         let mut source = Source::Stdin(Box::new(io::stdin()));
-        found_matches |= try!(process_file(&parameters, None, &mut source, output));
+        found_matches = try!(process_file(&parameters, None, &mut source, output));
     } else {
         for glob in &parameters.globs {
             for path_buf in &mut Files::new(&parameters, &glob) {
@@ -121,6 +121,9 @@ fn process_files(parameters: &Parameters, output: &mut Write) -> NedResult<bool>
                             .expect("Can't write to stderr!");
                     }
                 }
+            }
+            if parameters.quiet && found_matches {
+                break;
             }
         }
     }
