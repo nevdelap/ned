@@ -1,4 +1,4 @@
-```
+```text
 
 
 Usage: ned [OPTION]... [-p] <PATTERN> [FILE]...
