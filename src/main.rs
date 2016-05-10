@@ -14,7 +14,7 @@ mod tests;
 
 use ansi_term::Colour::{Purple, Red};
 use files::Files;
-use ned_error::{NedResult, stderr_write_file_err};
+use ned_error::{NedError, NedResult, stderr_write_file_err};
 use opts::{make_opts, PROGRAM, usage_full, usage_version};
 use parameters::{get_parameters, Parameters};
 use source::Source;
@@ -138,7 +138,7 @@ fn process_file(parameters: &Parameters,
         None
     };
 
-    let content;
+    let content: String;
     {
         let read: &mut Read = match source {
             &mut Source::Stdin(ref mut read) => read,
@@ -148,7 +148,18 @@ fn process_file(parameters: &Parameters,
         };
         let mut buffer = Vec::new();
         let _ = try!(read.read_to_end(&mut buffer));
-        content = try!(String::from_utf8(buffer));
+        match String::from_utf8(buffer) {
+            Ok(ref parsed) => {
+                content = parsed.to_string();
+            }
+            Err(err) => {
+                if parameters.ignore_non_utf8 {
+                    return Ok(false);
+                } else {
+                    return Err(NedError::from(err));
+                }
+            }
+        }
     }
 
     let re = parameters.regex.clone().expect("Bug, already checked parameters.");

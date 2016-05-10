@@ -5,7 +5,7 @@ pub static PROGRAM: &'static str = "ned";
 static OPTS_AND_ARGS: &'static str = "[OPTION]... [-p] <PATTERN> [FILE]...";
 static PRE_DESCRIPTION: &'static str = "
 ned is a bit like grep and a bit like sed, but not really. FILEs are ascii or
-utf-8 text files.
+UTF-8 text files.
 
 For regex syntax see: http://rust-lang-nursery.github.io/regex/regex/#syntax";
 static POST_DESCRIPTION: &'static str = "
@@ -85,6 +85,10 @@ pub fn make_opts() -> Options {
     opts.optmulti("", "include", "match only files that match GLOB", "GLOB");
     opts.optmulti("", "exclude", "skip files matching GLOB", "GLOB");
     opts.optmulti("", "exclude-dir", "skip directories matching GLOB", "GLOB");
+    opts.optflagmulti("u",
+                      "ignore-non-utf8",
+                      "quietly ignore files that cannot be parsed as UTF-8 (or ascii). this \
+                       requires reading the file. the --exclude option should be preferred");
     opts.optflagmulti("c", "colors", "show filenames and matches in color");
     opts.optflagmulti("", "stdout", "output to stdout");
     opts.optflagmulti("q", "quiet", "suppress all normal output");
