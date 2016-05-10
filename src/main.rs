@@ -17,6 +17,7 @@ mod tests;
 
 use ansi_term::Colour::{Purple, Red};
 use files::Files;
+use ned_error::NedResult;
 use opts::{make_opts, PROGRAM, usage_full, usage_version};
 use parameters::{get_parameters, Parameters};
 use source::Source;
@@ -54,7 +55,7 @@ fn get_args() -> Vec<String> {
     args
 }
 
-fn ned(args: &[String], mut output: &mut Write) -> Result<i32, String> {
+fn ned(args: &[String], mut output: &mut Write) -> NedResult<i32> {
 
     let opts = make_opts();
     let parameters = try!(get_parameters(&opts, args));
@@ -77,7 +78,7 @@ fn ned(args: &[String], mut output: &mut Write) -> Result<i32, String> {
     })
 }
 
-fn process_files(parameters: &Parameters, output: &mut Write) -> Result<bool, String> {
+fn process_files(parameters: &Parameters, output: &mut Write) -> NedResult<bool> {
     let mut found_matches = false;
     if parameters.stdin {
         let mut source = Source::Stdin(Box::new(io::stdin()));
@@ -123,7 +124,7 @@ fn process_files(parameters: &Parameters, output: &mut Write) -> Result<bool, St
             }
         }
     }
-    try!(output.flush().map_err(|err| err.to_string()));
+    try!(output.flush());
     Ok(found_matches)
 }
 
@@ -131,7 +132,7 @@ fn process_file(parameters: &Parameters,
                 file_name: Option<Cow<str>>,
                 source: &mut Source,
                 mut output: &mut Write)
-                -> Result<bool, String> {
+                -> NedResult<bool> {
     let purple = Purple;
     let red = Red.bold();
 
@@ -159,8 +160,8 @@ fn process_file(parameters: &Parameters,
             &mut Source::Cursor(ref mut cursor) => cursor,
         };
         let mut buffer = Vec::new();
-        let _ = try!(read.read_to_end(&mut buffer).map_err(|err| err.to_string()));
-        content = try!(String::from_utf8(buffer).map_err(|err| err.to_string()));
+        let _ = try!(read.read_to_end(&mut buffer));
+        content = try!(String::from_utf8(buffer));
     }
 
     let re = parameters.regex.clone().expect("Bug, already checked parameters.");
@@ -177,23 +178,21 @@ fn process_file(parameters: &Parameters,
         if parameters.stdout {
             if !parameters.quiet {
                 if let Some(ref file_name) = file_name {
-                    try!(output.write(&file_name.to_string()
-                                                .into_bytes())
-                               .map_err(|err| err.to_string()));
+                    try!(output.write(&file_name.to_string().into_bytes()));
                 }
-                try!(output.write(&new_content.into_bytes()).map_err(|err| err.to_string()));
+                try!(output.write(&new_content.into_bytes()));
             }
         } else {
             match source {
                 // A better way???
                 &mut Source::File(ref mut file) => {
-                    try!(file.seek(SeekFrom::Start(0)).map_err(|err| err.to_string()));
-                    try!(file.write(&new_content.into_bytes()).map_err(|err| err.to_string()));
+                    try!(file.seek(SeekFrom::Start(0)));
+                    try!(file.write(&new_content.into_bytes()));
                 }
                 #[cfg(test)]
                 &mut Source::Cursor(ref mut cursor) => {
-                    try!(cursor.seek(SeekFrom::Start(0)).map_err(|err| err.to_string()));
-                    try!(cursor.write(&new_content.into_bytes()).map_err(|err| err.to_string()));
+                    try!(cursor.seek(SeekFrom::Start(0)));
+                    try!(cursor.write(&new_content.into_bytes()));
                 }
                 _ => {}
             }
@@ -202,7 +201,7 @@ fn process_file(parameters: &Parameters,
         // Quiet match only is shortcut by the more performant is_match() .
         found_matches = re.is_match(&content);
     } else {
-        let mut process_text = |text: &str| -> Result<bool, String> {
+        let mut process_text = |text: &str| -> NedResult<bool> {
             if let Some(ref group) = parameters.group {
                 if let Some(captures) = re.captures(&text) {
                     let matched = match group.trim().parse::<usize>() {
@@ -218,15 +217,11 @@ fn process_file(parameters: &Parameters,
                                                         .as_str());
                         }
                         if let Some(ref file_name) = file_name {
-                            try!(output.write(&file_name.to_string()
-                                                        .into_bytes())
-                                       .map_err(|err| err.to_string()));
+                            try!(output.write(&file_name.to_string().into_bytes()));
                         }
-                        try!(output.write(&matched.to_string().into_bytes())
-                                   .map_err(|err| err.to_string()));
+                        try!(output.write(&matched.to_string().into_bytes()));
                         if !matched.ends_with("\n") {
-                            try!(output.write(&"\n".to_string().into_bytes())
-                                       .map_err(|err| err.to_string()));
+                            try!(output.write(&"\n".to_string().into_bytes()));
                         }
                     }
                     return Ok(true);
@@ -236,24 +231,18 @@ fn process_file(parameters: &Parameters,
                 let found_matches = re.is_match(&text);
                 if !found_matches {
                     if let Some(ref file_name) = file_name {
-                        try!(output.write(&file_name.to_string()
-                                                    .into_bytes())
-                                   .map_err(|err| err.to_string()));
+                        try!(output.write(&file_name.to_string().into_bytes()));
                     }
-                    try!(output.write(&text.to_string().into_bytes())
-                               .map_err(|err| err.to_string()));
+                    try!(output.write(&text.to_string().into_bytes()));
                     if !text.ends_with("\n") {
-                        try!(output.write(&"\n".to_string().into_bytes())
-                                   .map_err(|err| err.to_string()));
+                        try!(output.write(&"\n".to_string().into_bytes()));
                     }
                 }
                 return Ok(found_matches);
             } else if re.is_match(&text) {
                 if parameters.only_matches {
                     if let Some(ref file_name) = file_name {
-                        try!(output.write(&file_name.to_string()
-                                                    .into_bytes())
-                                   .map_err(|err| err.to_string()));
+                        try!(output.write(&file_name.to_string().into_bytes()));
                     }
                     for (start, end) in re.find_iter(&text) {
                         let mut matched = text[start..end].to_string();
@@ -261,28 +250,22 @@ fn process_file(parameters: &Parameters,
                             matched = re.replace_all(&matched,
                                                      red.paint("$0").to_string().as_str());
                         }
-                        try!(output.write(&matched.to_string().into_bytes())
-                                   .map_err(|err| err.to_string()));
+                        try!(output.write(&matched.to_string().into_bytes()));
                         if !matched.ends_with("\n") {
-                            try!(output.write(&"\n".to_string().into_bytes())
-                                       .map_err(|err| err.to_string()));
+                            try!(output.write(&"\n".to_string().into_bytes()));
                         }
                     }
                 } else {
                     if let Some(ref file_name) = file_name {
-                        try!(output.write(&file_name.to_string()
-                                                    .into_bytes())
-                                   .map_err(|err| err.to_string()));
+                        try!(output.write(&file_name.to_string().into_bytes()));
                     }
                     let mut text = text.to_string();
                     if parameters.colors {
                         text = re.replace_all(&text, red.paint("$0").to_string().as_str());
                     }
-                    try!(output.write(&text.to_string().into_bytes())
-                               .map_err(|err| err.to_string()));
+                    try!(output.write(&text.to_string().into_bytes()));
                     if !text.ends_with("\n") {
-                        try!(output.write(&"\n".to_string().into_bytes())
-                                   .map_err(|err| err.to_string()));
+                        try!(output.write(&"\n".to_string().into_bytes()));
                     }
                 }
                 return Ok(true);
