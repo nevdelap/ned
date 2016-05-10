@@ -1,6 +1,6 @@
 [package]
 name = "ned"
-version = "0.1.4"
+version = "0.1.5"
 authors = ["Nev Delap <nevdelap@gmail.com>"]
 
 [dependencies]
