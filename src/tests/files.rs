@@ -136,12 +136,12 @@ fn test(args: &str, expected_file_names: &[&str]) {
     let args = args.split_whitespace().map(|arg| arg.to_string()).collect::<Vec<String>>();
     let parameters = get_parameters(&opts, &args).unwrap();
     let paths = Files::new(&parameters, &parameters.globs[0]);
-    let mut file_names = paths.map(|path| path.file_name().unwrap().to_str().unwrap().to_string())
-                              .collect::<Vec<String>>();
-    file_names.sort();
+    let mut filenames = paths.map(|path| path.file_name().unwrap().to_str().unwrap().to_string())
+                             .collect::<Vec<String>>();
+    filenames.sort();
 
-    assert_eq!(&file_names,
+    assert_eq!(&filenames,
                &expected_file_names.iter()
-                                   .map(|file_name| file_name.to_string())
+                                   .map(|filename| filename.to_string())
                                    .collect::<Vec<String>>());
 }
