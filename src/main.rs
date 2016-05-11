@@ -112,10 +112,10 @@ fn process_files(parameters: &Parameters, output: &mut Write) -> NedResult<bool>
             if parameters.quiet && found_matches {
                 break;
             }
+            try!(output.flush());
+            try!(stderr().flush());
         }
     }
-    try!(output.flush());
-    try!(stderr().flush());
     Ok(found_matches)
 }
 
