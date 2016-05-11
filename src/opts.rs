@@ -2,14 +2,16 @@ use getopts::{Options, ParsingStyle};
 use std::string::String;
 
 pub static PROGRAM: &'static str = "ned";
+const VERSION: Option<&'static str> = option_env!("CARGO_PKG_VERSION");
 static OPTS_AND_ARGS: &'static str = "[OPTION]... [-p] <PATTERN> [FILE]...";
-static PRE_DESCRIPTION: &'static str = "
-ned is a bit like grep and a bit like sed, but not really. FILEs are ASCII or
+static PRE_DESCRIPTION: &'static str = "ned is a bit like grep and a bit like sed, but not \
+                                        really. FILEs are ASCII or
 UTF-8 text files.
 
-For regex syntax see: http://rust-lang-nursery.github.io/regex/regex/#syntax";
-static POST_DESCRIPTION: &'static str = "
-Environment:
+For regex \
+                                        syntax see: \
+                                        http://rust-lang-nursery.github.io/regex/regex/#syntax";
+static POST_DESCRIPTION: &'static str = "Environment:
     NED_DEFAULTS        ned options prepended to the program's arguments
 
 Exit codes:
@@ -21,16 +23,14 @@ Quiet:
     code of 0 if a match is found in ANY file. Quiet matches will only read
     only as many files as needed to find a match. Even without this
     shortcutting behaviour quiet matches are more performant than non-quiet
-    matches.
-";
-static VERSION: &'static str = "
-ned 0.1.7 Copyright (C) 2016 Nev Delap - https://github.com/nevdelap/ned
-";
-static LICENSE: &'static str = "
-License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
-This is free software: you are free to change and redistribute it.
-There is NO WARRANTY, to the extent permitted by law.
-";
+    matches.";
+static COPYRIGHT: &'static str = "Copyright (C) 2016 Nev Delap - https://github.com/nevdelap/ned";
+static LICENSE: &'static str = "License GPLv3+: GNU GPL version 3 or later \
+                                <http://gnu.org/licenses/gpl.html>.
+This is free software: you \
+                                are free to change and redistribute it.
+There is NO WARRANTY, to \
+                                the extent permitted by law.";
 
 pub fn make_opts() -> Options {
     let mut opts = Options::new();
@@ -100,20 +100,26 @@ pub fn make_opts() -> Options {
 }
 
 pub fn usage_version() -> String {
-    format!("{}{}", &VERSION, &LICENSE)
+    format!("\n{} {} {}\n\n{}\n\n",
+            PROGRAM,
+            VERSION.unwrap(),
+            COPYRIGHT,
+            LICENSE)
 }
 
 pub fn usage_brief() -> String {
-    format!("Usage: {} {}\n{}",
+    format!("Usage: {} {}\n\n{}",
             PROGRAM,
             &OPTS_AND_ARGS,
             &PRE_DESCRIPTION)
 }
 
 pub fn usage_full(opts: &Options) -> String {
-    format!("\n{}{}{}{}",
+    format!("\n{}\n{}\n\n{} {} {}\n\n{}\n\n",
             opts.usage(&usage_brief()),
-            &POST_DESCRIPTION,
-            &VERSION,
-            &LICENSE)
+            POST_DESCRIPTION,
+            PROGRAM,
+            VERSION.unwrap(),
+            COPYRIGHT,
+            LICENSE)
 }

@@ -30,6 +30,16 @@ fn basic_match_filenames_only() {
 }
 
 #[test]
+fn basic_match_filenames_only_no_match() {
+
+    let args = "secretly test/dir1 --whole-files --filenames-only --no-match";
+    let expected_exit_code = 0;
+    let expected_screen_output = ["test/dir1/file2.txt\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
 fn only_matches() {
 
     let args = "accidentally.*hand test --whole-files --matches-only";
@@ -63,6 +73,16 @@ fn colored_match_filenames_only() {
     let args = "accidentally.*hand test --whole-files --colors --filenames-only";
     let expected_exit_code = 0;
     let expected_screen_output = ["\u{1b}[35mtest/file1.txt\u{1b}[0m\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn colored_match_filenames_only_no_match() {
+
+    let args = "secretly test/dir1 --whole-files --colors --filenames-only --no-match";
+    let expected_exit_code = 0;
+    let expected_screen_output = ["\u{1b}[35mtest/dir1/file2.txt\u{1b}[0m\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -152,6 +172,16 @@ fn recursive_match_filenames_only() {
     test(&args, expected_exit_code, &expected_screen_output);
 }
 
+#[test]
+fn recursive_match_filenames_only_no_match() {
+
+    let args = "her test --whole-files --recursive --filenames-only --no-match";
+    let expected_exit_code = 0;
+    let expected_screen_output = ["test/dir1/file3.txt\n", "test/file1.txt\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
 // These tests look for each of the file's matches it expects to be in the screen output, which
 // can be in any order, because the order that walkdir walks directories is undefined.
 fn test(args: &str, expected_exit_code: i32, expected_screen_output: &[&str]) {
@@ -168,7 +198,7 @@ fn test(args: &str, expected_exit_code: i32, expected_screen_output: &[&str]) {
     assert_eq!(exit_code, expected_exit_code);
     for part in expected_screen_output.into_iter() {
         if !screen_output.contains(part) {
-            println!("{} not in {}", part, screen_output);
+            println!("{:?} not in {:?}", part, screen_output);
             assert!(false);
         }
     }
