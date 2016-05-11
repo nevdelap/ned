@@ -36,7 +36,10 @@ fn main() {
     match ned(&args, &mut output) {
         Ok(exit_code) => process::exit(exit_code),
         Err(err) => {
-            println!("{}: {}", PROGRAM, err.to_string());
+            // Aside from output exsting so that tests can read the stdout, this uses write()
+            // rather than println!() because of this issue...
+            // https://github.com/rust-lang/rfcs/blob/master/text/1014-stdout-existential-crisis.md
+            let _ = output.write(&format!("{}: {}\n", PROGRAM, err.to_string()).into_bytes());
             process::exit(1)
         }
     }
@@ -62,12 +65,12 @@ fn ned(args: &[String], mut output: &mut Write) -> NedResult<i32> {
     let parameters = try!(get_parameters(&opts, args));
 
     if parameters.version {
-        println!("{}", usage_version());
+        let _ = output.write(&format!("{}", usage_version()).into_bytes());
         process::exit(0);
     }
 
     if parameters.regex.is_none() || parameters.help {
-        println!("{}", usage_full(&opts));
+        let _ = output.write(&format!("{}", usage_full(&opts)).into_bytes());
         process::exit(0);
     }
 
