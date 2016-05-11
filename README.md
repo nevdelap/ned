@@ -34,10 +34,8 @@ Options:
     -v, --no-match      show only non-matching
     -f, --files-with-matches 
                         (not yet implemented) show only filenames containing
+                        matches. use with -v --no-match to show files without
                         matches
-    -F, --files-without-matches 
-                        (not yet implemented) show only filenames containing
-                        no match
     -R, --recursive     recurse
     -l, --follow        follow symlinks
         --include GLOB  match only files that match GLOB
