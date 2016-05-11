@@ -197,7 +197,7 @@ fn only_matches_quiet_and_not_quiet() {
 
     let input = "This is a test.";
     let pattern = "is";
-    let args = "--whole-files --only-matches";
+    let args = "--whole-files --matches-only";
     let expected_found_matches = true;
     let expected_screen_output = "bogus_file.txt:\nis\nis\n";
     let expected_file_content = &input;

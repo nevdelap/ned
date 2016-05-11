@@ -67,7 +67,7 @@ pub fn make_opts() -> Options {
                       "multiline, ^ and $ match beginning and end of each line. use with \
                        --whole-files");
     opts.optflagmulti("x", "extended", "ignore whitespace and # comments");
-    opts.optflagmulti("o", "only-matches", "show only matches");
+    opts.optflagmulti("o", "matches-only", "show only matches");
     opts.optopt("g",
                 "group",
                 "show the match group, specified by number or name",
@@ -78,9 +78,9 @@ pub fn make_opts() -> Options {
                        oriented");
     opts.optflagmulti("v", "no-match", "show only non-matching");
     opts.optflagmulti("f",
-                      "files-with-matches",
-                      "(not yet implemented) show only filenames containing matches. use with -v \
-                       --no-match to show files without matches");
+                      "filenames-only",
+                      "show only filenames containing matches. use with -v \
+                       --no-match to show filenames without matches");
     opts.optflagmulti("R", "recursive", "recurse");
     opts.optflagmulti("l", "follow", "follow symlinks");
     opts.optmulti("", "include", "match only files that match GLOB", "GLOB");

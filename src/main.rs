@@ -135,7 +135,9 @@ fn process_file(parameters: &Parameters,
         if parameters.colors {
             file_name = purple.paint(file_name).to_string();
         }
-        file_name = if parameters.whole_files {
+        file_name = if parameters.filenames {
+            format!("{}\n", file_name)
+        } else if parameters.whole_files {
             format!("{}:\n", file_name)
         } else {
             format!("{}: ", file_name)
@@ -205,6 +207,13 @@ fn process_file(parameters: &Parameters,
     } else if parameters.quiet {
         // Quiet match only is shortcut by the more performant is_match() .
         found_matches = re.is_match(&content);
+    } else if parameters.filenames {
+        found_matches = re.is_match(&content);
+        if found_matches ^ parameters.no_match {
+            if let Some(ref file_name) = file_name {
+                try!(output.write(&file_name.to_string().into_bytes()));
+            }
+        }
     } else {
         let mut process_text = |text: &str| -> NedResult<bool> {
             if let Some(ref group) = parameters.group {

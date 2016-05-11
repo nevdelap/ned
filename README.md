@@ -27,15 +27,14 @@ Options:
     -m, --multiline     multiline, ^ and $ match beginning and end of each
                         line. use with --whole-files
     -x, --extended      ignore whitespace and # comments
-    -o, --only-matches  show only matches
+    -o, --matches-only  show only matches
     -g, --group GROUP   show the match group, specified by number or name
     -w, --whole-files   operate on whole files, rather than lines. otherwise
                         matches are line oriented
     -v, --no-match      show only non-matching
-    -f, --files-with-matches 
-                        (not yet implemented) show only filenames containing
-                        matches. use with -v --no-match to show files without
-                        matches
+    -f, --filenames-only 
+                        show only filenames containing matches. use with -v
+                        --no-match to show filenames without matches
     -R, --recursive     recurse
     -l, --follow        follow symlinks
         --include GLOB  match only files that match GLOB

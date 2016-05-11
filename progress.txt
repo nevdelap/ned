@@ -21,7 +21,7 @@ Done!    -m, --multiline     multiline, ^ and $ match beginning and end of each
 Done!    -l, --line-oriented
                         operate on lines
 Done!    -x, --extended      ignore whitespace and # comments
-Done!    -o, --only-matches  show only matches
+Done!    -o, --matches-only  show only matches
 Done!    -g, --group GROUP   show the match group, specified by number or name
 Done!    -v, --no-match      show only non-matching
 Done!    -r, --recursive     recurse, follow all symbolic links
