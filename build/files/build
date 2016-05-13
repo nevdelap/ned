@@ -1,0 +1,6 @@
+#!/bin/bash
+cd ~/ned && \
+git fetch && \
+git checkout origin/master && \
+cargo build --release && \
+cp target/release/ned ~/bin

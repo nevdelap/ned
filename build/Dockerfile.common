@@ -1,0 +1,16 @@
+COPY files/rust.tar.gz /opt
+WORKDIR /opt
+RUN tar xf rust.tar.gz
+WORKDIR rust-1.8.0-x86_64-unknown-linux-gnu
+RUN ./install.sh
+WORKDIR /root
+COPY files/id_rsa .ssh/
+RUN chmod 0700 .ssh
+RUN chmod 0600 .ssh/id_rsa
+RUN ssh-keyscan bitbucket.org >> .ssh/known_hosts
+RUN git clone git@bitbucket.org:nevdelap/ned.git
+RUN mkdir bin
+COPY files/build .
+RUN chmod +x build
+RUN ./build
+CMD ./build

@@ -1,0 +1,2 @@
+FROM centos:centos6.6
+RUN yum install -y gcc git tar
