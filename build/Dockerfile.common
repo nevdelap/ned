@@ -1,7 +1,8 @@
 COPY files/rust.tar.gz /opt
 WORKDIR /opt
-RUN tar xf rust.tar.gz
-WORKDIR rust-1.8.0-x86_64-unknown-linux-gnu
+RUN mkdir rust
+RUN tar xf rust.tar.gz --strip-components=1 --directory rust
+WORKDIR rust
 RUN ./install.sh
 WORKDIR /root
 COPY files/id_rsa .ssh/

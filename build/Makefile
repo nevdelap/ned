@@ -8,15 +8,14 @@
 
 RUST_TARBALL=rust-1.8.0-x86_64-unknown-linux-gnu.tar.gz
 
-default: prereqs centos ubuntu
+default: centos ubuntu
 
-prereqs:
+downloads:
 	if [ ! -e files/rust.tar.gz ]; then \
-		wget -c https://static.rust-lang.org/dist/$(RUST_TARBALL); \
-		mv $(RUST_TARBALL) rust.tar.gz; \
+		wget -c https://static.rust-lang.org/dist/$(RUST_TARBALL) -O files/rust.tar.gz; \
 	fi
 
-centos: prereqs
+centos: downloads
 	cat Dockerfile.centos > Dockerfile && \
 	echo >> Dockerfile && \
 	cat Dockerfile.common >> Dockerfile && \
@@ -25,7 +24,7 @@ centos: prereqs
 	docker run -it -v /home/nev/dev/ned/build/bin:/root/bin ned-centos
 	cp bin/ned bin/ned.centos
 
-ubuntu: prereqs
+ubuntu: downloads
 	cat Dockerfile.ubuntu > Dockerfile && \
 	echo >> Dockerfile && \
 	cat Dockerfile.common >> Dockerfile && \
@@ -35,6 +34,4 @@ ubuntu: prereqs
 	cp bin/ned bin/ned.ubuntu
 
 deploy: centos ubuntu
-	cp ~/dev/ned/build/bin/ned.ubuntu /usr/local/bin/ned
-	scp ~/dev/ned/build/bin/ned.ubuntu nevd@nevpc:/usr/local/bin/ned
-	scp -P 77 ~/dev/ned/build/bin/ned.centos nevd@porky.benon.com:/home/nevd/ned
+	./deploy # Not source controlled.

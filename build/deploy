@@ -1,0 +1,4 @@
+#!/bin/bash
+cp ~/dev/ned/build/bin/ned.ubuntu /usr/local/bin/ned
+scp ~/dev/ned/build/bin/ned.ubuntu nevd@nevpc:/usr/local/bin/ned
+scp -P 77 ~/dev/ned/build/bin/ned.centos nevd@porky.benon.com:/home/nevd/ned
