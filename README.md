@@ -1,5 +1,4 @@
 ```text
-
 Usage: ned [OPTION]... [-p] <PATTERN> [FILE]...
 
 ned is a bit like grep and a bit like sed, but not really. FILEs are ASCII or
@@ -76,4 +75,3 @@ This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 
 ```
-
