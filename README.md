@@ -1,6 +1,5 @@
 ```text
 
-
 Usage: ned [OPTION]... [-p] <PATTERN> [FILE]...
 
 ned is a bit like grep and a bit like sed, but not really. FILEs are ASCII or
