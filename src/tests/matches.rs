@@ -1,11 +1,10 @@
 /// Test match related functionality - different types of matches, matches with color, quiet, etc.
 /// The use of re, not re itself.
 
-use process_file;
+use {process_file, format_filename};
 use opts::make_opts;
 use parameters::get_parameters;
 use source::Source;
-use std::borrow::Cow;
 use std::io::{Cursor, Read, Seek, SeekFrom, Write};
 
 #[test]
@@ -460,10 +459,8 @@ fn really_test(input: &str,
     let mut file = Source::Cursor(Box::new(cursor));
     let mut screen_output: Vec<u8> = vec![];
 
-    let found_matches = process_file(&parameters,
-                                     Some(Cow::Owned("bogus_file.txt".to_string())),
-                                     &mut file,
-                                     &mut screen_output)
+    let filename = format_filename(&parameters, &Some("bogus_file.txt".to_string()));
+    let found_matches = process_file(&parameters, &filename, &mut file, &mut screen_output)
                             .unwrap();
 
     let screen_output = String::from_utf8(screen_output).unwrap();
