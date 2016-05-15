@@ -74,7 +74,7 @@ fn ned(args: &[String], mut output: &mut Write) -> NedResult<i32> {
         process::exit(0);
     }
 
-    let found_matches = try!(process_files(&parameters, &mut output));
+    let found_matches = try!(process_files(&parameters, output));
     Ok(if found_matches {
         0
     } else {
@@ -86,22 +86,21 @@ fn process_files(parameters: &Parameters, output: &mut Write) -> NedResult<bool>
     let mut found_matches = false;
     if parameters.stdin {
         let mut source = Source::Stdin(Box::new(stdin()));
-        found_matches = try!(process_file(&parameters, &None, &mut source, output));
+        found_matches = try!(process_file(parameters, &None, &mut source, output));
     } else {
         for glob in &parameters.globs {
-            for path_buf in &mut Files::new(&parameters, &glob) {
+            for path_buf in &mut Files::new(parameters, &glob) {
                 match OpenOptions::new()
                           .read(true)
-                          .write(parameters.replace
-                                           .is_some())
+                          .write(parameters.replace.is_some())
                           .open(path_buf.as_path()) {
                     Ok(file) => {
                         let mut source = Source::File(Box::new(file));
-                        let filename = format_filename(&parameters,
+                        let filename = format_filename(parameters,
                                                        &Some(path_buf.as_path()
                                                                      .to_string_lossy()
                                                                      .to_string()));
-                        found_matches |= match process_file(&parameters,
+                        found_matches |= match process_file(parameters,
                                                             &filename,
                                                             &mut source,
                                                             output) {
@@ -128,7 +127,7 @@ fn process_files(parameters: &Parameters, output: &mut Write) -> NedResult<bool>
 fn process_file(parameters: &Parameters,
                 filename: &Option<String>,
                 source: &mut Source,
-                mut output: &mut Write)
+                output: &mut Write)
                 -> NedResult<bool> {
     let content: String;
     {
@@ -200,14 +199,10 @@ fn process_file(parameters: &Parameters,
     } else {
         if !parameters.whole_files {
             for line in content.lines() {
-                found_matches |= try!(process_text(&parameters,
-                                                   &re,
-                                                   &filename,
-                                                   &mut output,
-                                                   &line));
+                found_matches |= try!(process_text(parameters, &re, filename, output, line));
             }
         } else {
-            found_matches = try!(process_text(&parameters, &re, &filename, &mut output, &content));
+            found_matches = try!(process_text(parameters, &re, filename, output, &content));
         }
     }
     Ok(found_matches)
@@ -239,7 +234,7 @@ fn process_text(parameters: &Parameters,
                 text: &str)
                 -> NedResult<bool> {
     if let Some(ref group) = parameters.group {
-        if let Some(captures) = re.captures(&text) {
+        if let Some(captures) = re.captures(text) {
             let matched = match group.trim().parse::<usize>() {
                 Ok(index) => captures.at(index),
                 Err(_) => captures.name(group),
@@ -276,7 +271,7 @@ fn process_text(parameters: &Parameters,
             }
         }
         return Ok(found_matches);
-    } else if re.is_match(&text) {
+    } else if re.is_match(text) {
         if parameters.only_matches {
             if let &Some(ref filename) = filename {
                 try!(output.write(&filename.clone().into_bytes()));
