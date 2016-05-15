@@ -236,7 +236,6 @@ fn process_text(parameters: &Parameters,
                 re: &Regex,
                 filename: &Option<String>,
                 mut output: &mut Write,
-
                 text: &str)
                 -> NedResult<bool> {
     if let Some(ref group) = parameters.group {
