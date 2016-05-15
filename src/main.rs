@@ -17,6 +17,7 @@ use files::Files;
 use ned_error::{NedError, NedResult, stderr_write_file_err};
 use opts::{make_opts, PROGRAM, usage_full, usage_version};
 use parameters::{get_parameters, Parameters};
+use regex::Regex;
 use source::Source;
 use std::fs::OpenOptions;
 use std::io::{Read, Seek, SeekFrom, stderr, stdin, stdout, Write};
@@ -129,8 +130,6 @@ fn process_file(parameters: &Parameters,
                 source: &mut Source,
                 mut output: &mut Write)
                 -> NedResult<bool> {
-    let red = Red.bold();
-
     let content: String;
     {
         let read: &mut Read = match source {
@@ -160,7 +159,7 @@ fn process_file(parameters: &Parameters,
 
     if let Some(mut replace) = parameters.replace.clone() {
         if parameters.colors {
-            replace = red.paint(replace.as_str()).to_string();
+            replace = Red.bold().paint(replace.as_str()).to_string();
         }
         let new_content = re.replace_all(&content, replace.as_str());
         // The replace has to do at least one allocation, so keep the old copy
@@ -199,85 +198,16 @@ fn process_file(parameters: &Parameters,
             }
         }
     } else {
-        let mut process_text = |text: &str| -> NedResult<bool> {
-            if let Some(ref group) = parameters.group {
-                if let Some(captures) = re.captures(&text) {
-                    let matched = match group.trim().parse::<usize>() {
-                        Ok(index) => captures.at(index),
-                        Err(_) => captures.name(group),
-                    };
-                    if let Some(matched) = matched {
-                        let mut matched = matched.to_string();
-                        if parameters.colors {
-                            matched = re.replace_all(&matched,
-                                                     red.paint("$0")
-                                                        .to_string()
-                                                        .as_str());
-                        }
-                        if let &Some(ref filename) = filename {
-                            try!(output.write(&filename.clone().into_bytes()));
-                        }
-                        try!(output.write(&matched.to_string().into_bytes()));
-                        if !matched.ends_with("\n") {
-                            try!(output.write(&"\n".to_string().into_bytes()));
-                        }
-                    }
-                    return Ok(true);
-                }
-                return Ok(false);
-            } else if parameters.no_match {
-                let found_matches = re.is_match(&text);
-                if !found_matches {
-                    if let &Some(ref filename) = filename {
-                        try!(output.write(&filename.clone().into_bytes()));
-                    }
-                    try!(output.write(&text.to_string().into_bytes()));
-                    if !text.ends_with("\n") {
-                        try!(output.write(&"\n".to_string().into_bytes()));
-                    }
-                }
-                return Ok(found_matches);
-            } else if re.is_match(&text) {
-                if parameters.only_matches {
-                    if let &Some(ref filename) = filename {
-                        try!(output.write(&filename.clone().into_bytes()));
-                    }
-                    for (start, end) in re.find_iter(&text) {
-                        let mut matched = text[start..end].to_string();
-                        if parameters.colors {
-                            matched = re.replace_all(&matched,
-                                                     red.paint("$0").to_string().as_str());
-                        }
-                        try!(output.write(&matched.to_string().into_bytes()));
-                        if !matched.ends_with("\n") {
-                            try!(output.write(&"\n".to_string().into_bytes()));
-                        }
-                    }
-                } else {
-                    if let &Some(ref filename) = filename {
-                        try!(output.write(&filename.clone().into_bytes()));
-                    }
-                    let mut text = text.to_string();
-                    if parameters.colors {
-                        text = re.replace_all(&text, red.paint("$0").to_string().as_str());
-                    }
-                    try!(output.write(&text.to_string().into_bytes()));
-                    if !text.ends_with("\n") {
-                        try!(output.write(&"\n".to_string().into_bytes()));
-                    }
-                }
-                return Ok(true);
-            } else {
-                return Ok(false);
-            }
-        };
-
         if !parameters.whole_files {
             for line in content.lines() {
-                found_matches |= try!(process_text(&line));
+                found_matches |= try!(process_text(&parameters,
+                                                   &re,
+                                                   &filename,
+                                                   &mut output,
+                                                   &line));
             }
         } else {
-            found_matches = try!(process_text(&content));
+            found_matches = try!(process_text(&parameters, &re, &filename, &mut output, &content));
         }
     }
     Ok(found_matches)
@@ -299,5 +229,84 @@ fn format_filename(parameters: &Parameters, filename: &Option<String>) -> Option
         Some(filename)
     } else {
         None
+    }
+}
+
+fn process_text(parameters: &Parameters,
+                re: &Regex,
+                filename: &Option<String>,
+                mut output: &mut Write,
+
+                text: &str)
+                -> NedResult<bool> {
+    if let Some(ref group) = parameters.group {
+        if let Some(captures) = re.captures(&text) {
+            let matched = match group.trim().parse::<usize>() {
+                Ok(index) => captures.at(index),
+                Err(_) => captures.name(group),
+            };
+            if let Some(matched) = matched {
+                let mut matched = matched.to_string();
+                if parameters.colors {
+                    matched = re.replace_all(&matched,
+                                             Red.bold()
+                                                .paint("$0")
+                                                .to_string()
+                                                .as_str());
+                }
+                if let &Some(ref filename) = filename {
+                    try!(output.write(&filename.clone().into_bytes()));
+                }
+                try!(output.write(&matched.to_string().into_bytes()));
+                if !matched.ends_with("\n") {
+                    try!(output.write(&"\n".to_string().into_bytes()));
+                }
+            }
+            return Ok(true);
+        }
+        return Ok(false);
+    } else if parameters.no_match {
+        let found_matches = re.is_match(&text);
+        if !found_matches {
+            if let &Some(ref filename) = filename {
+                try!(output.write(&filename.clone().into_bytes()));
+            }
+            try!(output.write(&text.to_string().into_bytes()));
+            if !text.ends_with("\n") {
+                try!(output.write(&"\n".to_string().into_bytes()));
+            }
+        }
+        return Ok(found_matches);
+    } else if re.is_match(&text) {
+        if parameters.only_matches {
+            if let &Some(ref filename) = filename {
+                try!(output.write(&filename.clone().into_bytes()));
+            }
+            for (start, end) in re.find_iter(&text) {
+                let mut matched = text[start..end].to_string();
+                if parameters.colors {
+                    matched = re.replace_all(&matched, Red.bold().paint("$0").to_string().as_str());
+                }
+                try!(output.write(&matched.to_string().into_bytes()));
+                if !matched.ends_with("\n") {
+                    try!(output.write(&"\n".to_string().into_bytes()));
+                }
+            }
+        } else {
+            if let &Some(ref filename) = filename {
+                try!(output.write(&filename.clone().into_bytes()));
+            }
+            let mut text = text.to_string();
+            if parameters.colors {
+                text = re.replace_all(&text, Red.bold().paint("$0").to_string().as_str());
+            }
+            try!(output.write(&text.to_string().into_bytes()));
+            if !text.ends_with("\n") {
+                try!(output.write(&"\n".to_string().into_bytes()));
+            }
+        }
+        return Ok(true);
+    } else {
+        return Ok(false);
     }
 }
