@@ -96,10 +96,7 @@ fn process_files(parameters: &Parameters, output: &mut Write) -> NedResult<bool>
                           .open(path_buf.as_path()) {
                     Ok(file) => {
                         let mut source = Source::File(Box::new(file));
-                        let filename = format_filename(parameters,
-                                                       &Some(path_buf.as_path()
-                                                                     .to_string_lossy()
-                                                                     .to_string()));
+                        let filename = &Some(path_buf.as_path().to_string_lossy().to_string());
                         found_matches |= match process_file(parameters,
                                                             &filename,
                                                             &mut source,
@@ -122,25 +119,6 @@ fn process_files(parameters: &Parameters, output: &mut Write) -> NedResult<bool>
         }
     }
     Ok(found_matches)
-}
-
-fn format_filename(parameters: &Parameters, filename: &Option<String>) -> Option<String> {
-    if let &Some(ref filename) = filename {
-        let mut filename = filename.clone();
-        if parameters.colors {
-            filename = Purple.paint(filename).to_string();
-        }
-        filename = if parameters.filenames {
-            format!("{}\n", filename)
-        } else if parameters.whole_files {
-            format!("{}:\n", filename)
-        } else {
-            format!("{}: ", filename)
-        };
-        Some(filename)
-    } else {
-        None
-    }
 }
 
 fn process_file(parameters: &Parameters,
@@ -185,9 +163,7 @@ fn process_file(parameters: &Parameters,
         found_matches = new_content != content;
         if parameters.stdout {
             if !parameters.quiet {
-                if let &Some(ref filename) = filename {
-                    try!(output.write(&filename.to_string().into_bytes()));
-                }
+                try!(write_filename(parameters, filename, output));
                 try!(output.write(&new_content.into_bytes()));
             }
         } else {
@@ -211,7 +187,7 @@ fn process_file(parameters: &Parameters,
     } else if parameters.filenames {
         found_matches = re.is_match(&content);
         if found_matches ^ parameters.no_match {
-            try!(write_filename(filename, output));
+            try!(write_filename(parameters, filename, output));
         }
     } else {
         if !parameters.whole_files {
@@ -238,15 +214,8 @@ fn process_text(parameters: &Parameters,
                 Err(_) => captures.name(group),
             };
             if let Some(text) = text {
-                let mut text = text.to_string();
-                if parameters.colors {
-                    text = re.replace_all(&text,
-                                          Red.bold()
-                                             .paint("$0")
-                                             .to_string()
-                                             .as_str());
-                }
-                try!(write_match(filename, output, &text));
+                let text = format_replacement(parameters, re, text);
+                try!(write_match(parameters, filename, output, &text));
             }
             return Ok(true);
         }
@@ -254,12 +223,12 @@ fn process_text(parameters: &Parameters,
     } else if parameters.no_match {
         let found_matches = re.is_match(&text);
         if !found_matches {
-            try!(write_match(filename, output, &text));
+            try!(write_match(parameters, filename, output, &text));
         }
         return Ok(found_matches);
     } else if re.is_match(text) {
         if parameters.only_matches {
-            try!(write_filename(filename, output));
+            try!(write_filename(parameters, filename, output));
             for (start, end) in re.find_iter(&text) {
                 let text = format_replacement(parameters, re, &text[start..end]);
                 try!(output.write(&text.to_string().into_bytes()));
@@ -267,7 +236,7 @@ fn process_text(parameters: &Parameters,
             }
         } else {
             let text = format_replacement(parameters, re, text);
-            try!(write_match(filename, output, &text));
+            try!(write_match(parameters, filename, output, &text));
         }
         return Ok(true);
     } else {
@@ -275,15 +244,33 @@ fn process_text(parameters: &Parameters,
     }
 }
 
-fn write_match(filename: &Option<String>, mut output: &mut Write, text: &str) -> NedResult<()> {
-    try!(write_filename(filename, output));
+fn write_match(parameters: &Parameters,
+               filename: &Option<String>,
+               mut output: &mut Write,
+               text: &str)
+               -> NedResult<()> {
+    try!(write_filename(parameters, filename, output));
     try!(output.write(&text.to_string().into_bytes()));
     try!(write_newline_if_replaced_text_ends_with_newline(output, &text));
     Ok(())
 }
 
-fn write_filename(filename: &Option<String>, mut output: &mut Write) -> NedResult<()> {
+fn write_filename(parameters: &Parameters,
+                  filename: &Option<String>,
+                  mut output: &mut Write)
+                  -> NedResult<()> {
     if let &Some(ref filename) = filename {
+        let mut filename = filename.clone();
+        if parameters.colors {
+            filename = Purple.paint(filename).to_string();
+        }
+        filename = if parameters.filenames {
+            format!("{}\n", filename)
+        } else if parameters.whole_files {
+            format!("{}:\n", filename)
+        } else {
+            format!("{}: ", filename)
+        };
         try!(output.write(&filename.clone().into_bytes()));
     }
     Ok(())
