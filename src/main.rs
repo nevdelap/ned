@@ -162,7 +162,7 @@ fn process_file(parameters: &Parameters,
         }
         let new_content = re.replace_all(&content, replace.as_str());
         // The replace has to do at least one allocation, so keep the old copy
-        // to figure out if there where patches, to save an unnecessary regex match.
+        // to figure out if there where matches, to save an unnecessary regex match.
         found_matches = new_content != content;
         if parameters.stdout {
             if !parameters.quiet {
