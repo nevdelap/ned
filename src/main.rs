@@ -246,9 +246,7 @@ fn process_text(parameters: &Parameters,
                                              .to_string()
                                              .as_str());
                 }
-                try!(write_filename(filename, output));
-                try!(output.write(&text.to_string().into_bytes()));
-                try!(write_newline_if_replaced_text_ends_with_newline(&text, output));
+                try!(write_match(filename, output, &text));
             }
             return Ok(true);
         }
@@ -256,9 +254,7 @@ fn process_text(parameters: &Parameters,
     } else if parameters.no_match {
         let found_matches = re.is_match(&text);
         if !found_matches {
-            try!(write_filename(filename, output));
-            try!(output.write(&text.to_string().into_bytes()));
-            try!(write_newline_if_replaced_text_ends_with_newline(&text, output));
+            try!(write_match(filename, output, &text));
         }
         return Ok(found_matches);
     } else if re.is_match(text) {
@@ -267,18 +263,23 @@ fn process_text(parameters: &Parameters,
             for (start, end) in re.find_iter(&text) {
                 let text = format_replacement(parameters, re, &text[start..end]);
                 try!(output.write(&text.to_string().into_bytes()));
-                try!(write_newline_if_replaced_text_ends_with_newline(&text, output));
+                try!(write_newline_if_replaced_text_ends_with_newline(output, &text));
             }
         } else {
-            try!(write_filename(filename, output));
             let text = format_replacement(parameters, re, text);
-            try!(output.write(&text.to_string().into_bytes()));
-            try!(write_newline_if_replaced_text_ends_with_newline(&text, output));
+            try!(write_match(filename, output, &text));
         }
         return Ok(true);
     } else {
         return Ok(false);
     }
+}
+
+fn write_match(filename: &Option<String>, mut output: &mut Write, text: &str) -> NedResult<()> {
+    try!(write_filename(filename, output));
+    try!(output.write(&text.to_string().into_bytes()));
+    try!(write_newline_if_replaced_text_ends_with_newline(output, &text));
+    Ok(())
 }
 
 fn write_filename(filename: &Option<String>, mut output: &mut Write) -> NedResult<()> {
@@ -296,8 +297,8 @@ fn format_replacement(parameters: &Parameters, re: &Regex, text: &str) -> String
     }
 }
 
-fn write_newline_if_replaced_text_ends_with_newline(text: &str,
-                                                    mut output: &mut Write)
+fn write_newline_if_replaced_text_ends_with_newline(mut output: &mut Write,
+                                                    text: &str)
                                                     -> NedResult<()> {
     if !text.ends_with("\n") {
         try!(output.write(&"\n".to_string().into_bytes()));
