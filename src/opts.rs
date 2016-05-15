@@ -85,6 +85,7 @@ pub fn make_opts() -> Options {
                       "filenames-only",
                       "show only filenames containing matches. use with -v \
                        --no-match to show filenames without matches");
+    opts.optflagmulti("F", "no-filenames", "don't show filesnames");
     opts.optflagmulti("R", "recursive", "recurse");
     opts.optflagmulti("l", "follow", "follow symlinks");
     opts.optmulti("", "include", "match only files that match GLOB", "GLOB");

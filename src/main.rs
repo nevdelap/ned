@@ -259,19 +259,21 @@ fn write_filename(parameters: &Parameters,
                   filename: &Option<String>,
                   mut output: &mut Write)
                   -> NedResult<()> {
-    if let &Some(ref filename) = filename {
-        let mut filename = filename.clone();
-        if parameters.colors {
-            filename = Purple.paint(filename).to_string();
+    if !parameters.no_filenames {
+        if let &Some(ref filename) = filename {
+            let mut filename = filename.clone();
+            if parameters.colors {
+                filename = Purple.paint(filename).to_string();
+            }
+            filename = if parameters.filenames {
+                format!("{}\n", filename)
+            } else if parameters.whole_files {
+                format!("{}:\n", filename)
+            } else {
+                format!("{}: ", filename)
+            };
+            try!(output.write(&filename.clone().into_bytes()));
         }
-        filename = if parameters.filenames {
-            format!("{}\n", filename)
-        } else if parameters.whole_files {
-            format!("{}:\n", filename)
-        } else {
-            format!("{}: ", filename)
-        };
-        try!(output.write(&filename.clone().into_bytes()));
     }
     Ok(())
 }

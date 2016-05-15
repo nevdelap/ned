@@ -33,6 +33,7 @@ Options:
     -f, --filenames-only 
                         show only filenames containing matches. use with -v
                         --no-match to show filenames without matches
+    -F, --no-filenames  don't show filesnames
     -R, --recursive     recurse
     -l, --follow        follow symlinks
         --include GLOB  match only files that match GLOB
