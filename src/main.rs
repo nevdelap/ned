@@ -230,7 +230,7 @@ fn process_text(parameters: &Parameters,
         if parameters.only_matches {
             try!(write_filename(parameters, filename, output));
             for (start, end) in re.find_iter(&text) {
-                let text = format_replacement(parameters, re, &text[start..end]);
+                let text = format_whole(parameters, &text[start..end]);
                 try!(output.write(&text.to_string().into_bytes()));
                 try!(write_newline_if_replaced_text_ends_with_newline(output, &text));
             }
@@ -281,6 +281,14 @@ fn write_filename(parameters: &Parameters,
 fn format_replacement(parameters: &Parameters, re: &Regex, text: &str) -> String {
     if parameters.colors {
         re.replace_all(&text, Red.bold().paint("$0").to_string().as_str())
+    } else {
+        text.to_string()
+    }
+}
+
+fn format_whole(parameters: &Parameters, text: &str) -> String {
+    if parameters.colors {
+        Red.bold().paint(text).to_string()
     } else {
         text.to_string()
     }
