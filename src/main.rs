@@ -1,3 +1,5 @@
+#![feature(libc)]
+
 extern crate ansi_term;
 extern crate getopts;
 extern crate glob;

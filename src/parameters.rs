@@ -2,6 +2,7 @@ extern crate regex;
 
 use getopts::{Matches, Options};
 use glob::Pattern;
+use libc;
 use ned_error::NedResult;
 use regex::Regex;
 use std::iter::Iterator;
@@ -81,7 +82,7 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
 
     Ok(Parameters {
         all: matches.opt_present("all"),
-        colors: matches.opt_present("colors") && (stdout || replace.is_none()) && !istty,
+        colors: matches.opt_present("colors") && (stdout || replace.is_none()) && istty,
         excludes: excludes,
         exclude_dirs: exclude_dirs,
         filenames: matches.opt_present("filenames-only"),
