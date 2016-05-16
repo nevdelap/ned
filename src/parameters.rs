@@ -77,9 +77,11 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
     let stdout = matches.opt_present("stdout");
     let stdin = globs.len() == 0 || stdout;
 
+    let istty = unsafe { libc::isatty(libc::STDOUT_FILENO as i32) } != 0;
+
     Ok(Parameters {
         all: matches.opt_present("all"),
-        colors: matches.opt_present("colors") && (stdout || replace.is_none()),
+        colors: matches.opt_present("colors") && (stdout || replace.is_none()) && !istty,
         excludes: excludes,
         exclude_dirs: exclude_dirs,
         filenames: matches.opt_present("filenames-only"),

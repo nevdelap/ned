@@ -8,21 +8,32 @@
 
 RUST_TARBALL=rust-1.8.0-x86_64-unknown-linux-gnu.tar.gz
 
-default: centos ubuntu
+default: centos6 centos7 ubuntu
 
 downloads:
 	if [ ! -e files/rust.tar.gz ]; then \
 		wget -c https://static.rust-lang.org/dist/$(RUST_TARBALL) -O files/rust.tar.gz; \
 	fi
 
-centos: downloads
-	cat Dockerfile.centos > Dockerfile && \
+centos: centos6 centos7
+
+centos6: downloads
+	cat Dockerfile.centos6 > Dockerfile && \
 	echo >> Dockerfile && \
 	cat Dockerfile.common >> Dockerfile && \
-	docker build --tag=ned-centos .
+	docker build --tag=ned-centos6 .
 	rm Dockerfile
-	docker run -it -v /home/nev/dev/ned/build/bin:/root/bin ned-centos
-	cp bin/ned bin/ned.centos
+	docker run -it -v /home/nev/dev/ned/build/bin:/root/bin ned-centos6
+	cp bin/ned bin/ned.centos6
+
+centos7: downloads
+	cat Dockerfile.centos7 > Dockerfile && \
+	echo >> Dockerfile && \
+	cat Dockerfile.common >> Dockerfile && \
+	docker build --tag=ned-centos7 .
+	rm Dockerfile
+	docker run -it -v /home/nev/dev/ned/build/bin:/root/bin ned-centos7
+	cp bin/ned bin/ned.centos7
 
 ubuntu: downloads
 	cat Dockerfile.ubuntu > Dockerfile && \
