@@ -1,6 +1,4 @@
 ```text
-
-
 Usage: ned [OPTION]... [-p] <PATTERN> [FILE]...
 
 ned is a bit like grep and a bit like sed, but not really. FILEs are ASCII or
@@ -70,11 +68,10 @@ Quiet:
     shortcutting behaviour quiet matches are more performant than non-quiet
     matches.
 
-ned 0.1.8 Copyright (C) 2016 Nev Delap - https://github.com/nevdelap/ned
+ned 0.1.9 Copyright (C) 2016 Nev Delap - https://github.com/nevdelap/ned
 
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 
 ```
-
