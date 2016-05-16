@@ -208,7 +208,9 @@ fn process_text(parameters: &Parameters,
                 text: &str)
                 -> NedResult<bool> {
     if let Some(ref group) = parameters.group {
-        if let Some(captures) = re.captures(text) {
+        let mut found_matches = false;
+        for captures in re.captures_iter(text) {
+            found_matches = true;
             let text = match group.trim().parse::<usize>() {
                 Ok(index) => captures.at(index),
                 Err(_) => captures.name(group),
@@ -217,9 +219,8 @@ fn process_text(parameters: &Parameters,
                 let text = format_replacement(parameters, re, text);
                 try!(write_match(parameters, filename, output, &text));
             }
-            return Ok(true);
         }
-        return Ok(false);
+        return Ok(found_matches);
     } else if parameters.no_match {
         let found_matches = re.is_match(&text);
         if !found_matches {
