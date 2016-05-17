@@ -160,7 +160,26 @@ fn process_file(parameters: &Parameters,
         if parameters.colors {
             replace = Red.bold().paint(replace.as_str()).to_string();
         }
-        let new_content = re.replace_all(&content, replace.as_str());
+        let mut new_content;
+        if !parameters.limit_matches() {
+            new_content = re.replace_all(&content, replace.as_str())
+        } else {
+            new_content = content.to_string();
+            let start_end_byte_indices = re.find_iter(&content).collect::<Vec<(usize, usize)>>();
+            for (rev_index, &(start, end)) in start_end_byte_indices.iter().rev().enumerate() {
+                let index = start_end_byte_indices.len() - rev_index - 1;
+                if parameters.include_match(index) {
+                    new_content = format!("{}{}{}",
+                                          // find_iter guarantees that start and end are
+                                          // guaranteed to be at a Unicode code point boundary.
+                                          unsafe { &new_content.slice_unchecked(0, start) },
+                                          replace,
+                                          unsafe {
+                                              &new_content.slice_unchecked(end, new_content.len())
+                                          });
+                }
+            }
+        };
         // The replace has to do at least one allocation, so keep the old copy
         // to figure out if there where matches, to save an unnecessary regex match.
         found_matches = new_content != content;
@@ -212,15 +231,17 @@ fn process_text(parameters: &Parameters,
                 -> NedResult<bool> {
     if let Some(ref group) = parameters.group {
         let mut found_matches = false;
-        for captures in re.captures_iter(text) {
-            found_matches = true;
-            let text = match group.trim().parse::<usize>() {
-                Ok(index) => captures.at(index),
-                Err(_) => captures.name(group),
-            };
-            if let Some(text) = text {
-                let text = format_replacement(parameters, re, text);
-                try!(write_match(parameters, filename, output, &text));
+        for (index, captures) in re.captures_iter(text).enumerate() {
+            if parameters.include_match(index) {
+                found_matches = true;
+                let text = match group.trim().parse::<usize>() {
+                    Ok(index) => captures.at(index),
+                    Err(_) => captures.name(group),
+                };
+                if let Some(text) = text {
+                    let text = format_replacement(parameters, re, text);
+                    try!(write_match(parameters, filename, output, &text));
+                }
             }
         }
         return Ok(found_matches);

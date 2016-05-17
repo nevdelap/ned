@@ -3,7 +3,7 @@ extern crate regex;
 use getopts::{Matches, Options};
 use glob::Pattern;
 use libc;
-use ned_error::NedResult;
+use ned_error::{NedError, NedResult, StringError};
 use regex::Regex;
 use std::iter::Iterator;
 use std::string::String;
@@ -11,6 +11,7 @@ use std::string::String;
 #[derive(Clone)]
 pub struct Parameters {
     pub all: bool,
+    pub backwards: bool,
     pub colors: bool,
     pub exclude_dirs: Vec<Pattern>,
     pub excludes: Vec<Pattern>,
@@ -23,15 +24,32 @@ pub struct Parameters {
     pub includes: Vec<Pattern>,
     pub no_filenames: bool,
     pub no_match: bool,
+    pub number: Option<usize>,
     pub only_matches: bool,
     pub quiet: bool,
     pub regex: Option<Regex>,
     pub recursive: bool,
     pub replace: Option<String>,
+    pub skip: usize,
     pub stdin: bool,
     pub stdout: bool,
     pub version: bool,
     pub whole_files: bool,
+}
+
+impl Parameters {
+    pub fn limit_matches(&self) -> bool {
+        self.skip > 0 || self.number.is_some()
+    }
+
+    pub fn include_match(&self, index: usize) -> bool {
+        index >= self.skip &&
+        if let Some(number) = self.number {
+            index - self.skip < number
+        } else {
+            true
+        }
+    }
 }
 
 pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> {
@@ -55,6 +73,38 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
     } else {
         regex = None;
         globs = matches.free.iter().map(|glob| glob.clone()).collect::<Vec<String>>();
+    }
+
+    let number;
+    if let Some(value) = matches.opt_str("number") {
+        match value.trim().parse::<usize>() {
+            Ok(value) => {
+                number = Some(value);
+            }
+            Err(_) => {
+                return Err(NedError::ParameterError(StringError {
+                    err: "invalid value for --number option".to_string(),
+                }));
+            }
+        };
+    } else {
+        number = None;
+    }
+
+    let skip;
+    if let Some(value) = matches.opt_str("skip") {
+        match value.trim().parse::<usize>() {
+            Ok(value) => {
+                skip = value;
+            }
+            Err(_) => {
+                return Err(NedError::ParameterError(StringError {
+                    err: "invalid value for --skip option".to_string(),
+                }));
+            }
+        };
+    } else {
+        skip = 0;
     }
 
     let mut includes = Vec::<Pattern>::new();
@@ -83,6 +133,7 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
 
     Ok(Parameters {
         all: matches.opt_present("all"),
+        backwards: matches.opt_present("backwards"),
         colors: matches.opt_present("colors") && (stdout || replace.is_none()) && istty,
         excludes: excludes,
         exclude_dirs: exclude_dirs,
@@ -95,11 +146,13 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
         includes: includes,
         no_filenames: matches.opt_present("no-filenames"),
         no_match: matches.opt_present("no-match"),
+        number: number,
         only_matches: matches.opt_present("matches-only"),
         quiet: matches.opt_present("quiet"),
         regex: regex,
         recursive: matches.opt_present("recursive"),
         replace: replace,
+        skip: skip,
         stdin: stdin,
         stdout: stdout,
         version: matches.opt_present("version"),

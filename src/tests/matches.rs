@@ -419,6 +419,156 @@ fn basic_replace_to_stdout_quiet_and_not_quiet() {
          expected_file_content);
 }
 
+#[test]
+fn replace_skip_quiet_and_not_quiet() {
+
+    let input = "The shadow conquers the hand related to a mastadon. Jespera and I took a cup \
+                 around a toothache (with a lunatic around some debutante, a ribbon beyond a \
+                 curse, a few dahlias, and a ribbon) to arrive at a state of intimacy where we \
+                 can accurately mourn our boy. When another espadrille wakes up, the cup toward \
+                 another swamp flies into a rage. Now and then, an onlooker sells a dissident \
+                 related to the hand to an ungodly dahlia.";
+    let pattern = "on.";
+    let args = "--whole-files -r XXX --skip 2 ";
+    let expected_found_matches = true;
+    let expected_screen_output = "";
+    let expected_file_content = "The shadow conquers the hand related to a mastadon. Jespera and \
+                                  I took a cup around a toothache (with a lunatic around some \
+                                  debutante, a ribbXXXbeyXXX a curse, a few dahlias, and a \
+                                  ribbXXX to arrive at a state of intimacy where we can \
+                                  accurately mourn our boy. When another espadrille wakes up, the \
+                                  cup toward another swamp flies into a rage. Now and then, an \
+                                  XXXooker sells a dissident related to the hand to an ungodly \
+                                  dahlia.";
+
+    test(input,
+         pattern,
+         args,
+         expected_found_matches,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
+fn replace_skip_all_quiet_and_not_quiet() {
+
+    let input = "The shadow conquers the hand related to a mastadon. Jespera and I took a cup \
+                 around a toothache (with a lunatic around some debutante, a ribbon beyond a \
+                 curse, a few dahlias, and a ribbon) to arrive at a state of intimacy where we \
+                 can accurately mourn our boy. When another espadrille wakes up, the cup toward \
+                 another swamp flies into a rage. Now and then, an onlooker sells a dissident \
+                 related to the hand to an ungodly dahlia.";
+    let pattern = "on.";
+    let args = "--whole-files -r XXX --skip 10 ";
+    let expected_found_matches = false;
+    let expected_screen_output = "";
+    let expected_file_content = "The shadow conquers the hand related to a mastadon. Jespera and \
+                                  I took a cup around a toothache (with a lunatic around some \
+                                  debutante, a ribbon beyond a curse, a few dahlias, and a \
+                                  ribbon) to arrive at a state of intimacy where we can \
+                                  accurately mourn our boy. When another espadrille wakes up, the \
+                                  cup toward another swamp flies into a rage. Now and then, an \
+                                  onlooker sells a dissident related to the hand to an ungodly \
+                                  dahlia.";
+
+    test(input,
+         pattern,
+         args,
+         expected_found_matches,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
+fn replace_number_quiet_and_not_quiet() {
+
+    let input = "The shadow conquers the hand related to a mastadon. Jespera and I took a cup \
+                 around a toothache (with a lunatic around some debutante, a ribbon beyond a \
+                 curse, a few dahlias, and a ribbon) to arrive at a state of intimacy where we \
+                 can accurately mourn our boy. When another espadrille wakes up, the cup toward \
+                 another swamp flies into a rage. Now and then, an onlooker sells a dissident \
+                 related to the hand to an ungodly dahlia.";
+    let pattern = "on.";
+    let args = "--whole-files -r XXX --number 3 ";
+    let expected_found_matches = true;
+    let expected_screen_output = "";
+    let expected_file_content = "The shadow cXXXuers the hand related to a mastadXXX Jespera and \
+                                  I took a cup around a toothache (with a lunatic around some \
+                                  debutante, a ribbXXXbeyond a curse, a few dahlias, and a \
+                                  ribbon) to arrive at a state of intimacy where we can \
+                                  accurately mourn our boy. When another espadrille wakes up, the \
+                                  cup toward another swamp flies into a rage. Now and then, an \
+                                  onlooker sells a dissident related to the hand to an ungodly \
+                                  dahlia.";
+
+    test(input,
+         pattern,
+         args,
+         expected_found_matches,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
+fn replace_number_more_than_there_are_quiet_and_not_quiet() {
+
+    let input = "The shadow conquers the hand related to a mastadon. Jespera and I took a cup \
+                 around a toothache (with a lunatic around some debutante, a ribbon beyond a \
+                 curse, a few dahlias, and a ribbon) to arrive at a state of intimacy where we \
+                 can accurately mourn our boy. When another espadrille wakes up, the cup toward \
+                 another swamp flies into a rage. Now and then, an onlooker sells a dissident \
+                 related to the hand to an ungodly dahlia.";
+    let pattern = "on.";
+    let args = "--whole-files -r XXX --number 10 ";
+    let expected_found_matches = true;
+    let expected_screen_output = "";
+    let expected_file_content = "The shadow cXXXuers the hand related to a mastadXXX Jespera and \
+                                  I took a cup around a toothache (with a lunatic around some \
+                                  debutante, a ribbXXXbeyXXX a curse, a few dahlias, and a \
+                                  ribbXXX to arrive at a state of intimacy where we can \
+                                  accurately mourn our boy. When another espadrille wakes up, the \
+                                  cup toward another swamp flies into a rage. Now and then, an \
+                                  XXXooker sells a dissident related to the hand to an ungodly \
+                                  dahlia.";
+
+    test(input,
+         pattern,
+         args,
+         expected_found_matches,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
+fn replace_skip_number_quiet_and_not_quiet() {
+
+    let input = "The shadow conquers the hand related to a mastadon. Jespera and I took a cup \
+                 around a toothache (with a lunatic around some debutante, a ribbon beyond a \
+                 curse, a few dahlias, and a ribbon) to arrive at a state of intimacy where we \
+                 can accurately mourn our boy. When another espadrille wakes up, the cup toward \
+                 another swamp flies into a rage. Now and then, an onlooker sells a dissident \
+                 related to the hand to an ungodly dahlia.";
+    let pattern = "on.";
+    let args = "--whole-files -r XXX --skip 2 --number 3 ";
+    let expected_found_matches = true;
+    let expected_screen_output = "";
+    let expected_file_content = "The shadow conquers the hand related to a mastadon. Jespera and \
+                                  I took a cup around a toothache (with a lunatic around some \
+                                  debutante, a ribbXXXbeyXXX a curse, a few dahlias, and a \
+                                  ribbXXX to arrive at a state of intimacy where we can \
+                                  accurately mourn our boy. When another espadrille wakes up, the \
+                                  cup toward another swamp flies into a rage. Now and then, an \
+                                  onlooker sells a dissident related to the hand to an ungodly \
+                                  dahlia.";
+
+    test(input,
+         pattern,
+         args,
+         expected_found_matches,
+         expected_screen_output,
+         expected_file_content);
+}
+
 fn test(input: &str,
         pattern: &str,
         args: &str,
