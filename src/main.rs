@@ -170,8 +170,8 @@ fn process_file(parameters: &Parameters,
                 let index = start_end_byte_indices.len() - rev_index - 1;
                 if parameters.include_match(index) {
                     new_content = format!("{}{}{}",
-                                          // find_iter guarantees that start and end are
-                                          // guaranteed to be at a Unicode code point boundary.
+                                          // find_iter guarantees that start and end
+                                          // are at a Unicode code point boundary.
                                           unsafe { &new_content.slice_unchecked(0, start) },
                                           replace,
                                           unsafe {
