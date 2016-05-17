@@ -43,9 +43,19 @@ impl Parameters {
     }
 
     pub fn include_match(&self, index: usize, _count: usize) -> bool {
-        index >= self.skip &&
-        if let Some(number) = self.number {
-            index - self.skip < number
+        let (skip, number) = if !self.backwards {
+            (self.skip, self.number)
+        } else {
+            (self.skip, // Todo, calculate based on count.
+             if let Some(number) = self.number {
+                Some(number) // Todo, calculate based on count.
+            } else {
+                None
+            })
+        };
+        index >= skip &&
+        if let Some(number) = number {
+            index - skip < number
         } else {
             true
         }
