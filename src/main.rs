@@ -20,7 +20,7 @@ use files::Files;
 use ned_error::{NedError, NedResult, stderr_write_file_err};
 use opts::{make_opts, PROGRAM, usage_full, usage_version};
 use parameters::{get_parameters, Parameters};
-use regex::Regex;
+use regex::{Captures, Regex};
 use source::Source;
 use std::fs::OpenOptions;
 use std::io::{Read, Seek, SeekFrom, stderr, stdin, stdout, Write};
@@ -168,7 +168,7 @@ fn process_file(parameters: &Parameters,
             let start_end_byte_indices = re.find_iter(&content).collect::<Vec<(usize, usize)>>();
             for (rev_index, &(start, end)) in start_end_byte_indices.iter().rev().enumerate() {
                 let index = start_end_byte_indices.len() - rev_index - 1;
-                if parameters.include_match(index) {
+                if parameters.include_match(index, start_end_byte_indices.len()) {
                     new_content = format!("{}{}{}",
                                           // find_iter guarantees that start and end
                                           // are at a Unicode code point boundary.
@@ -231,12 +231,13 @@ fn process_text(parameters: &Parameters,
                 -> NedResult<bool> {
     if let Some(ref group) = parameters.group {
         let mut found_matches = false;
-        for (index, captures) in re.captures_iter(text).enumerate() {
-            if parameters.include_match(index) {
+        let captures = re.captures_iter(text).collect::<Vec<Captures>>();
+        for (index, capture) in captures.iter().enumerate() {
+            if parameters.include_match(index, captures.len()) {
                 found_matches = true;
                 let text = match group.trim().parse::<usize>() {
-                    Ok(index) => captures.at(index),
-                    Err(_) => captures.name(group),
+                    Ok(index) => capture.at(index),
+                    Err(_) => capture.name(group),
                 };
                 if let Some(text) = text {
                     let text = format_replacement(parameters, re, text);

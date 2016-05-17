@@ -42,7 +42,7 @@ impl Parameters {
         self.skip > 0 || self.number.is_some()
     }
 
-    pub fn include_match(&self, index: usize) -> bool {
+    pub fn include_match(&self, index: usize, count: usize) -> bool {
         index >= self.skip &&
         if let Some(number) = self.number {
             index - self.skip < number
