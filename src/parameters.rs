@@ -39,7 +39,7 @@ pub struct Parameters {
 
 impl Parameters {
     pub fn limit_matches(&self) -> bool {
-        self.skip > 0 || self.number.is_some()
+        self.skip > 0 || self.number.is_some() || self.backwards
     }
 
     pub fn include_match(&self, index: usize, _count: usize) -> bool {
