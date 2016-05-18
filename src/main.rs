@@ -310,10 +310,14 @@ fn write_matches(parameters: &Parameters,
                  text: &str,
                  mut output: &mut Write)
                  -> NedResult<()> {
-    for (start, end) in re.find_iter(&text) {
-        let text = format_whole(parameters, &text[start..end]);
-        try!(output.write(&text.to_string().into_bytes()));
-        try!(write_newline_if_replaced_text_ends_with_newline(&text, output));
+    let start_end_byte_indices = re.find_iter(&text).collect::<Vec<(usize, usize)>>();
+    for (rev_index, &(start, end)) in start_end_byte_indices.iter().rev().enumerate() {
+        let index = start_end_byte_indices.len() - rev_index - 1;
+        if parameters.include_match(index, start_end_byte_indices.len()) {
+            let text = format_whole(parameters, &text[start..end]);
+            try!(output.write(&text.to_string().into_bytes()));
+            try!(write_newline_if_replaced_text_ends_with_newline(&text, output));
+        }
     }
     Ok(())
 }
