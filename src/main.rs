@@ -160,28 +160,9 @@ fn process_file(parameters: &Parameters,
         if parameters.colors {
             replace = Red.bold().paint(replace.as_str()).to_string();
         }
-        let mut new_content;
-        if !parameters.limit_matches() {
-            new_content = re.replace_all(&content, replace.as_str())
-        } else {
-            new_content = content.to_string();
-            let start_end_byte_indices = re.find_iter(&content).collect::<Vec<(usize, usize)>>();
-            for (rev_index, &(start, end)) in start_end_byte_indices.iter().rev().enumerate() {
-                let index = start_end_byte_indices.len() - rev_index - 1;
-                if parameters.include_match(index, start_end_byte_indices.len()) {
-                    new_content = format!("{}{}{}",
-                                          // find_iter guarantees that start and end
-                                          // are at a Unicode code point boundary.
-                                          unsafe { &new_content.slice_unchecked(0, start) },
-                                          replace,
-                                          unsafe {
-                                              &new_content.slice_unchecked(end, new_content.len())
-                                          });
-                }
-            }
-        };
         // The replace has to do at least one allocation, so keep the old copy
         // to figure out if there where matches, to save an unnecessary regex match.
+        let new_content = replacex(parameters, &re, &content, &replace);
         found_matches = new_content != content;
         if parameters.stdout {
             if !parameters.quiet {
@@ -302,6 +283,28 @@ fn write_filename(parameters: &Parameters,
         }
     }
     Ok(())
+}
+
+fn replacex(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> String {
+    let mut new_text;
+    if !parameters.limit_matches() {
+        new_text = re.replace_all(text, replace)
+    } else {
+        new_text = text.to_string();
+        let start_end_byte_indices = re.find_iter(&text).collect::<Vec<(usize, usize)>>();
+        for (rev_index, &(start, end)) in start_end_byte_indices.iter().rev().enumerate() {
+            let index = start_end_byte_indices.len() - rev_index - 1;
+            if parameters.include_match(index, start_end_byte_indices.len()) {
+                new_text = format!("{}{}{}",
+                                   // find_iter guarantees that start and end
+                                   // are at a Unicode code point boundary.
+                                   unsafe { &new_text.slice_unchecked(0, start) },
+                                   replace,
+                                   unsafe { &new_text.slice_unchecked(end, new_text.len()) });
+            }
+        }
+    };
+    return new_text;
 }
 
 fn format_replacement(parameters: &Parameters, re: &Regex, text: &str) -> String {
