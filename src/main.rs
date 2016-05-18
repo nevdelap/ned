@@ -156,13 +156,13 @@ fn process_file(parameters: &Parameters,
     let re = parameters.regex.clone().expect("Bug, already checked parameters.");
     let mut found_matches = false;
 
-    if let Some(mut replace) = parameters.replace.clone() {
+    if let Some(mut replacement) = parameters.replace.clone() {
         if parameters.colors {
-            replace = Red.bold().paint(replace.as_str()).to_string();
+            replacement = Red.bold().paint(replacement.as_str()).to_string();
         }
         // The replace has to do at least one allocation, so keep the old copy
         // to figure out if there where matches, to save an unnecessary regex match.
-        let new_content = replacex(parameters, &re, &content, &replace);
+        let new_content = replace(parameters, &re, &content, &replacement);
         found_matches = new_content != content;
         if parameters.stdout {
             if !parameters.quiet {
@@ -285,7 +285,7 @@ fn write_filename(parameters: &Parameters,
     Ok(())
 }
 
-fn replacex(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> String {
+fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> String {
     let mut new_text;
     if !parameters.limit_matches() {
         new_text = re.replace_all(text, replace)
