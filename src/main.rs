@@ -221,7 +221,7 @@ fn process_text(parameters: &Parameters,
                     Err(_) => capture.name(group),
                 };
                 if let Some(text) = text {
-                    let text = format_replacement(parameters, re, text);
+                    let text = color_replacement(parameters, re, text);
                     try!(write_match(parameters, filename, &text, output));
                 }
             }
@@ -238,7 +238,7 @@ fn process_text(parameters: &Parameters,
             try!(write_filename(parameters, filename, output));
             try!(write_matches(parameters, &re, text, output));
         } else {
-            let text = format_replacement(parameters, re, text);
+            let text = color_replacement(parameters, re, text);
             try!(write_match(parameters, filename, &text, output));
         }
         return Ok(true);
@@ -318,7 +318,7 @@ fn write_matches(parameters: &Parameters,
     let count = start_end_byte_indices.len();
     for (index, &(start, end)) in start_end_byte_indices.iter().enumerate() {
         if parameters.include_match(index, count) {
-            let text = format_whole(parameters, &text[start..end]);
+            let text = color(parameters, &text[start..end]);
             try!(output.write(&text.to_string().into_bytes()));
             try!(write_newline_if_replaced_text_ends_with_newline(&text, output));
         }
@@ -326,8 +326,8 @@ fn write_matches(parameters: &Parameters,
     Ok(())
 }
 
-/// Format the matches in the text if --colors has been specified.
-fn format_replacement(parameters: &Parameters, re: &Regex, text: &str) -> String {
+/// Color the matches in the text if --colors has been specified.
+fn color_replacement(parameters: &Parameters, re: &Regex, text: &str) -> String {
     if parameters.colors {
         re.replace_all(&text, Red.bold().paint("$0").to_string().as_str())
     } else {
@@ -335,8 +335,8 @@ fn format_replacement(parameters: &Parameters, re: &Regex, text: &str) -> String
     }
 }
 
-/// Format the whole text if --colors has been specified.
-fn format_whole(parameters: &Parameters, text: &str) -> String {
+/// Color the whole text if --colors has been specified.
+fn color(parameters: &Parameters, text: &str) -> String {
     if parameters.colors {
         Red.bold().paint(text).to_string()
     } else {
