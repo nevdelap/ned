@@ -144,6 +144,7 @@ fn process_file(parameters: &Parameters,
                 content = parsed.to_string();
             }
             Err(err) => {
+                // TODO 6: make it only ignore non-utf8 errors, not other errors.
                 if parameters.ignore_non_utf8 {
                     return Ok(false);
                 } else {
@@ -160,6 +161,7 @@ fn process_file(parameters: &Parameters,
         if parameters.colors {
             replacement = Red.bold().paint(replacement.as_str()).to_string();
         }
+        // TODO 1: make it respect -n, -k, -b DONE!
         // The replace has to do at least one allocation, so keep the old copy
         // to figure out if there where matches, to save an unnecessary regex match.
         let new_content = replace(parameters, &re, &content, &replacement);
@@ -212,6 +214,7 @@ fn process_text(parameters: &Parameters,
                 -> NedResult<bool> {
     if let Some(ref group) = parameters.group {
         let mut found_matches = false;
+        // TODO 3: make it respect -n, -k, -b
         let captures = re.captures_iter(text).collect::<Vec<Captures>>();
         for (index, capture) in captures.iter().enumerate() {
             if parameters.include_match(index, captures.len()) {
@@ -236,9 +239,11 @@ fn process_text(parameters: &Parameters,
     } else if re.is_match(text) {
         if parameters.only_matches {
             try!(write_filename(parameters, filename, output));
+            // TODO 4: make it respect -n, -k, -b DONE!
             try!(write_matches(parameters, &re, text, output));
         } else {
             let text = color_replacement(parameters, re, text);
+            // TODO 5: make it respect -n, -k, -b
             try!(write_match(parameters, filename, &text, output));
         }
         return Ok(true);
@@ -326,6 +331,7 @@ fn write_matches(parameters: &Parameters,
     Ok(())
 }
 
+/// TODO 2: make it respect -n, -k, -b
 /// Color the matches in the text if --colors has been specified.
 fn color_replacement(parameters: &Parameters, re: &Regex, text: &str) -> String {
     if parameters.colors {
