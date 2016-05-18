@@ -7,6 +7,7 @@ use ned_error::{NedError, NedResult, StringError};
 use regex::Regex;
 use std::iter::Iterator;
 use std::string::String;
+use std::usize;
 
 #[derive(Clone)]
 pub struct Parameters {
@@ -42,23 +43,24 @@ impl Parameters {
         self.skip > 0 || self.number.is_some() || self.backwards
     }
 
-    pub fn include_match(&self, index: usize, _count: usize) -> bool {
-        // let skip = if !self.backwards {
-        //     self.skip
-        // } else {
-        //     if let Some(number) = self.number {
-        //         max(0, count - self.number - self.skip)
-        //     } else {
-        //     }
-        // };
-        // let number = if let Some(number) = self.number {
-        //     Some(number)
-        // } else {
-        //     Some(count - skip)
-        // };
-        index >= self.skip &&
-        if let Some(number) = self.number {
-            index - self.skip < number
+    pub fn include_match(&self, index: usize, count: usize) -> bool {
+        let (skip, number) = if !self.backwards {
+            (self.skip, self.number)
+        } else {
+            if let Some(number) = self.number {
+                (if number + self.skip >= count {
+                    0
+                } else {
+                    count - number - self.skip
+                },
+                 Some(number))
+            } else {
+                (0, Some(count - self.skip))
+            }
+        };
+        index >= skip &&
+        if let Some(number) = number {
+            index - skip < number
         } else {
             true
         }

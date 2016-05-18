@@ -2,52 +2,74 @@ use parameters::Parameters;
 
 #[test]
 fn number_normal_range() {
-    // Normal range.
-    test_include_match(Some(4), 0, false, 0, 10, true);
-    test_include_match(Some(4), 0, false, 3, 10, true);
-    test_include_match(Some(4), 0, false, 4, 10, false);
-    test_include_match(Some(4), 0, false, 5, 10, false);
+    // number, skip, index, count, forward_expected, backward_expected
+    test_include_match(Some(4), 0, 0, 10, true, false);
+    test_include_match(Some(4), 0, 3, 10, true, false);
+    test_include_match(Some(4), 0, 4, 10, false, false);
+    test_include_match(Some(4), 0, 6, 10, false, true);
+    test_include_match(Some(4), 0, 10, 10, false, false);
+    test_include_match(Some(4), 0, 100, 10, false, false);
 }
 
 #[test]
 fn number_zero() {
-    test_include_match(Some(0), 0, false, 0, 10, false);
-    test_include_match(Some(0), 0, false, 10, 10, false);
+    // number, skip, index, count, forward_expected, backward_expected
+    test_include_match(Some(0), 0, 0, 10, false, false);
+    test_include_match(Some(0), 0, 4, 10, false, false);
+    test_include_match(Some(0), 0, 10, 10, false, false);
+    test_include_match(Some(0), 0, 100, 10, false, false);
 }
 
 #[test]
 fn number_too_many() {
-    test_include_match(Some(11), 0, false, 0, 10, true);
+    // number, skip, index, count, forward_expected, backward_expected
+    test_include_match(Some(11), 0, 0, 10, true, true);
 }
 
 #[test]
 fn skip_normal_range() {
-    test_include_match(None, 0, false, 0, 10, true);
-    test_include_match(None, 3, false, 0, 10, false);
-    test_include_match(None, 3, false, 2, 10, false);
-    test_include_match(None, 3, false, 4, 10, true);
-    test_include_match(None, 3, false, 5, 10, true);
+    // number, skip, index, count, forward_expected, backward_expected
+    test_include_match(None, 0, 0, 10, true, true);
+    test_include_match(None, 3, 0, 10, false, true);
+    test_include_match(None, 3, 2, 10, false, true);
+    test_include_match(None, 3, 4, 10, true, true);
+    test_include_match(None, 3, 6, 10, true, true);
+    test_include_match(None, 3, 7, 10, true, false);
+    test_include_match(None, 3, 8, 10, true, false);
+    test_include_match(None, 3, 9, 10, true, false);
+    test_include_match(None, 3, 10, 10, false, false);
+    test_include_match(None, 3, 100, 10, false, false);
 }
 
 #[test]
 fn skip_all() {
-    test_include_match(None, 10, false, 5, 10, false);
+    // number, skip, index, count, forward_expected, backward_expected
+    test_include_match(None, 10, 0, 10, false, false);
+    test_include_match(None, 10, 5, 10, false, false);
+    test_include_match(None, 10, 9, 10, false, false);
+    test_include_match(None, 10, 10, 10, false, false);
+    test_include_match(None, 10, 100, 10, false, false);
 }
 
 #[test]
 fn skip_too_many() {
-    test_include_match(None, 11, false, 5, 10, false);
+    // number, skip, index, count, forward_expected, backward_expected
+    test_include_match(None, 11, 0, 10, false, false);
+    test_include_match(None, 11, 5, 10, false, false);
+    test_include_match(None, 11, 9, 10, false, false);
+    test_include_match(None, 11, 10, 10, false, false);
+    test_include_match(None, 11, 100, 10, false, false);
 }
 
 fn test_include_match(number: Option<usize>,
                       skip: usize,
-                      backwards: bool,
                       index: usize,
                       count: usize,
-                      expected: bool) {
-    let parameters = Parameters {
+                      forward_expected: bool,
+                      backward_expected: bool) {
+    let mut parameters = Parameters {
         all: false,
-        backwards: backwards,
+        backwards: false,
         colors: false,
         exclude_dirs: vec![],
         excludes: vec![],
@@ -72,5 +94,8 @@ fn test_include_match(number: Option<usize>,
         version: false,
         whole_files: false,
     };
-    assert_eq!(parameters.include_match(index, count), expected);
+    assert_eq!(parameters.include_match(index, count), forward_expected);
+
+    parameters.backwards = true;
+    assert_eq!(parameters.include_match(index, count), backward_expected);
 }
