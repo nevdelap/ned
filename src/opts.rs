@@ -4,6 +4,7 @@ use std::string::String;
 pub static PROGRAM: &'static str = "ned";
 const VERSION: Option<&'static str> = option_env!("CARGO_PKG_VERSION");
 static OPTS_AND_ARGS: &'static str = "[OPTION]... [-p] <PATTERN> [FILE]...";
+
 static PRE_DESCRIPTION: &'static str = "\
 ned is a bit like grep and a bit like sed. But unlike grep you don't have to
 choose which grep to use depending the regex features you want, and unlike
@@ -31,9 +32,11 @@ Quiet:
     as many files as needed to find a match. Even without this shortcutting
     behaviour quiet matches are more performant than non-quiet matches.";
 
-static COPYRIGHT: &'static str = "Copyright (C) 2016 Nev Delap - https://github.com/nevdelap/ned";
-static LICENSE: &'static str = "License GPLv3+: GNU GPL version 3 or later \
-                                <http://gnu.org/licenses/gpl.html>.
+static COPYRIGHT: &'static str = "\
+Copyright (C) 2016 Nev Delap - https://github.com/nevdelap/ned";
+
+static LICENSE: &'static str = "\
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.";
 
