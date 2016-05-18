@@ -281,8 +281,8 @@ fn write_filename(parameters: &Parameters,
     Ok(())
 }
 
-/// Do a replace_all() if none of --number, --skip, or --backwards have been specified, otherwise
-/// replace iterating backwards over the text.
+/// Do a replace_all() or a find_iter() taking into account which of --number, --skip, and
+/// --backwards have been specified.
 fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> String {
     let mut new_text;
     if !parameters.limit_matches() {
@@ -305,6 +305,8 @@ fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> St
     return new_text;
 }
 
+/// Write matches taking into account which of --number, --skip, and --backwards have been
+/// specified.
 fn write_matches(parameters: &Parameters,
                  re: &Regex,
                  text: &str,
