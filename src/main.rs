@@ -195,10 +195,10 @@ fn process_file(parameters: &Parameters,
     } else {
         if !parameters.whole_files {
             for line in content.lines() {
-                found_matches |= try!(process_text(parameters, &re, filename, output, line));
+                found_matches |= try!(process_text(parameters, &re, filename, line, output));
             }
         } else {
-            found_matches = try!(process_text(parameters, &re, filename, output, &content));
+            found_matches = try!(process_text(parameters, &re, filename, &content, output));
         }
     }
     Ok(found_matches)
@@ -207,8 +207,8 @@ fn process_file(parameters: &Parameters,
 fn process_text(parameters: &Parameters,
                 re: &Regex,
                 filename: &Option<String>,
-                mut output: &mut Write,
-                text: &str)
+                text: &str,
+                mut output: &mut Write)
                 -> NedResult<bool> {
     if let Some(ref group) = parameters.group {
         let mut found_matches = false;
@@ -222,7 +222,7 @@ fn process_text(parameters: &Parameters,
                 };
                 if let Some(text) = text {
                     let text = format_replacement(parameters, re, text);
-                    try!(write_match(parameters, filename, output, &text));
+                    try!(write_match(parameters, filename, &text, output));
                 }
             }
         }
@@ -230,7 +230,7 @@ fn process_text(parameters: &Parameters,
     } else if parameters.no_match {
         let found_matches = re.is_match(&text);
         if !found_matches {
-            try!(write_match(parameters, filename, output, &text));
+            try!(write_match(parameters, filename, &text, output));
         }
         return Ok(found_matches);
     } else if re.is_match(text) {
@@ -239,7 +239,7 @@ fn process_text(parameters: &Parameters,
             try!(write_matches(parameters, &re, text, output));
         } else {
             let text = format_replacement(parameters, re, text);
-            try!(write_match(parameters, filename, output, &text));
+            try!(write_match(parameters, filename, &text, output));
         }
         return Ok(true);
     } else {
@@ -249,12 +249,12 @@ fn process_text(parameters: &Parameters,
 
 fn write_match(parameters: &Parameters,
                filename: &Option<String>,
-               mut output: &mut Write,
-               text: &str)
+               text: &str,
+               mut output: &mut Write)
                -> NedResult<()> {
     try!(write_filename(parameters, filename, output));
     try!(output.write(&text.to_string().into_bytes()));
-    try!(write_newline_if_replaced_text_ends_with_newline(output, &text));
+    try!(write_newline_if_replaced_text_ends_with_newline(&text, output));
     Ok(())
 }
 
@@ -313,7 +313,7 @@ fn write_matches(parameters: &Parameters,
     for (start, end) in re.find_iter(&text) {
         let text = format_whole(parameters, &text[start..end]);
         try!(output.write(&text.to_string().into_bytes()));
-        try!(write_newline_if_replaced_text_ends_with_newline(output, &text));
+        try!(write_newline_if_replaced_text_ends_with_newline(&text, output));
     }
     Ok(())
 }
@@ -336,8 +336,8 @@ fn format_whole(parameters: &Parameters, text: &str) -> String {
     }
 }
 
-fn write_newline_if_replaced_text_ends_with_newline(mut output: &mut Write,
-                                                    text: &str)
+fn write_newline_if_replaced_text_ends_with_newline(text: &str,
+                                                    mut output: &mut Write)
                                                     -> NedResult<()> {
     if !text.ends_with("\n") {
         try!(output.write(&"\n".to_string().into_bytes()));
