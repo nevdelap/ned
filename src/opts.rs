@@ -34,10 +34,8 @@ Quiet:
 static COPYRIGHT: &'static str = "Copyright (C) 2016 Nev Delap - https://github.com/nevdelap/ned";
 static LICENSE: &'static str = "License GPLv3+: GNU GPL version 3 or later \
                                 <http://gnu.org/licenses/gpl.html>.
-This is free software: you \
-                                are free to change and redistribute it.
-There is NO WARRANTY, to \
-                                the extent permitted by law.";
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.";
 
 pub fn make_opts() -> Options {
     let mut opts = Options::new();
