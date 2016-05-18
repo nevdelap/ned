@@ -44,6 +44,9 @@ impl Parameters {
     }
 
     pub fn include_match(&self, index: usize, count: usize) -> bool {
+        if index >= count || self.skip >= count {
+            return false;
+        }
         let (skip, number) = if !self.backwards {
             (self.skip, self.number)
         } else {
