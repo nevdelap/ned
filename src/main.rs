@@ -313,10 +313,10 @@ fn write_matches(parameters: &Parameters,
                  text: &str,
                  mut output: &mut Write)
                  -> NedResult<()> {
-    let start_end_byte_indices = re.find_iter(&text).collect::<Vec<(usize, usize)>>();
+
+    let start_end_byte_indices = re.find_iter(text).collect::<Vec<(usize, usize)>>();
     let count = start_end_byte_indices.len();
-    for (rev_index, &(start, end)) in start_end_byte_indices.iter().rev().enumerate() {
-        let index = count - rev_index - 1;
+    for (index, &(start, end)) in start_end_byte_indices.iter().enumerate() {
         if parameters.include_match(index, count) {
             let text = format_whole(parameters, &text[start..end]);
             try!(output.write(&text.to_string().into_bytes()));
