@@ -286,7 +286,7 @@ fn write_filename(parameters: &Parameters,
 }
 
 /// Do a replace_all() if none of --number, --skip, or --backwards have been specified, otherwise
-/// replace iterating backwards over the string.
+/// replace iterating backwards over the text.
 fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> String {
     let mut new_text;
     if !parameters.limit_matches() {
@@ -309,6 +309,7 @@ fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> St
     return new_text;
 }
 
+/// Format the matches in the text if --colors has been specified.
 fn format_replacement(parameters: &Parameters, re: &Regex, text: &str) -> String {
     if parameters.colors {
         re.replace_all(&text, Red.bold().paint("$0").to_string().as_str())
@@ -317,6 +318,7 @@ fn format_replacement(parameters: &Parameters, re: &Regex, text: &str) -> String
     }
 }
 
+/// Format the whole text if --colors has been specified.
 fn format_whole(parameters: &Parameters, text: &str) -> String {
     if parameters.colors {
         Red.bold().paint(text).to_string()
