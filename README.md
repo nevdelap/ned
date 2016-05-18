@@ -1,10 +1,14 @@
 ```text
 Usage: ned [OPTION]... [-p] <PATTERN> [FILE]...
 
-ned is a bit like grep and a bit like sed, but not really. FILEs are ASCII or
-UTF-8 text files.
+ned is a bit like grep and a bit like sed. But unlike grep you don't have to
+choose which grep to use depending the regex features you want, and unlike
+sed it can operate on whole files, so you're not restricted in how you can
+edit files.
 
-For regex syntax see: http://rust-lang-nursery.github.io/regex/regex/#syntax
+FILEs are ASCII or UTF-8 text files. For regex syntax see:
+
+  http://rust-lang-nursery.github.io/regex/regex/#syntax
 
 Options:
     -p, --pattern PATTERN
@@ -14,11 +18,11 @@ Options:
     -r, --replace REPLACEMENT
                         replace matches, may include named groups. replaces
                         always operate on whole files
-    -n, --number N      (not yet implemented) match/replace N occurrences
-    -k, --skip N        (not yet implemented) skip N occurrences before
-                        matching/replacing
-    -b, --backwards     (not yet implemented) -n --number and -k --skip
-                        options count backwards
+    -w, --whole-files   operate on whole files. otherwise matches are line
+                        oriented
+    -n, --number N      match/replace N occurrences
+    -k, --skip N        skip N occurrences before matching/replacing
+    -b, --backwards     -n --number and -k --skip options count backwards
     -i, --ignore-case   ignore case
     -s, --single        . matches newlines, ^ and $ match beginning and end of
                         each file. use with --whole-files
@@ -27,13 +31,19 @@ Options:
     -x, --extended      ignore whitespace and # comments
     -o, --matches-only  show only matches
     -g, --group GROUP   show the match group, specified by number or name
-    -w, --whole-files   operate on whole files, rather than lines. otherwise
-                        matches are line oriented
     -v, --no-match      show only non-matching
     -f, --filenames-only 
                         show only filenames containing matches. use with -v
                         --no-match to show filenames without matches
     -F, --no-filenames  don't show filesnames
+    -C, --context LINES (not yet implemented) show LINES lines around each
+                        match. is the same as specifying both -B --before and
+                        -A --after with the same LINES. use without -w
+                        --whole-files
+    -B, --before LINES  (not yet implemented) show LINES lines before each
+                        match. use without -w --whole-files
+    -A, --after LINES   (not yet implemented) show LINES lines after each
+                        match. use without -w --whole-files
     -R, --recursive     recurse
     -l, --follow        follow symlinks
         --include GLOB  match only files that match GLOB
@@ -42,7 +52,7 @@ Options:
                         skip directories matching GLOB
     -u, --ignore-non-utf8 
                         quietly ignore files that cannot be parsed as UTF-8
-                        (or ASCII). this requires reading the file. the
+                        (or ASCII). because this requires reading the file the
                         --exclude option should be preferred
     -a, --all           do not ignore entries starting with .
     -c, --colors        show filenames and matches in color
@@ -65,9 +75,8 @@ Exit codes:
 Quiet:
     When -q --quiet is  specified ned tests for matches and returns an exit
     code of 0 if a match is found in ANY file. Quiet matches will only read
-    only as many files as needed to find a match. Even without this
-    shortcutting behaviour quiet matches are more performant than non-quiet
-    matches.
+    as many files as needed to find a match. Even without this shortcutting
+    behaviour quiet matches are more performant than non-quiet matches.
 
 ned 0.1.10 Copyright (C) 2016 Nev Delap - https://github.com/nevdelap/ned
 
