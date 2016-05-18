@@ -236,11 +236,7 @@ fn process_text(parameters: &Parameters,
     } else if re.is_match(text) {
         if parameters.only_matches {
             try!(write_filename(parameters, filename, output));
-            for (start, end) in re.find_iter(&text) {
-                let text = format_whole(parameters, &text[start..end]);
-                try!(output.write(&text.to_string().into_bytes()));
-                try!(write_newline_if_replaced_text_ends_with_newline(output, &text));
-            }
+            try!(write_matches(parameters, &re, text, output));
         } else {
             let text = format_replacement(parameters, re, text);
             try!(write_match(parameters, filename, output, &text));
@@ -307,6 +303,19 @@ fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> St
         }
     };
     return new_text;
+}
+
+fn write_matches(parameters: &Parameters,
+                 re: &Regex,
+                 text: &str,
+                 mut output: &mut Write)
+                 -> NedResult<()> {
+    for (start, end) in re.find_iter(&text) {
+        let text = format_whole(parameters, &text[start..end]);
+        try!(output.write(&text.to_string().into_bytes()));
+        try!(write_newline_if_replaced_text_ends_with_newline(output, &text));
+    }
+    Ok(())
 }
 
 /// Format the matches in the text if --colors has been specified.
