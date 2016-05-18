@@ -290,9 +290,10 @@ fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> St
     } else {
         new_text = text.to_string();
         let start_end_byte_indices = re.find_iter(&text).collect::<Vec<(usize, usize)>>();
+        let count = start_end_byte_indices.len();
         for (rev_index, &(start, end)) in start_end_byte_indices.iter().rev().enumerate() {
-            let index = start_end_byte_indices.len() - rev_index - 1;
-            if parameters.include_match(index, start_end_byte_indices.len()) {
+            let index = count - rev_index - 1;
+            if parameters.include_match(index, count) {
                 new_text = format!("{}{}{}",
                                    // find_iter guarantees that start and end
                                    // are at a Unicode code point boundary.
@@ -313,9 +314,10 @@ fn write_matches(parameters: &Parameters,
                  mut output: &mut Write)
                  -> NedResult<()> {
     let start_end_byte_indices = re.find_iter(&text).collect::<Vec<(usize, usize)>>();
+    let count = start_end_byte_indices.len();
     for (rev_index, &(start, end)) in start_end_byte_indices.iter().rev().enumerate() {
-        let index = start_end_byte_indices.len() - rev_index - 1;
-        if parameters.include_match(index, start_end_byte_indices.len()) {
+        let index = count - rev_index - 1;
+        if parameters.include_match(index, count) {
             let text = format_whole(parameters, &text[start..end]);
             try!(output.write(&text.to_string().into_bytes()));
             try!(write_newline_if_replaced_text_ends_with_newline(&text, output));
