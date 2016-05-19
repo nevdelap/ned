@@ -236,6 +236,31 @@ fn process_text(output: &mut Write,
     }
 }
 
+/// Do a replace_all() or a find_iter() taking into account which of --number, --skip, and
+/// --backwards have been specified.
+fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> String {
+    let mut new_text;
+    if !parameters.limit_matches() {
+        new_text = re.replace_all(text, replace)
+    } else {
+        new_text = text.to_string();
+        let start_end_byte_indices = re.find_iter(&text).collect::<Vec<(usize, usize)>>();
+        let count = start_end_byte_indices.len();
+        for (rev_index, &(start, end)) in start_end_byte_indices.iter().rev().enumerate() {
+            let index = count - rev_index - 1;
+            if parameters.include_match(index, count) {
+                new_text = format!("{}{}{}",
+                                   // find_iter guarantees that start and end
+                                   // are at a Unicode code point boundary.
+                                   unsafe { &new_text.slice_unchecked(0, start) },
+                                   replace,
+                                   unsafe { &new_text.slice_unchecked(end, new_text.len()) });
+            }
+        }
+    };
+    return new_text;
+}
+
 fn write_match(output: &mut Write,
                parameters: &Parameters,
                filename: &Option<String>,
@@ -268,31 +293,6 @@ fn write_filename(output: &mut Write,
         }
     }
     Ok(())
-}
-
-/// Do a replace_all() or a find_iter() taking into account which of --number, --skip, and
-/// --backwards have been specified.
-fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> String {
-    let mut new_text;
-    if !parameters.limit_matches() {
-        new_text = re.replace_all(text, replace)
-    } else {
-        new_text = text.to_string();
-        let start_end_byte_indices = re.find_iter(&text).collect::<Vec<(usize, usize)>>();
-        let count = start_end_byte_indices.len();
-        for (rev_index, &(start, end)) in start_end_byte_indices.iter().rev().enumerate() {
-            let index = count - rev_index - 1;
-            if parameters.include_match(index, count) {
-                new_text = format!("{}{}{}",
-                                   // find_iter guarantees that start and end
-                                   // are at a Unicode code point boundary.
-                                   unsafe { &new_text.slice_unchecked(0, start) },
-                                   replace,
-                                   unsafe { &new_text.slice_unchecked(end, new_text.len()) });
-            }
-        }
-    };
-    return new_text;
 }
 
 fn write_captures(output: &mut Write,
@@ -341,6 +341,15 @@ fn write_matches(output: &mut Write,
     Ok(())
 }
 
+fn write_newline_if_replaced_text_ends_with_newline(output: &mut Write,
+                                                    text: &str)
+                                                    -> NedResult<()> {
+    if !text.ends_with("\n") {
+        try!(output.write(&"\n".to_string().into_bytes()));
+    }
+    Ok(())
+}
+
 fn color_replacement_all(parameters: &Parameters, re: &Regex, text: &str) -> String {
     if parameters.colors {
         re.replace_all(&text, Red.bold().paint("$0").to_string().as_str())
@@ -370,13 +379,4 @@ fn color(parameters: &Parameters, text: &str) -> String {
     } else {
         text.to_string()
     }
-}
-
-fn write_newline_if_replaced_text_ends_with_newline(output: &mut Write,
-                                                    text: &str)
-                                                    -> NedResult<()> {
-    if !text.ends_with("\n") {
-        try!(output.write(&"\n".to_string().into_bytes()));
-    }
-    Ok(())
 }
