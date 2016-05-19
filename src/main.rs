@@ -212,22 +212,8 @@ fn process_text(parameters: &Parameters,
                 mut output: &mut Write)
                 -> NedResult<bool> {
     if let Some(ref group) = parameters.group {
-        let mut found_matches = false;
         // TODO 3: make it respect -n, -k, -b
-        let captures = re.captures_iter(text).collect::<Vec<Captures>>();
-        for (index, capture) in captures.iter().enumerate() {
-            if parameters.include_match(index, captures.len()) {
-                found_matches = true;
-                let text = match group.trim().parse::<usize>() {
-                    Ok(index) => capture.at(index),
-                    Err(_) => capture.name(group),
-                };
-                if let Some(text) = text {
-                    let text = color_replacement(parameters, re, text);
-                    try!(write_match(parameters, filename, &text, output));
-                }
-            }
-        }
+        let found_matches = try!(write_captures(parameters, filename, &re, text, group, output));
         return Ok(found_matches);
     } else if parameters.no_match {
         let found_matches = re.is_match(&text);
@@ -308,6 +294,31 @@ fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> St
         }
     };
     return new_text;
+}
+
+fn write_captures(parameters: &Parameters,
+                  filename: &Option<String>,
+                  re: &Regex,
+                  text: &str,
+                  group: &str,
+                  mut output: &mut Write)
+                  -> NedResult<bool> {
+    let mut found_matches = false;
+    let captures = re.captures_iter(text).collect::<Vec<Captures>>();
+    for (index, capture) in captures.iter().enumerate() {
+        if parameters.include_match(index, captures.len()) {
+            found_matches = true;
+            let text = match group.trim().parse::<usize>() {
+                Ok(index) => capture.at(index),
+                Err(_) => capture.name(group),
+            };
+            if let Some(text) = text {
+                let text = color_replacement(parameters, re, text);
+                try!(write_match(parameters, filename, &text, output));
+            }
+        }
+    }
+    Ok(found_matches)
 }
 
 /// Write matches taking into account which of --number, --skip, and --backwards have been
