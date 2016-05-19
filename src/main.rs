@@ -212,7 +212,7 @@ fn process_text(output: &mut Write,
                 text: &str)
                 -> NedResult<bool> {
     if let Some(ref group) = parameters.group {
-        // TODO 3: make it respect -n, -k, -b
+        // TODO 2: make it respect -n, -k, -b TO TEST
         let found_matches = try!(write_captures(output, parameters, filename, &re, text, group));
         return Ok(found_matches);
     } else if parameters.no_match {
@@ -223,12 +223,11 @@ fn process_text(output: &mut Write,
         return Ok(found_matches);
     } else if re.is_match(text) {
         if parameters.only_matches {
-            try!(write_filename(output, parameters, filename));
-            // TODO 4: make it respect -n, -k, -b DONE!
-            try!(write_matches(output, parameters, &re, text));
+            // TODO 3: make it respect -n, -k, -b DONE!
+            try!(write_matches(output, parameters, &re, filename, text));
         } else {
-            let text = color_replacement(parameters, re, text);
-            // TODO 5: make it respect -n, -k, -b
+            // TODO 4: make it respect -n, -k, -b TO TEST
+            let text = color_replacement_with_number_skip_backwards(parameters, re, text);
             try!(write_match(output, parameters, filename, &text));
         }
         return Ok(true);
@@ -313,7 +312,7 @@ fn write_captures(output: &mut Write,
                 Err(_) => capture.name(group),
             };
             if let Some(text) = text {
-                let text = color_replacement(parameters, re, text);
+                let text = color_replacement_all(parameters, re, text);
                 try!(write_match(output, parameters, filename, &text));
             }
         }
@@ -326,9 +325,10 @@ fn write_captures(output: &mut Write,
 fn write_matches(output: &mut Write,
                  parameters: &Parameters,
                  re: &Regex,
+                 filename: &Option<String>,
                  text: &str)
                  -> NedResult<()> {
-
+    try!(write_filename(output, parameters, filename));
     let start_end_byte_indices = re.find_iter(text).collect::<Vec<(usize, usize)>>();
     let count = start_end_byte_indices.len();
     for (index, &(start, end)) in start_end_byte_indices.iter().enumerate() {
@@ -341,11 +341,23 @@ fn write_matches(output: &mut Write,
     Ok(())
 }
 
-/// TODO 2: make it respect -n, -k, -b
-/// Color the matches in the text if --colors has been specified.
-fn color_replacement(parameters: &Parameters, re: &Regex, text: &str) -> String {
+fn color_replacement_all(parameters: &Parameters, re: &Regex, text: &str) -> String {
     if parameters.colors {
         re.replace_all(&text, Red.bold().paint("$0").to_string().as_str())
+    } else {
+        text.to_string()
+    }
+}
+
+fn color_replacement_with_number_skip_backwards(parameters: &Parameters,
+                                                re: &Regex,
+                                                text: &str)
+                                                -> String {
+    if parameters.colors {
+        replace(parameters,
+                &re,
+                text,
+                Red.bold().paint("$0").to_string().as_str())
     } else {
         text.to_string()
     }
