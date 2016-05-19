@@ -836,10 +836,10 @@ fn really_test(input: &str,
     let mut file = Source::Cursor(Box::new(cursor));
     let mut screen_output: Vec<u8> = vec![];
 
-    let found_matches = process_file(&parameters,
+    let found_matches = process_file(&mut screen_output,
+                                     &parameters,
                                      &Some("bogus_file.txt".to_string()),
-                                     &mut file,
-                                     &mut screen_output)
+                                     &mut file)
                             .unwrap();
 
     let screen_output = String::from_utf8(screen_output).unwrap();

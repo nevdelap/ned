@@ -285,7 +285,7 @@ fn test(args: &str, expected_exit_code: i32, expected_screen_output: &[&str]) {
 
     let mut screen_output: Vec<u8> = vec![];
 
-    let exit_code = ned(&args, &mut screen_output).unwrap();
+    let exit_code = ned(&mut screen_output, &args).unwrap();
 
     let screen_output = String::from_utf8(screen_output).unwrap();
 

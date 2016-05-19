@@ -36,7 +36,7 @@ fn main() {
     // call ned() directly to read the output
     // that would go to stdout.
     let mut output = stdout();
-    match ned(&args, &mut output) {
+    match ned(&mut output, &args) {
         Ok(exit_code) => process::exit(exit_code),
         Err(err) => {
             // Aside from output exsting so that tests can read the stdout, this uses write()
@@ -62,7 +62,7 @@ fn get_args() -> Vec<String> {
     args
 }
 
-fn ned(args: &[String], mut output: &mut Write) -> NedResult<i32> {
+fn ned(mut output: &mut Write, args: &[String]) -> NedResult<i32> {
 
     let opts = make_opts();
     let parameters = try!(get_parameters(&opts, args));
@@ -77,7 +77,7 @@ fn ned(args: &[String], mut output: &mut Write) -> NedResult<i32> {
         process::exit(0);
     }
 
-    let found_matches = try!(process_files(&parameters, output));
+    let found_matches = try!(process_files(output, &parameters));
     Ok(if found_matches {
         0
     } else {
@@ -85,11 +85,11 @@ fn ned(args: &[String], mut output: &mut Write) -> NedResult<i32> {
     })
 }
 
-fn process_files(parameters: &Parameters, output: &mut Write) -> NedResult<bool> {
+fn process_files(output: &mut Write, parameters: &Parameters) -> NedResult<bool> {
     let mut found_matches = false;
     if parameters.stdin {
         let mut source = Source::Stdin(Box::new(stdin()));
-        found_matches = try!(process_file(parameters, &None, &mut source, output));
+        found_matches = try!(process_file(output, parameters, &None, &mut source));
     } else {
         for glob in &parameters.globs {
             for path_buf in &mut Files::new(parameters, &glob) {
@@ -100,10 +100,10 @@ fn process_files(parameters: &Parameters, output: &mut Write) -> NedResult<bool>
                     Ok(file) => {
                         let mut source = Source::File(Box::new(file));
                         let filename = &Some(path_buf.as_path().to_string_lossy().to_string());
-                        found_matches |= match process_file(parameters,
+                        found_matches |= match process_file(output,
+                                                            parameters,
                                                             &filename,
-                                                            &mut source,
-                                                            output) {
+                                                            &mut source) {
                             Ok(found_matches) => found_matches,
                             Err(err) => {
                                 stderr_write_file_err(&path_buf, &err);
@@ -124,10 +124,10 @@ fn process_files(parameters: &Parameters, output: &mut Write) -> NedResult<bool>
     Ok(found_matches)
 }
 
-fn process_file(parameters: &Parameters,
+fn process_file(output: &mut Write,
+                parameters: &Parameters,
                 filename: &Option<String>,
-                source: &mut Source,
-                output: &mut Write)
+                source: &mut Source)
                 -> NedResult<bool> {
     let content: String;
     {
@@ -167,7 +167,7 @@ fn process_file(parameters: &Parameters,
         found_matches = new_content != content;
         if parameters.stdout {
             if !parameters.quiet {
-                try!(write_filename(parameters, filename, output));
+                try!(write_filename(output, parameters, filename));
                 try!(output.write(&new_content.into_bytes()));
             }
         } else {
@@ -191,45 +191,45 @@ fn process_file(parameters: &Parameters,
     } else if parameters.filenames {
         found_matches = re.is_match(&content);
         if found_matches ^ parameters.no_match {
-            try!(write_filename(parameters, filename, output));
+            try!(write_filename(output, parameters, filename));
         }
     } else {
         if !parameters.whole_files {
             for line in content.lines() {
-                found_matches |= try!(process_text(parameters, &re, filename, line, output));
+                found_matches |= try!(process_text(output, parameters, &re, filename, line));
             }
         } else {
-            found_matches = try!(process_text(parameters, &re, filename, &content, output));
+            found_matches = try!(process_text(output, parameters, &re, filename, &content));
         }
     }
     Ok(found_matches)
 }
 
-fn process_text(parameters: &Parameters,
+fn process_text(mut output: &mut Write,
+                parameters: &Parameters,
                 re: &Regex,
                 filename: &Option<String>,
-                text: &str,
-                mut output: &mut Write)
+                text: &str)
                 -> NedResult<bool> {
     if let Some(ref group) = parameters.group {
         // TODO 3: make it respect -n, -k, -b
-        let found_matches = try!(write_captures(parameters, filename, &re, text, group, output));
+        let found_matches = try!(write_captures(output, parameters, filename, &re, text, group));
         return Ok(found_matches);
     } else if parameters.no_match {
         let found_matches = re.is_match(&text);
         if !found_matches {
-            try!(write_match(parameters, filename, &text, output));
+            try!(write_match(output, parameters, filename, &text));
         }
         return Ok(found_matches);
     } else if re.is_match(text) {
         if parameters.only_matches {
-            try!(write_filename(parameters, filename, output));
+            try!(write_filename(output, parameters, filename));
             // TODO 4: make it respect -n, -k, -b DONE!
-            try!(write_matches(parameters, &re, text, output));
+            try!(write_matches(output, parameters, &re, text));
         } else {
             let text = color_replacement(parameters, re, text);
             // TODO 5: make it respect -n, -k, -b
-            try!(write_match(parameters, filename, &text, output));
+            try!(write_match(output, parameters, filename, &text));
         }
         return Ok(true);
     } else {
@@ -237,20 +237,20 @@ fn process_text(parameters: &Parameters,
     }
 }
 
-fn write_match(parameters: &Parameters,
+fn write_match(mut output: &mut Write,
+               parameters: &Parameters,
                filename: &Option<String>,
-               text: &str,
-               mut output: &mut Write)
+               text: &str)
                -> NedResult<()> {
-    try!(write_filename(parameters, filename, output));
+    try!(write_filename(output, parameters, filename));
     try!(output.write(&text.to_string().into_bytes()));
-    try!(write_newline_if_replaced_text_ends_with_newline(&text, output));
+    try!(write_newline_if_replaced_text_ends_with_newline(output, &text));
     Ok(())
 }
 
-fn write_filename(parameters: &Parameters,
-                  filename: &Option<String>,
-                  mut output: &mut Write)
+fn write_filename(mut output: &mut Write,
+                  parameters: &Parameters,
+                  filename: &Option<String>)
                   -> NedResult<()> {
     if !parameters.no_filenames {
         if let &Some(ref filename) = filename {
@@ -296,12 +296,12 @@ fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> St
     return new_text;
 }
 
-fn write_captures(parameters: &Parameters,
+fn write_captures(mut output: &mut Write,
+                  parameters: &Parameters,
                   filename: &Option<String>,
                   re: &Regex,
                   text: &str,
-                  group: &str,
-                  mut output: &mut Write)
+                  group: &str)
                   -> NedResult<bool> {
     let mut found_matches = false;
     let captures = re.captures_iter(text).collect::<Vec<Captures>>();
@@ -314,7 +314,7 @@ fn write_captures(parameters: &Parameters,
             };
             if let Some(text) = text {
                 let text = color_replacement(parameters, re, text);
-                try!(write_match(parameters, filename, &text, output));
+                try!(write_match(output, parameters, filename, &text));
             }
         }
     }
@@ -323,10 +323,10 @@ fn write_captures(parameters: &Parameters,
 
 /// Write matches taking into account which of --number, --skip, and --backwards have been
 /// specified.
-fn write_matches(parameters: &Parameters,
+fn write_matches(mut output: &mut Write,
+                 parameters: &Parameters,
                  re: &Regex,
-                 text: &str,
-                 mut output: &mut Write)
+                 text: &str)
                  -> NedResult<()> {
 
     let start_end_byte_indices = re.find_iter(text).collect::<Vec<(usize, usize)>>();
@@ -335,7 +335,7 @@ fn write_matches(parameters: &Parameters,
         if parameters.include_match(index, count) {
             let text = color(parameters, &text[start..end]);
             try!(output.write(&text.to_string().into_bytes()));
-            try!(write_newline_if_replaced_text_ends_with_newline(&text, output));
+            try!(write_newline_if_replaced_text_ends_with_newline(output, &text));
         }
     }
     Ok(())
@@ -360,8 +360,8 @@ fn color(parameters: &Parameters, text: &str) -> String {
     }
 }
 
-fn write_newline_if_replaced_text_ends_with_newline(text: &str,
-                                                    mut output: &mut Write)
+fn write_newline_if_replaced_text_ends_with_newline(mut output: &mut Write,
+                                                    text: &str)
                                                     -> NedResult<()> {
     if !text.ends_with("\n") {
         try!(output.write(&"\n".to_string().into_bytes()));
