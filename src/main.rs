@@ -62,7 +62,7 @@ fn get_args() -> Vec<String> {
     args
 }
 
-fn ned(mut output: &mut Write, args: &[String]) -> NedResult<i32> {
+fn ned(output: &mut Write, args: &[String]) -> NedResult<i32> {
 
     let opts = make_opts();
     let parameters = try!(get_parameters(&opts, args));
@@ -205,7 +205,7 @@ fn process_file(output: &mut Write,
     Ok(found_matches)
 }
 
-fn process_text(mut output: &mut Write,
+fn process_text(output: &mut Write,
                 parameters: &Parameters,
                 re: &Regex,
                 filename: &Option<String>,
@@ -237,7 +237,7 @@ fn process_text(mut output: &mut Write,
     }
 }
 
-fn write_match(mut output: &mut Write,
+fn write_match(output: &mut Write,
                parameters: &Parameters,
                filename: &Option<String>,
                text: &str)
@@ -248,7 +248,7 @@ fn write_match(mut output: &mut Write,
     Ok(())
 }
 
-fn write_filename(mut output: &mut Write,
+fn write_filename(output: &mut Write,
                   parameters: &Parameters,
                   filename: &Option<String>)
                   -> NedResult<()> {
@@ -296,7 +296,7 @@ fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> St
     return new_text;
 }
 
-fn write_captures(mut output: &mut Write,
+fn write_captures(output: &mut Write,
                   parameters: &Parameters,
                   filename: &Option<String>,
                   re: &Regex,
@@ -323,7 +323,7 @@ fn write_captures(mut output: &mut Write,
 
 /// Write matches taking into account which of --number, --skip, and --backwards have been
 /// specified.
-fn write_matches(mut output: &mut Write,
+fn write_matches(output: &mut Write,
                  parameters: &Parameters,
                  re: &Regex,
                  text: &str)
@@ -360,7 +360,7 @@ fn color(parameters: &Parameters, text: &str) -> String {
     }
 }
 
-fn write_newline_if_replaced_text_ends_with_newline(mut output: &mut Write,
+fn write_newline_if_replaced_text_ends_with_newline(output: &mut Write,
                                                     text: &str)
                                                     -> NedResult<()> {
     if !text.ends_with("\n") {
