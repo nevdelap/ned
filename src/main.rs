@@ -144,7 +144,6 @@ fn process_file(parameters: &Parameters,
                 content = parsed.to_string();
             }
             Err(err) => {
-                // TODO 6: make it only ignore non-utf8 errors, not other errors.
                 if parameters.ignore_non_utf8 {
                     return Ok(false);
                 } else {
