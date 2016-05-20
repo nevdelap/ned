@@ -160,9 +160,6 @@ fn process_file(output: &mut Write,
         if parameters.colors {
             replacement = Red.bold().paint(replacement.as_str()).to_string();
         }
-        // TODO 1: make it respect -n, -k, -b DONE!
-        // The replace has to do at least one allocation, so keep the old copy
-        // to figure out if there where matches, to save an unnecessary regex match.
         let new_content = replace(parameters, &re, &content, &replacement);
         found_matches = new_content != content;
         if parameters.stdout {
@@ -213,7 +210,7 @@ fn process_text(output: &mut Write,
                 -> NedResult<bool> {
     if let Some(ref group) = parameters.group {
         // TODO 2: make it respect -n, -k, -b TO TEST
-        let found_matches = try!(write_captures(output, parameters, filename, &re, text, group));
+        let found_matches = try!(write_captures(output, parameters, &re, filename, text, group));
         return Ok(found_matches);
     } else if parameters.no_match {
         let found_matches = re.is_match(&text);
@@ -297,11 +294,12 @@ fn write_filename(output: &mut Write,
 
 fn write_captures(output: &mut Write,
                   parameters: &Parameters,
-                  filename: &Option<String>,
                   re: &Regex,
+                  filename: &Option<String>,
                   text: &str,
                   group: &str)
                   -> NedResult<bool> {
+    try!(write_filename(output, parameters, filename));
     let mut found_matches = false;
     let captures = re.captures_iter(text).collect::<Vec<Captures>>();
     for (index, capture) in captures.iter().enumerate() {
@@ -313,7 +311,8 @@ fn write_captures(output: &mut Write,
             };
             if let Some(text) = text {
                 let text = color_replacement_all(parameters, re, text);
-                try!(write_match(output, parameters, filename, &text));
+                try!(output.write(&text.to_string().into_bytes()));
+                try!(output.write(&"\n".to_string().into_bytes()));
             }
         }
     }
@@ -328,15 +327,21 @@ fn write_matches(output: &mut Write,
                  filename: &Option<String>,
                  text: &str)
                  -> NedResult<()> {
-    try!(write_filename(output, parameters, filename));
+    let mut filename_written = false;
     let start_end_byte_indices = re.find_iter(text).collect::<Vec<(usize, usize)>>();
     let count = start_end_byte_indices.len();
     for (index, &(start, end)) in start_end_byte_indices.iter().enumerate() {
         if parameters.include_match(index, count) {
+            if !filename_written {
+                try!(write_filename(output, parameters, filename));
+                filename_written = true;
+            }
             let text = color(parameters, &text[start..end]);
             try!(output.write(&text.to_string().into_bytes()));
-            try!(write_newline_if_replaced_text_ends_with_newline(output, &text));
         }
+    }
+    if filename_written {
+        try!(output.write(&"\n".to_string().into_bytes()));
     }
     Ok(())
 }
