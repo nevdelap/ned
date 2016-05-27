@@ -1026,7 +1026,8 @@ This is a test.
     let args = "--replace=at --stdout";
     let expected_found_matches = true;
     let expected_screen_output = "\
-bogus_file.txt: That at a test.
+bogus_file.txt:
+That at a test.
 That at a test.
 That at a test.
 That at a test.

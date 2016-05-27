@@ -281,7 +281,7 @@ fn write_filename(output: &mut Write,
             }
             filename = if parameters.filenames {
                 format!("{}\n", filename)
-            } else if parameters.whole_files {
+            } else if parameters.replace.is_some() || parameters.whole_files {
                 format!("{}:\n", filename)
             } else {
                 format!("{}: ", filename)
