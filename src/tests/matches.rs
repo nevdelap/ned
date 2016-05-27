@@ -249,6 +249,31 @@ tests because no one
 would want to read it.
 ";
     let pattern = r"\A\nThis(.|[\n])+read it.\n\z";
+    let args = "--multiline";
+    let expected_found_matches = false;
+    let expected_screen_output = "";
+    let expected_file_content = &input;
+
+    test(input,
+         pattern,
+         args,
+         expected_found_matches,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
+fn multi_line_match_beginning_and_end_of_file_whole_files_quiet_and_not_quiet() {
+
+    let input = "
+This is a test with
+multiple lines of very
+uninteresting content
+that is only good for
+tests because no one
+would want to read it.
+";
+    let pattern = r"\A\nThis(.|[\n])+read it.\n\z";
     let args = "--whole-files --multiline";
     let expected_found_matches = true;
     let expected_screen_output = &format!("bogus_file.txt:\n{}", &input);
@@ -274,6 +299,31 @@ tests because no one
 would want to read it.
 ";
     let pattern = r"^multiple(.|[\n])+for$";
+    let args = "--multiline";
+    let expected_found_matches = false;
+    let expected_screen_output = "";
+    let expected_file_content = &input;
+
+    test(input,
+         pattern,
+         args,
+         expected_found_matches,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
+fn multi_line_match_beginning_and_end_of_lines_whole_files_quiet_and_not_quiet() {
+
+    let input = "
+This is a test with
+multiple lines of very
+uninteresting content
+that is only good for
+tests because no one
+would want to read it.
+";
+    let pattern = r"^multiple(.|[\n])+for$";
     let args = "--whole-files --multiline";
     let expected_found_matches = true;
     let expected_screen_output = &format!("bogus_file.txt:\n{}", input);
@@ -289,6 +339,31 @@ would want to read it.
 
 #[test]
 fn single_and_multi_line_match_quiet_and_not_quiet() {
+
+    let input = "
+This is a test with
+multiple lines of very
+uninteresting content
+that is only good for
+tests because no one
+would want to read it.
+";
+    let pattern = r"\A\nThis.+read it.\n\z";
+    let args = "--single --multiline";
+    let expected_found_matches = false;
+    let expected_screen_output = "";
+    let expected_file_content = &input;
+
+    test(input,
+         pattern,
+         args,
+         expected_found_matches,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
+fn single_and_multi_line_match_whole_files_quiet_and_not_quiet() {
 
     let input = "
 This is a test with
@@ -1435,13 +1510,13 @@ fn test(input: &str,
                 expected_found_matches,
                 expected_screen_output,
                 expected_file_content);
-    let args = format!("{} --quiet", args);
-    really_test(input,
-                pattern,
-                &args,
-                expected_found_matches,
-                "",
-                expected_file_content);
+    // let args = format!("{} --quiet", args);
+    // really_test(input,
+    //             pattern,
+    //             &args,
+    //             expected_found_matches,
+    //             "",
+    //             expected_file_content);
 }
 
 fn really_test(input: &str,
@@ -1480,7 +1555,7 @@ fn really_test(input: &str,
         panic!("Oh oh?");
     }
 
-    //assert_eq!(found_matches, expected_found_matches);
+    assert_eq!(found_matches, expected_found_matches);
     assert_eq!(screen_output, expected_screen_output);
     assert_eq!(file_output, expected_file_content);
 }
