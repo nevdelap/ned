@@ -1013,7 +1013,38 @@ That at a test.
 
 #[test]
 fn basic_replace_to_stdout_quiet_and_not_quiet() {
-    // DONE?
+
+    let input = "\
+This is a test.
+This is a test.
+This is a test.
+This is a test.
+This is a test.
+This is a test.
+";
+    let pattern = "is";
+    let args = "--replace=at --stdout";
+    let expected_found_matches = true;
+    let expected_screen_output = "\
+bogus_file.txt: That at a test.
+That at a test.
+That at a test.
+That at a test.
+That at a test.
+That at a test.
+";
+    let expected_file_content = &input;
+
+    test(input,
+         pattern,
+         args,
+         expected_found_matches,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
+fn basic_replace_to_stdout_whole_files_quiet_and_not_quiet() {
 
     let input = "\
 This is a test.
