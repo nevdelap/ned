@@ -295,8 +295,7 @@ This is a test.
 This is a test.
 This is a test.
 This is a test.
-This is a \
-                 test.
+This is a test.
 This is a test.
 ";
     let pattern = "
@@ -333,8 +332,7 @@ This is a test.
 This is a test.
 This is a test.
 This is a test.
-This is a \
-                 test.
+This is a test.
 This is a test.
 ";
     let pattern = "
@@ -372,8 +370,7 @@ This is a test.
 This is a test.
 This is a test.
 This is a test.
-This is a \
-                 test.
+This is a test.
 This is a test.
 ";
     let pattern = "is";
@@ -405,8 +402,7 @@ This is a test.
 This is a test.
 This is a test.
 This is a test.
-This is a \
-                 test.
+This is a test.
 This is a test.
 ";
     let pattern = "is";
@@ -866,8 +862,7 @@ This is a test.
 This is a test.
 This is a test.
 This is a test.
-This is a \
-                 test.
+This is a test.
 This is a test.
 ";
     let pattern = "is (a) (?P<dave>test)";
@@ -895,8 +890,7 @@ This is a test.
 This is a test.
 This is a test.
 This is a test.
-This is a \
-                 test.
+This is a test.
 This is a test.
 ";
     let pattern = "is";
@@ -928,8 +922,7 @@ This is a test.
 This is a test.
 This is a test.
 This is a test.
-This is a \
-                 test.
+This is a test.
 This is a test.
 ";
     let pattern = "is";
@@ -956,15 +949,45 @@ Th\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
 
 #[test]
 fn basic_replace_quiet_and_not_quiet() {
-    // DONE?
 
     let input = "\
 This is a test.
 This is a test.
 This is a test.
 This is a test.
-This is a \
-                 test.
+This is a test.
+This is a test.
+";
+    let pattern = "is";
+    let args = "--replace=at";
+    let expected_found_matches = true;
+    let expected_screen_output = "";
+    let expected_file_content = "\
+That at a test.
+That at a test.
+That at a test.
+That at a test.
+That at a test.
+That at a test.
+";
+
+    test(input,
+         pattern,
+         args,
+         expected_found_matches,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
+fn basic_replace_whole_files_quiet_and_not_quiet() {
+
+    let input = "\
+This is a test.
+This is a test.
+This is a test.
+This is a test.
+This is a test.
 This is a test.
 ";
     let pattern = "is";
@@ -997,8 +1020,7 @@ This is a test.
 This is a test.
 This is a test.
 This is a test.
-This is a \
-                 test.
+This is a test.
 This is a test.
 ";
     let pattern = "is";
