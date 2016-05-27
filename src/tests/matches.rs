@@ -828,7 +828,38 @@ testtest
 
 #[test]
 fn named_group_match_quiet_and_not_quiet() {
-    // DONE?
+
+    let input = "\
+This is a test.
+This is a test.
+This is a test.
+This is a test.
+This is a test.
+This is a test.
+";
+    let pattern = "is (a) (?P<dave>test)";
+    let args = "--group dave";
+    let expected_found_matches = true;
+    let expected_screen_output = "\
+bogus_file.txt: test
+bogus_file.txt: test
+bogus_file.txt: test
+bogus_file.txt: test
+bogus_file.txt: test
+bogus_file.txt: test
+";
+    let expected_file_content = &input;
+
+    test(input,
+         pattern,
+         args,
+         expected_found_matches,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
+fn named_group_match_whole_files_quiet_and_not_quiet() {
 
     let input = "\
 This is a test.
