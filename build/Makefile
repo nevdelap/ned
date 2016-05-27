@@ -6,9 +6,9 @@
 # sudo usermod -aG docker $USER
 # sudo su - $USER - or logout, login.
 
-RUST_TARBALL=rust-1.8.0-x86_64-unknown-linux-gnu.tar.gz
+RUST_TARBALL=rust-nightly-x86_64-unknown-linux-gnu.tar.gz
 
-default: centos6 centos7 ubuntu
+default: centos ubuntu
 
 downloads:
 	if [ ! -e files/rust.tar.gz ]; then \
