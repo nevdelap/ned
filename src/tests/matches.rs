@@ -732,12 +732,7 @@ This is a test.
     let expected_found_matches = true;
     let expected_screen_output = "\
 bogus_file.txt:
-This
-This
-This
-This
-This
-This
+ThisThisThisThisThisThis
 ";
     let expected_file_content = &input;
 
@@ -757,8 +752,7 @@ fn group_1_match_quiet_and_not_quiet() {
     let args = "--group 1";
     let expected_found_matches = true;
     let expected_screen_output = "\
-bogus_file.txt: is
-is
+bogus_file.txt: isis
 ";
     let expected_file_content = &input;
 
@@ -779,8 +773,7 @@ fn group_1_match_whole_files_quiet_and_not_quiet() {
     let expected_found_matches = true;
     let expected_screen_output = "\
 bogus_file.txt:
-is
-is
+isis
 ";
     let expected_file_content = &input;
 
@@ -802,8 +795,7 @@ fn group_2_match_quiet_and_not_quiet() {
     let expected_found_matches = true;
     let expected_screen_output = "\
 bogus_file.txt:
-test
-test
+testtest
 ";
     let expected_file_content = &input;
 
@@ -833,12 +825,7 @@ This is a test.
     let expected_found_matches = true;
     let expected_screen_output = "\
 bogus_file.txt:
-test
-test
-test
-test
-test
-test
+testtesttesttesttesttest
 ";
     let expected_file_content = &input;
 

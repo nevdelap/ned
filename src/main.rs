@@ -312,10 +312,10 @@ fn write_captures(output: &mut Write,
             if let Some(text) = text {
                 let text = color_replacement_all(parameters, re, text);
                 try!(output.write(&text.to_string().into_bytes()));
-                try!(output.write(&"\n".to_string().into_bytes()));
             }
         }
     }
+    try!(output.write(&"\n".to_string().into_bytes()));
     Ok(found_matches)
 }
 
