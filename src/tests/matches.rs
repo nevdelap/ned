@@ -593,7 +593,6 @@ related to the hand to an ungodly dahlia.
 
 #[test]
 fn match_line_oriented_quiet_and_not_quiet() {
-    // DONE?
 
     let input = "
 This is a test with
@@ -623,7 +622,6 @@ bogus_file.txt: tests because no one
 
 #[test]
 fn show_unmatched_lines_quiet_and_not_quiet() {
-    // DONE?
 
     let input = "
 This is a test with
@@ -633,10 +631,15 @@ that is only good for
 tests because no one
 would want to read it.
 ";
-    let pattern = "wiggle";
-    let args = "--whole-files --no-match";
-    let expected_found_matches = false;
-    let expected_screen_output = &format!("bogus_file.txt:\n{}", input);
+    let pattern = "on.";
+    let args = "--no-match";
+    let expected_found_matches = true;
+    let expected_screen_output = "\
+bogus_file.txt: \n\
+bogus_file.txt: This is a test with
+bogus_file.txt: multiple lines of very
+bogus_file.txt: would want to read it.
+";
     let expected_file_content = &input;
 
     test(input,
@@ -648,8 +651,7 @@ would want to read it.
 }
 
 #[test]
-fn show_unmatched_lines_oriented_quiet_and_not_quiet() {
-    // DONE?
+fn show_unmatched_lines_oriented_whole_files_quiet_and_not_quiet() {
 
     let input = "
 This is a test with
