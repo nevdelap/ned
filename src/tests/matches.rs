@@ -542,8 +542,32 @@ onqon.on ond
 }
 
 // #[test]
-/// Not yet passing. // DONE?
 fn only_matches_skip_all_quiet_and_not_quiet() {
+
+    let input = "\
+The shadow conquers the hand related to a mastadon. Jespera and I took a cup
+around a toothache (with a lunatic around some debutante, a ribbon beyond a
+curse, a few dahlias, and a ribbon) to arrive at a state of intimacy where we
+can accurately mourn our boy. When another espadrille wakes up, the cup toward
+another swamp flies into a rage. Now and then, an onlooker sells a dissident
+related to the hand to an ungodly dahlia.
+";
+    let pattern = "on. ";
+    let args = "--whole-files --skip 10";
+    let expected_found_matches = false;
+    let expected_screen_output = "";
+    let expected_file_content = &input;
+
+    test(input,
+         pattern,
+         args,
+         expected_found_matches,
+         expected_screen_output,
+         expected_file_content);
+}
+
+// #[test]
+fn only_matches_skip_all_whole_files_quiet_and_not_quiet() {
 
     let input = "\
 The shadow conquers the hand related to a mastadon. Jespera and I took a cup
