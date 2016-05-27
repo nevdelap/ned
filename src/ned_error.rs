@@ -9,11 +9,33 @@ use std::path;
 use std::string;
 
 #[derive(Debug)]
+pub struct StringError {
+    pub err: String,
+}
+
+impl fmt::Display for StringError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.err)
+    }
+}
+
+impl error::Error for StringError {
+    fn description(&self) -> &str {
+        self.err.as_str()
+    }
+
+    fn cause(&self) -> Option<&error::Error> {
+        None
+    }
+}
+
+#[derive(Debug)]
 pub enum NedError {
     FromUtf8(string::FromUtf8Error),
     GetOpts(getopts::Fail),
     GlobPattern(glob::PatternError),
     Io(io::Error),
+    ParameterError(StringError),
     Regex(regex::Error),
 }
 
@@ -47,6 +69,12 @@ impl From<regex::Error> for NedError {
     }
 }
 
+impl From<String> for NedError {
+    fn from(err: String) -> NedError {
+        NedError::ParameterError(StringError { err: err })
+    }
+}
+
 impl fmt::Display for NedError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
@@ -54,6 +82,7 @@ impl fmt::Display for NedError {
             NedError::GetOpts(ref err) => write!(f, "{}", err),
             NedError::GlobPattern(ref err) => write!(f, "{}", err),
             NedError::Io(ref err) => write!(f, "{}", err),
+            NedError::ParameterError(ref err) => write!(f, "{}", err),
             NedError::Regex(ref err) => write!(f, "{}", err),
         }
     }
@@ -66,6 +95,7 @@ impl error::Error for NedError {
             NedError::GetOpts(ref err) => err.description(),
             NedError::GlobPattern(ref err) => err.description(),
             NedError::Io(ref err) => err.description(),
+            NedError::ParameterError(ref err) => err.description(),
             NedError::Regex(ref err) => err.description(),
         }
     }
@@ -76,6 +106,7 @@ impl error::Error for NedError {
             NedError::GetOpts(ref err) => Some(err),
             NedError::GlobPattern(ref err) => Some(err),
             NedError::Io(ref err) => Some(err),
+            NedError::ParameterError(ref err) => Some(err),
             NedError::Regex(ref err) => Some(err),
         }
     }
