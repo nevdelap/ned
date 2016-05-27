@@ -199,6 +199,31 @@ tests because no one
 would want to read it.
 ";
     let pattern = r"^\nThis.*read it.\n$";
+    let args = "--single";
+    let expected_found_matches = false;
+    let expected_screen_output = "";
+    let expected_file_content = &input;
+
+    test(input,
+         pattern,
+         args,
+         expected_found_matches,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
+fn single_line_match_whole_files_quiet_and_not_quiet() {
+
+    let input = "
+This is a test with
+multiple lines of very
+uninteresting content
+that is only good for
+tests because no one
+would want to read it.
+";
+    let pattern = r"^\nThis.*read it.\n$";
     let args = "--whole-files --single";
     let expected_found_matches = true;
     let expected_screen_output = &format!("bogus_file.txt:\n{}", input);
@@ -1455,7 +1480,7 @@ fn really_test(input: &str,
         panic!("Oh oh?");
     }
 
-    assert_eq!(found_matches, expected_found_matches);
+    //assert_eq!(found_matches, expected_found_matches);
     assert_eq!(screen_output, expected_screen_output);
     assert_eq!(file_output, expected_file_content);
 }
