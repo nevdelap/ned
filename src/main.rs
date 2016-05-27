@@ -182,9 +182,6 @@ fn process_file(output: &mut Write,
                 _ => {}
             }
         }
-    } else if parameters.quiet {
-        // Quiet match only is shortcut by the more performant is_match() .
-        found_matches = re.is_match(&content);
     } else if parameters.filenames {
         found_matches = re.is_match(&content);
         if found_matches ^ parameters.no_match {
@@ -194,6 +191,9 @@ fn process_file(output: &mut Write,
         if !parameters.whole_files {
             for line in content.lines() {
                 found_matches |= try!(process_text(output, parameters, &re, filename, line));
+                if parameters.quiet && found_matches {
+                    break;
+                }
             }
         } else {
             found_matches = try!(process_text(output, parameters, &re, filename, &content));
@@ -208,7 +208,10 @@ fn process_text(output: &mut Write,
                 filename: &Option<String>,
                 text: &str)
                 -> NedResult<bool> {
-    if let Some(ref group) = parameters.group {
+    if parameters.quiet {
+        // Quiet match only is shortcut by the more performant is_match() .
+        return Ok(re.is_match(&text));
+    } else if let Some(ref group) = parameters.group {
         // TODO 2: make it respect -n, -k, -b TO TEST
         let found_matches = try!(write_captures(output, parameters, &re, filename, text, group));
         return Ok(found_matches);

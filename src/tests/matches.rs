@@ -1510,13 +1510,13 @@ fn test(input: &str,
                 expected_found_matches,
                 expected_screen_output,
                 expected_file_content);
-    // let args = format!("{} --quiet", args);
-    // really_test(input,
-    //             pattern,
-    //             &args,
-    //             expected_found_matches,
-    //             "",
-    //             expected_file_content);
+    let args = format!("{} --quiet", args);
+    really_test(input,
+                pattern,
+                &args,
+                expected_found_matches,
+                "",
+                expected_file_content);
 }
 
 fn really_test(input: &str,
