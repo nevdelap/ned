@@ -2,6 +2,5 @@
 cd ~/ned && \
 git fetch && \
 git checkout origin/master && \
-cargo test && \
 cargo build --release && \
 cp target/release/ned ~/bin
