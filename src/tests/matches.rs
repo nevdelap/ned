@@ -553,7 +553,7 @@ another swamp flies into a rage. Now and then, an onlooker sells a dissident
 related to the hand to an ungodly dahlia.
 ";
     let pattern = "on. ";
-    let args = "--whole-files --skip 10";
+    let args = "--skip 2";
     let expected_found_matches = false;
     let expected_screen_output = "";
     let expected_file_content = &input;
