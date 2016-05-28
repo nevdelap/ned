@@ -94,22 +94,20 @@ fn process_files(output: &mut Write, parameters: &Parameters) -> NedResult<bool>
         for glob in &parameters.globs {
             for path_buf in &mut Files::new(parameters, &glob) {
                 match OpenOptions::new()
-                          .read(true)
-                          .write(parameters.replace.is_some())
-                          .open(path_buf.as_path()) {
+                    .read(true)
+                    .write(parameters.replace.is_some())
+                    .open(path_buf.as_path()) {
                     Ok(file) => {
                         let mut source = Source::File(Box::new(file));
                         let filename = &Some(path_buf.as_path().to_string_lossy().to_string());
-                        found_matches |= match process_file(output,
-                                                            parameters,
-                                                            &filename,
-                                                            &mut source) {
-                            Ok(found_matches) => found_matches,
-                            Err(err) => {
-                                stderr_write_file_err(&path_buf, &err);
-                                false
+                        found_matches |=
+                            match process_file(output, parameters, &filename, &mut source) {
+                                Ok(found_matches) => found_matches,
+                                Err(err) => {
+                                    stderr_write_file_err(&path_buf, &err);
+                                    false
+                                }
                             }
-                        }
                     }
                     Err(err) => stderr_write_file_err(&path_buf, &err),
                 }

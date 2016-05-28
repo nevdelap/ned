@@ -44,13 +44,8 @@ fn no_recursion_follow_all() {
 fn recursion() {
 
     let args = "pattern --recursive test";
-    let expected_file_names = ["file1.txt",
-                               "file2.txt",
-                               "file3.txt",
-                               "file4.txt",
-                               "file5.txt",
-                               "file6.txt",
-                               "file7.txt"];
+    let expected_file_names =
+        ["file1.txt", "file2.txt", "file3.txt", "file4.txt", "file5.txt", "file6.txt", "file7.txt"];
 
     test(&args, &expected_file_names);
 }
@@ -112,12 +107,8 @@ fn include_files() {
 fn exclude_files() {
 
     let args = "pattern -R test --exclude file7*";
-    let expected_file_names = ["file1.txt",
-                               "file2.txt",
-                               "file3.txt",
-                               "file4.txt",
-                               "file5.txt",
-                               "file6.txt"];
+    let expected_file_names =
+        ["file1.txt", "file2.txt", "file3.txt", "file4.txt", "file5.txt", "file6.txt"];
 
     test(&args, &expected_file_names);
 }
@@ -137,11 +128,11 @@ fn test(args: &str, expected_file_names: &[&str]) {
     let parameters = get_parameters(&opts, &args).unwrap();
     let paths = Files::new(&parameters, &parameters.globs[0]);
     let mut filenames = paths.map(|path| path.file_name().unwrap().to_str().unwrap().to_string())
-                             .collect::<Vec<String>>();
+        .collect::<Vec<String>>();
     filenames.sort();
 
     assert_eq!(&filenames,
                &expected_file_names.iter()
-                                   .map(|filename| filename.to_string())
-                                   .collect::<Vec<String>>());
+                   .map(|filename| filename.to_string())
+                   .collect::<Vec<String>>());
 }
