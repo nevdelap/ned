@@ -191,13 +191,20 @@ fn process_file(output: &mut Write,
             for (line_number, line) in content.lines().enumerate() {
                 // TODO: use context_map and line_number to show context in process_text.
                 // Show line numbers when showing the filename.
-                found_matches |= try!(process_text(output, parameters, &re, filename, line));
+                found_matches |= try!(process_text(output,
+                                                   parameters,
+                                                   &re,
+                                                   filename,
+                                                   Some(line_number),
+                                                   line,
+                                                   Some(&context_map)));
                 if parameters.quiet && found_matches {
                     break;
                 }
             }
         } else {
-            found_matches = try!(process_text(output, parameters, &re, filename, &content));
+            found_matches =
+                try!(process_text(output, parameters, &re, filename, None, &content, None));
         }
     }
     Ok(found_matches)
@@ -218,7 +225,9 @@ fn process_text(output: &mut Write,
                 parameters: &Parameters,
                 re: &Regex,
                 filename: &Option<String>,
-                text: &str)
+                line_number: Option<usize>,
+                text: &str,
+                context_map: Option<&Vec<bool>>)
                 -> NedResult<bool> {
     if parameters.quiet {
         // Quiet match only is shortcut by the more performant is_match() .
