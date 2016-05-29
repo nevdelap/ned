@@ -86,6 +86,13 @@ pub fn make_opts() -> Options {
                       "show only filenames containing matches. use with -v \
                        --no-match to show filenames without matches");
     opts.optflagmulti("F", "no-filenames", "don't show filesnames");
+    opts.optflagmulti("l",
+                      "line-numbers-only",
+                      "(not yet implemented) show only line numbers containing matches. use with \
+                       -v --no-match to show line numbers without matches");
+    opts.optflagmulti("L",
+                      "no-line-numbers",
+                      "(not yet implemented) don't show line numbers");
     opts.optopt("C",
                 "context",
                 "(not yet implemented) show LINES lines around each match. is the same as \

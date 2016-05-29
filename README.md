@@ -36,6 +36,12 @@ Options:
                         show only filenames containing matches. use with -v
                         --no-match to show filenames without matches
     -F, --no-filenames  don't show filesnames
+    -l, --line-numbers-only 
+                        (not yet implemented) show only line numbers
+                        containing matches. use with -v --no-match to show
+                        line numbers without matches
+    -L, --no-line-numbers 
+                        (not yet implemented) don't show line numbers
     -C, --context LINES (not yet implemented) show LINES lines around each
                         match. is the same as specifying both -B --before and
                         -A --after with the same LINES. use without -w

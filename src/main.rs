@@ -188,7 +188,9 @@ fn process_file(output: &mut Write,
     } else {
         if !parameters.whole_files {
             let context_map = try!(make_context_map(&parameters, &re, &content));
-            for line in content.lines() {
+            for (line_number, line) in content.lines().enumerate() {
+                // TODO: use context_map and line_number to show context in process_text.
+                // Show line numbers when showing the filename.
                 found_matches |= try!(process_text(output, parameters, &re, filename, line));
                 if parameters.quiet && found_matches {
                     break;
@@ -208,6 +210,7 @@ fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> NedRe
     let lines = content.lines().map(|s| s.to_string()).collect::<Vec<String>>();
     let mut context_map = Vec::<bool>::with_capacity(lines.len());
     lines.iter().map(|line| context_map.push(re.is_match(&line))).collect::<Vec<_>>();
+    // TODO: Process the context_map to set true on lines that should be shown given the parameters.
     Ok(context_map)
 }
 

@@ -143,6 +143,62 @@ fn duplicate_options() {
 }
 
 #[test]
+fn no_context_match() {
+
+    let args = "is test --include long*.txt";
+    let expected_exit_code = 0;
+    let expected_screen_output = ["\
+test/longfile.txt: The bodice ripper writes a love letter to a comely dissident. The
+test/longfile.txt: Interloper and I took a self-actualized dissident (with the wisely
+test/longfile.txt: sprightly necromancer, another dissident, a few mirrors, and the
+test/longfile.txt: looking glass near a taxidermist) to arrive at a state of intimacy
+test/longfile.txt: The dilettante defined by a clock ceases to exist, and the looking
+test/longfile.txt: caricatures a dissident. Most people believe that a ghastly gonad
+test/longfile.txt: gives lectures on morality to the wisely darling toothpick, but they
+test/longfile.txt: soothed by an espadrille and a fetishist, still makes a truce with her
+test/longfile.txt: from an unseemly gypsy, buy an expensive gift for her a fetishist with
+test/longfile.txt: where we can feverishly play pinochle with our trombone. The boy for a
+test/longfile.txt: cards with an impresario. The labyrinth related to the menagé à trois
+test/longfile.txt: fetishist defined by a marzipan and a clodhopper, still amorously
+test/longfile.txt: her the lovely fetishist with a cup beyond the pocket, and lazily
+"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+// #[test] TODO NEXT: enable and do TODOs in main.rs.
+fn context_after_1_match() {
+
+    let args = "is test --include long*.txt";
+    let expected_exit_code = 0;
+    let expected_screen_output = ["\
+test/longfile.txt: The bodice ripper writes a love letter to a comely dissident. The
+test/longfile.txt: Interloper and I took a self-actualized dissident (with the wisely
+test/longfile.txt: sprightly necromancer, another dissident, a few mirrors, and the
+test/longfile.txt: looking glass near a taxidermist) to arrive at a state of intimacy
+test/longfile.txt: where we can secretly give lectures on morality to our cream puff.
+test/longfile.txt: The dilettante defined by a clock ceases to exist, and the looking
+test/longfile.txt: glass seeks the lovely trombone. The toothache hardly trades baseball
+test/longfile.txt: caricatures a dissident. Most people believe that a ghastly gonad
+test/longfile.txt: gives lectures on morality to the wisely darling toothpick, but they
+test/longfile.txt: need to remember how hesitantly a bonbon daydreams. A widow somewhat
+test/longfile.txt: soothed by an espadrille and a fetishist, still makes a truce with her
+test/longfile.txt: from an unseemly gypsy, buy an expensive gift for her a fetishist with
+test/longfile.txt: a philosopher, and takes a peek at the dark side of her dilettante.
+test/longfile.txt: where we can feverishly play pinochle with our trombone. The boy for a
+test/longfile.txt: shadow, a gypsy living with a boy, and some toothpick for another
+test/longfile.txt: cards with an impresario. The labyrinth related to the menagé à trois
+test/longfile.txt: lazily secretly admires the boy beyond a tea party. He called her Lila
+test/longfile.txt: fetishist defined by a marzipan and a clodhopper, still amorously
+test/longfile.txt: teaches her from a gonad behind an impresario, bestow great honor upon
+test/longfile.txt: her the lovely fetishist with a cup beyond the pocket, and lazily
+test/longfile.txt: boogies the dark side of her
+"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
 fn recursive_match() {
 
     let args = "her test --whole-files --recursive";
