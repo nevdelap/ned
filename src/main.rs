@@ -310,19 +310,19 @@ fn write_file_name_and_line_number(output: &mut Write,
             if let Some(line_number) = line_number {
                 file_name = format!("{}:{}", file_name, line_number);
             }
+            file_name = format!("{}{}",
+                                file_name,
+                                if parameters.file_names {
+                                    "\n"
+                                } else if parameters.replace.is_some() || parameters.whole_files {
+                                    ":\n"
+                                } else {
+                                    ":"
+                                });
             if parameters.colors {
                 file_name = Purple.paint(file_name).to_string();
             }
             try!(output.write(&file_name.into_bytes()));
-            try!(output.write(&if parameters.file_names {
-                    "\n"
-                } else if parameters.replace.is_some() || parameters.whole_files {
-                    ":\n"
-                } else {
-                    ":"
-                }
-                .to_string()
-                .into_bytes()));
         }
     }
     Ok(())

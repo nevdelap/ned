@@ -80,7 +80,7 @@ fn colored_match() {
     let args = "accidentally.*hand test --whole-files --colors";
     let expected_exit_code = 0;
     let expected_screen_output =
-        ["\u{1b}[35mtest/file1.txt\u{1b}[0m:\nThe \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m \
+        ["\u{1b}[35mtest/file1.txt:\n\u{1b}[0mThe \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m \
           plans an escape from a cream puff the placid widow. A slovenly\nonlooker rejoices, \
           because some single-handledly sheepish stalactite knowingly avoids contact with \
           a\nwisely rhetorical ballerina. Sometimes the waif about a swamp rejoices, but a \
@@ -95,7 +95,7 @@ fn colored_match_file_names_only() {
 
     let args = "accidentally.*hand test --whole-files --colors --filenames-only";
     let expected_exit_code = 0;
-    let expected_screen_output = ["\u{1b}[35mtest/file1.txt\u{1b}[0m\n"];
+    let expected_screen_output = ["\u{1b}[35mtest/file1.txt\n\u{1b}[0m"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -121,7 +121,7 @@ fn colored_match_file_names_only_no_match() {
 
     let args = "secretly test/dir1 --whole-files --colors --filenames-only --no-match";
     let expected_exit_code = 0;
-    let expected_screen_output = ["\u{1b}[35mtest/dir1/file2.txt\u{1b}[0m\n"];
+    let expected_screen_output = ["\u{1b}[35mtest/dir1/file2.txt\n\u{1b}[0m"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -132,7 +132,7 @@ fn duplicate_options() {
     let args = "accidentally.*hand test --whole-files --colors --colors -c";
     let expected_exit_code = 0;
     let expected_screen_output =
-        ["\u{1b}[35mtest/file1.txt\u{1b}[0m:\nThe \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m \
+        ["\u{1b}[35mtest/file1.txt:\n\u{1b}[0mThe \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m \
           plans an escape from a cream puff the placid widow. A slovenly\nonlooker rejoices, \
           because some single-handledly sheepish stalactite knowingly avoids contact with \
           a\nwisely rhetorical ballerina. Sometimes the waif about a swamp rejoices, but a \

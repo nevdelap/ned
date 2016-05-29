@@ -1043,12 +1043,12 @@ This is a test.
     let args = "--colors";
     let expected_found_matches = true;
     let expected_screen_output = "\
-\u{1b}[35mbogus_file.txt:1\u{1b}[0m:Th\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
-\u{1b}[35mbogus_file.txt:2\u{1b}[0m:Th\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
-\u{1b}[35mbogus_file.txt:3\u{1b}[0m:Th\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
-\u{1b}[35mbogus_file.txt:4\u{1b}[0m:Th\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
-\u{1b}[35mbogus_file.txt:5\u{1b}[0m:Th\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
-\u{1b}[35mbogus_file.txt:6\u{1b}[0m:Th\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
+\u{1b}[35mbogus_file.txt:1:\u{1b}[0mTh\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
+\u{1b}[35mbogus_file.txt:2:\u{1b}[0mTh\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
+\u{1b}[35mbogus_file.txt:3:\u{1b}[0mTh\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
+\u{1b}[35mbogus_file.txt:4:\u{1b}[0mTh\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
+\u{1b}[35mbogus_file.txt:5:\u{1b}[0mTh\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
+\u{1b}[35mbogus_file.txt:6:\u{1b}[0mTh\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
 ";
     let expected_file_content = &input;
 
@@ -1075,8 +1075,8 @@ This is a test.
     let args = "--whole-files --colors";
     let expected_found_matches = true;
     let expected_screen_output = "\
-\u{1b}[35mbogus_file.txt\u{1b}[0m:
-Th\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
+\u{1b}[35mbogus_file.txt:
+\u{1b}[0mTh\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
 Th\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
 Th\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
 Th\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
