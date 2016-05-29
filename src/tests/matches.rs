@@ -1,6 +1,8 @@
 /// Test match related functionality - different types of matches, matches with color, quiet, etc.
 /// The use of re, not re itself.
 
+// TO TEST: -l and -L
+
 use process_file;
 use opts::make_opts;
 use parameters::get_parameters;
@@ -22,12 +24,12 @@ This is a test.
     let args = "";
     let expected_found_matches = true;
     let expected_screen_output = "\
-bogus_file.txt: This is a test.
-bogus_file.txt: This is a test.
-bogus_file.txt: This is a test.
-bogus_file.txt: This is a test.
-bogus_file.txt: This is a test.
-bogus_file.txt: This is a test.
+bogus_file.txt:1: This is a test.
+bogus_file.txt:2: This is a test.
+bogus_file.txt:3: This is a test.
+bogus_file.txt:4: This is a test.
+bogus_file.txt:5: This is a test.
+bogus_file.txt:6: This is a test.
 ";
     let expected_file_content = &input;
 
@@ -137,12 +139,12 @@ This is a test.
     let args = "--ignore-case";
     let expected_found_matches = true;
     let expected_screen_output = "\
-bogus_file.txt: This is a test.
-bogus_file.txt: This is a test.
-bogus_file.txt: This is a test.
-bogus_file.txt: This is a test.
-bogus_file.txt: This is a test.
-bogus_file.txt: This is a test.
+bogus_file.txt:1: This is a test.
+bogus_file.txt:2: This is a test.
+bogus_file.txt:3: This is a test.
+bogus_file.txt:4: This is a test.
+bogus_file.txt:5: This is a test.
+bogus_file.txt:6: This is a test.
 ";
     let expected_file_content = &input;
 
@@ -407,12 +409,12 @@ is # Look, that's it!
     let args = "--extended";
     let expected_found_matches = true;
     let expected_screen_output = "\
-bogus_file.txt: This is a test.
-bogus_file.txt: This is a test.
-bogus_file.txt: This is a test.
-bogus_file.txt: This is a test.
-bogus_file.txt: This is a test.
-bogus_file.txt: This is a test.
+bogus_file.txt:1: This is a test.
+bogus_file.txt:2: This is a test.
+bogus_file.txt:3: This is a test.
+bogus_file.txt:4: This is a test.
+bogus_file.txt:5: This is a test.
+bogus_file.txt:6: This is a test.
 ";
     let expected_file_content = &input;
 
@@ -477,12 +479,12 @@ This is a test.
     let args = "--matches-only";
     let expected_found_matches = true;
     let expected_screen_output = "\
-bogus_file.txt: isis
-bogus_file.txt: isis
-bogus_file.txt: isis
-bogus_file.txt: isis
-bogus_file.txt: isis
-bogus_file.txt: isis
+bogus_file.txt:1: isis
+bogus_file.txt:2: isis
+bogus_file.txt:3: isis
+bogus_file.txt:4: isis
+bogus_file.txt:5: isis
+bogus_file.txt:6: isis
 ";
     let expected_file_content = &input;
 
@@ -567,7 +569,10 @@ related to the hand to an ungodly dahlia.
     let pattern = "on.";
     let args = "--whole-files --matches-only --skip 2";
     let expected_found_matches = true;
-    let expected_screen_output = "bogus_file.txt:\non ondon)onl\n";
+    let expected_screen_output = "\
+bogus_file.txt:
+on ondon)onl
+";
     let expected_file_content = &input;
 
     test(input,
@@ -593,11 +598,12 @@ related to the hand to an ungodly dahlia.
     let args = "--matches-only --skip 2 --backwards"; // Skip 2 is on each line.
     let expected_found_matches = true;
     let expected_screen_output = "\
-bogus_file.txt: owono \nbogus_file.txt: ouooouom
-bogus_file.txt: on
-bogus_file.txt: ououoy
-bogus_file.txt: oto ow
-bogus_file.txt: o \n";
+bogus_file.txt:1: owono \n\
+bogus_file.txt:2: ouooouom
+bogus_file.txt:3: on
+bogus_file.txt:4: ououoy
+bogus_file.txt:5: oto ow
+bogus_file.txt:6: o \n";
     let expected_file_content = &input;
 
     test(input,
@@ -701,9 +707,9 @@ would want to read it.
     let args = "";
     let expected_found_matches = true;
     let expected_screen_output = "\
-bogus_file.txt: uninteresting content
-bogus_file.txt: that is only good for
-bogus_file.txt: tests because no one
+bogus_file.txt:4: uninteresting content
+bogus_file.txt:5: that is only good for
+bogus_file.txt:6: tests because no one
 ";
     let expected_file_content = &input;
 
@@ -730,10 +736,10 @@ would want to read it.
     let args = "--no-match";
     let expected_found_matches = true;
     let expected_screen_output = "\
-bogus_file.txt: \n\
-bogus_file.txt: This is a test with
-bogus_file.txt: multiple lines of very
-bogus_file.txt: would want to read it.
+bogus_file.txt:1: \n\
+bogus_file.txt:2: This is a test with
+bogus_file.txt:3: multiple lines of very
+bogus_file.txt:7: would want to read it.
 ";
     let expected_file_content = &input;
 
@@ -794,12 +800,12 @@ This is a test.
     let args = "--group 0";
     let expected_found_matches = true;
     let expected_screen_output = "\
-bogus_file.txt: This
-bogus_file.txt: This
-bogus_file.txt: This
-bogus_file.txt: This
-bogus_file.txt: This
-bogus_file.txt: This
+bogus_file.txt:1: This
+bogus_file.txt:2: This
+bogus_file.txt:3: This
+bogus_file.txt:4: This
+bogus_file.txt:5: This
+bogus_file.txt:6: This
 ";
     let expected_file_content = &input;
 
@@ -847,7 +853,7 @@ fn group_1_match_quiet_and_not_quiet() {
     let args = "--group 1";
     let expected_found_matches = true;
     let expected_screen_output = "\
-bogus_file.txt: isis
+bogus_file.txt:1: isis
 ";
     let expected_file_content = &input;
 
@@ -887,7 +893,9 @@ fn group_1_multiple_match_quiet_and_not_quiet() {
     let pattern = "(is)";
     let args = "--group 1";
     let expected_found_matches = true;
-    let expected_screen_output = "bogus_file.txt: isis\n";
+    let expected_screen_output = "\
+bogus_file.txt:1: isis
+";
     let expected_file_content = &input;
 
     test(input,
@@ -905,7 +913,10 @@ fn group_1_multiple_match_whole_files_hquiet_and_not_quiet() {
     let pattern = "(is)";
     let args = "--whole-files --group 1";
     let expected_found_matches = true;
-    let expected_screen_output = "bogus_file.txt:\nisis\n";
+    let expected_screen_output = "\
+bogus_file.txt:
+isis
+";
     let expected_file_content = &input;
 
     test(input,
@@ -924,7 +935,7 @@ fn group_2_match_quiet_and_not_quiet() {
     let args = "--group 2";
     let expected_found_matches = true;
     let expected_screen_output = "\
-bogus_file.txt: testtest
+bogus_file.txt:1: testtest
 ";
     let expected_file_content = &input;
 
@@ -972,12 +983,12 @@ This is a test.
     let args = "--group dave";
     let expected_found_matches = true;
     let expected_screen_output = "\
-bogus_file.txt: test
-bogus_file.txt: test
-bogus_file.txt: test
-bogus_file.txt: test
-bogus_file.txt: test
-bogus_file.txt: test
+bogus_file.txt:1: test
+bogus_file.txt:2: test
+bogus_file.txt:3: test
+bogus_file.txt:4: test
+bogus_file.txt:5: test
+bogus_file.txt:6: test
 ";
     let expected_file_content = &input;
 
@@ -1032,12 +1043,12 @@ This is a test.
     let args = "--colors";
     let expected_found_matches = true;
     let expected_screen_output = "\
-\u{1b}[35mbogus_file.txt\u{1b}[0m: Th\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
-\u{1b}[35mbogus_file.txt\u{1b}[0m: Th\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
-\u{1b}[35mbogus_file.txt\u{1b}[0m: Th\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
-\u{1b}[35mbogus_file.txt\u{1b}[0m: Th\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
-\u{1b}[35mbogus_file.txt\u{1b}[0m: Th\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
-\u{1b}[35mbogus_file.txt\u{1b}[0m: Th\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
+\u{1b}[35mbogus_file.txt:1\u{1b}[0m: Th\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
+\u{1b}[35mbogus_file.txt:2\u{1b}[0m: Th\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
+\u{1b}[35mbogus_file.txt:3\u{1b}[0m: Th\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
+\u{1b}[35mbogus_file.txt:4\u{1b}[0m: Th\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
+\u{1b}[35mbogus_file.txt:5\u{1b}[0m: Th\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
+\u{1b}[35mbogus_file.txt:6\u{1b}[0m: Th\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
 ";
     let expected_file_content = &input;
 
