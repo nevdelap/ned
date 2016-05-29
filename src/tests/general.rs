@@ -19,7 +19,7 @@ fn basic_match() {
 }
 
 #[test]
-fn basic_match_filenames_only() {
+fn basic_match_file_names_only() {
 
     let args = "accidentally test --whole-files --filenames-only";
     let expected_exit_code = 0;
@@ -29,7 +29,7 @@ fn basic_match_filenames_only() {
 }
 
 #[test]
-fn basic_match_no_filenames() {
+fn basic_match_no_file_names() {
 
     let args = "accidentally test --whole-files --no-filenames";
     let expected_exit_code = 0;
@@ -45,7 +45,7 @@ fn basic_match_no_filenames() {
 }
 
 #[test]
-fn basic_match_filenames_only_no_match() {
+fn basic_match_file_names_only_no_match() {
 
     let args = "secretly test/dir1 --whole-files --filenames-only --no-match";
     let expected_exit_code = 0;
@@ -55,7 +55,7 @@ fn basic_match_filenames_only_no_match() {
 }
 
 #[test]
-fn basic_match_no_filenames_no_match() {
+fn basic_match_no_file_names_no_match() {
 
     let args = "secretly test/dir1 --whole-files --no-filenames --no-match";
     let expected_exit_code = 0;
@@ -91,7 +91,7 @@ fn colored_match() {
 }
 
 #[test]
-fn colored_match_filenames_only() {
+fn colored_match_file_names_only() {
 
     let args = "accidentally.*hand test --whole-files --colors --filenames-only";
     let expected_exit_code = 0;
@@ -101,7 +101,7 @@ fn colored_match_filenames_only() {
 }
 
 #[test]
-fn colored_match_no_filenames() {
+fn colored_match_no_file_names() {
 
     let args = "accidentally.*hand test --whole-files --colors --no-filenames";
     let expected_exit_code = 0;
@@ -117,7 +117,7 @@ fn colored_match_no_filenames() {
 }
 
 #[test]
-fn colored_match_filenames_only_no_match() {
+fn colored_match_file_names_only_no_match() {
 
     let args = "secretly test/dir1 --whole-files --colors --filenames-only --no-match";
     let expected_exit_code = 0;
@@ -239,7 +239,7 @@ fn recursive_match() {
 }
 
 #[test]
-fn recursive_match_filenames_only() {
+fn recursive_match_file_names_only() {
 
     let args = "her test --whole-files --recursive --filenames-only";
     let expected_exit_code = 0;
@@ -293,7 +293,7 @@ fn recursive_match_no_filesnames() {
 }
 
 #[test]
-fn recursive_match_filenames_only_no_match() {
+fn recursive_match_file_names_only_no_match() {
 
     let args = "her test --whole-files --recursive --filenames-only --no-match";
     let expected_exit_code = 0;
