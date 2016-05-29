@@ -304,6 +304,8 @@ fn write_file_name_and_line_number(output: &mut Write,
                                    file_name: &Option<String>,
                                    line_number: Option<usize>)
                                    -> NedResult<()> {
+    // TODO: support -l -L, and add tests
+    // TODO: separate -f and -F from -l and -L
     if !parameters.no_file_names {
         if let &Some(ref file_name) = file_name {
             let mut file_name = file_name.clone();
