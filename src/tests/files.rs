@@ -8,7 +8,7 @@ use files::Files;
 fn no_recursion() {
 
     let args = "pattern test";
-    let expected_file_names = ["file1.txt"];
+    let expected_file_names = ["file1.txt", "longfile.txt"];
 
     test(&args, &expected_file_names);
 }
@@ -17,7 +17,7 @@ fn no_recursion() {
 fn no_recursion_all() {
 
     let args = "pattern --all test";
-    let expected_file_names = [".hidden_file1", "file1.txt"];
+    let expected_file_names = [".hidden_file1", "file1.txt", "longfile.txt"];
 
     test(&args, &expected_file_names);
 }
@@ -26,7 +26,7 @@ fn no_recursion_all() {
 fn no_recursion_follow() {
 
     let args = "pattern --follow test";
-    let expected_file_names = ["file1.txt", "file8.txt"];
+    let expected_file_names = ["file1.txt", "file8.txt", "longfile.txt"];
 
     test(&args, &expected_file_names);
 }
@@ -35,7 +35,7 @@ fn no_recursion_follow() {
 fn no_recursion_follow_all() {
 
     let args = "pattern --follow --all test";
-    let expected_file_names = [".hidden_file1", "file1.txt", "file8.txt"];
+    let expected_file_names = [".hidden_file1", "file1.txt", "file8.txt", "longfile.txt"];
 
     test(&args, &expected_file_names);
 }
@@ -44,8 +44,14 @@ fn no_recursion_follow_all() {
 fn recursion() {
 
     let args = "pattern --recursive test";
-    let expected_file_names =
-        ["file1.txt", "file2.txt", "file3.txt", "file4.txt", "file5.txt", "file6.txt", "file7.txt"];
+    let expected_file_names = ["file1.txt",
+                               "file2.txt",
+                               "file3.txt",
+                               "file4.txt",
+                               "file5.txt",
+                               "file6.txt",
+                               "file7.txt",
+                               "longfile.txt"];
 
     test(&args, &expected_file_names);
 }
@@ -62,7 +68,8 @@ fn recursion_all() {
                                "file4.txt",
                                "file5.txt",
                                "file6.txt",
-                               "file7.txt"];
+                               "file7.txt",
+                               "longfile.txt"];
 
     test(&args, &expected_file_names);
 }
@@ -71,7 +78,7 @@ fn recursion_all() {
 fn recursion_follow() {
 
     let args = "pattern --follow test";
-    let expected_file_names = ["file1.txt", "file8.txt"];
+    let expected_file_names = ["file1.txt", "file8.txt", "longfile.txt"];
 
     test(&args, &expected_file_names);
 }
@@ -89,7 +96,8 @@ fn recursion_follow_all() {
                                "file5.txt",
                                "file6.txt",
                                "file7.txt",
-                               "file8.txt"];
+                               "file8.txt",
+                               "longfile.txt"];
 
     test(&args, &expected_file_names);
 }
@@ -107,8 +115,13 @@ fn include_files() {
 fn exclude_files() {
 
     let args = "pattern -R test --exclude file7*";
-    let expected_file_names =
-        ["file1.txt", "file2.txt", "file3.txt", "file4.txt", "file5.txt", "file6.txt"];
+    let expected_file_names = ["file1.txt",
+                               "file2.txt",
+                               "file3.txt",
+                               "file4.txt",
+                               "file5.txt",
+                               "file6.txt",
+                               "longfile.txt"];
 
     test(&args, &expected_file_names);
 }
@@ -117,7 +130,8 @@ fn exclude_files() {
 fn exclude_directory() {
 
     let args = "pattern -R test --exclude-dir dir4";
-    let expected_file_names = ["file1.txt", "file2.txt", "file3.txt", "file4.txt", "file5.txt"];
+    let expected_file_names =
+        ["file1.txt", "file2.txt", "file3.txt", "file4.txt", "file5.txt", "longfile.txt"];
 
     test(&args, &expected_file_names);
 }

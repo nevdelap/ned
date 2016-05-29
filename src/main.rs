@@ -187,6 +187,7 @@ fn process_file(output: &mut Write,
         }
     } else {
         if !parameters.whole_files {
+            let context_map = try!(make_context_map(&parameters, &re, &content));
             for line in content.lines() {
                 found_matches |= try!(process_text(output, parameters, &re, filename, line));
                 if parameters.quiet && found_matches {
@@ -198,6 +199,16 @@ fn process_file(output: &mut Write,
         }
     }
     Ok(found_matches)
+}
+
+/// Returns a vector whose capacicity equals the number of lines in the file, and whose
+/// value is a boolean that indicates whether or not that line should be shown given
+/// the -C --context, -B --before, and -A --after options specified in the parameters.
+fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> NedResult<Vec<bool>> {
+    let lines = content.lines().map(|s| s.to_string()).collect::<Vec<String>>();
+    let mut context_map = Vec::<bool>::with_capacity(lines.len());
+    lines.iter().map(|line| context_map.push(re.is_match(&line))).collect::<Vec<_>>();
+    Ok(context_map)
 }
 
 fn process_text(output: &mut Write,
