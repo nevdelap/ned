@@ -27,7 +27,7 @@ Exit codes:
     1                   no matches
 
 Quiet:
-    When -q --quiet is  specified ned tests for matches and returns an exit
+    When -q --quiet is specified ned tests for matches and returns an exit
     code of 0 if a match is found in ANY file. Quiet matches will only read
     as many files as needed to find a match. Even without this shortcutting
     behaviour quiet matches are more performant than non-quiet matches.";
