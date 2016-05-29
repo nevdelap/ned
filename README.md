@@ -37,19 +37,18 @@ Options:
                         --no-match to show filenames without matches
     -F, --no-filenames  don't show filesnames
     -l, --line-numbers-only 
-                        (not yet implemented) show only line numbers
-                        containing matches. use with -v --no-match to show
-                        line numbers without matches
+                        (in progress) show only line numbers containing
+                        matches. use with -v --no-match to show line numbers
+                        without matches
     -L, --no-line-numbers 
-                        (not yet implemented) don't show line numbers
-    -C, --context LINES (not yet implemented) show LINES lines around each
-                        match. is the same as specifying both -B --before and
-                        -A --after with the same LINES. use without -w
-                        --whole-files
-    -B, --before LINES  (not yet implemented) show LINES lines before each
-                        match. use without -w --whole-files
-    -A, --after LINES   (not yet implemented) show LINES lines after each
-                        match. use without -w --whole-files
+                        (in progress) don't show line numbers
+    -C, --context LINES (in progress) show LINES lines around each match. is
+                        the same as specifying both -B --before and -A --after
+                        with the same LINES. use without -w --whole-files
+    -B, --before LINES  (in progress) show LINES lines before each match. use
+                        without -w --whole-files
+    -A, --after LINES   (in progress) show LINES lines after each match. use
+                        without -w --whole-files
     -R, --recursive     recurse
     -l, --follow        follow symlinks
         --include GLOB  match only files that match GLOB

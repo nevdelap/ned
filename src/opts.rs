@@ -88,25 +88,25 @@ pub fn make_opts() -> Options {
     opts.optflagmulti("F", "no-filenames", "don't show filesnames");
     opts.optflagmulti("l",
                       "line-numbers-only",
-                      "(not yet implemented) show only line numbers containing matches. use with \
+                      "(in progress) show only line numbers containing matches. use with \
                        -v --no-match to show line numbers without matches");
     opts.optflagmulti("L",
                       "no-line-numbers",
-                      "(not yet implemented) don't show line numbers");
+                      "(in progress) don't show line numbers");
     opts.optopt("C",
                 "context",
-                "(not yet implemented) show LINES lines around each match. is the same as \
+                "(in progress) show LINES lines around each match. is the same as \
                  specifying both -B --before and -A --after with the same LINES. use without -w \
                  --whole-files",
                 "LINES");
     opts.optopt("B",
                 "before",
-                "(not yet implemented) show LINES lines before each match. use without -w \
+                "(in progress) show LINES lines before each match. use without -w \
                  --whole-files",
                 "LINES");
     opts.optopt("A",
                 "after",
-                "(not yet implemented) show LINES lines after each match. use without -w \
+                "(in progress) show LINES lines after each match. use without -w \
                  --whole-files",
                 "LINES");
     opts.optflagmulti("R", "recursive", "recurse");
