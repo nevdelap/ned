@@ -222,7 +222,7 @@ fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> NedRe
     for line in 0..context_map.len() {
         if match_map[line] {
             if line >= parameters.context_before &&
-               line + parameters.context_after + 1 < match_map.len() {
+               line + parameters.context_after + 1 <= match_map.len() {
                 for context_line in line - parameters.context_before..line +
                                                                       parameters.context_after +
                                                                       1 {
