@@ -42,13 +42,13 @@ Options:
                         without matches
     -L, --no-line-numbers 
                         (in progress) don't show line numbers
-    -C, --context LINES (in progress) show LINES lines around each match. is
-                        the same as specifying both -B --before and -A --after
-                        with the same LINES. use without -w --whole-files
-    -B, --before LINES  (in progress) show LINES lines before each match. use
-                        without -w --whole-files
-    -A, --after LINES   (in progress) show LINES lines after each match. use
-                        without -w --whole-files
+    -C, --context LINES show LINES lines around each match. is the same as
+                        specifying both -B --before and -A --after with the
+                        same LINES. use without -w --whole-files
+    -B, --before LINES  show LINES lines before each match. use without -w
+                        --whole-files
+    -A, --after LINES   show LINES lines after each match. use without -w
+                        --whole-files
     -R, --recursive     recurse
     -l, --follow        follow symlinks
         --include GLOB  match only files that match GLOB

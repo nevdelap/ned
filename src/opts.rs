@@ -95,18 +95,18 @@ pub fn make_opts() -> Options {
                       "(in progress) don't show line numbers");
     opts.optopt("C",
                 "context",
-                "(in progress) show LINES lines around each match. is the same as \
+                "show LINES lines around each match. is the same as \
                  specifying both -B --before and -A --after with the same LINES. use without -w \
                  --whole-files",
                 "LINES");
     opts.optopt("B",
                 "before",
-                "(in progress) show LINES lines before each match. use without -w \
+                "show LINES lines before each match. use without -w \
                  --whole-files",
                 "LINES");
     opts.optopt("A",
                 "after",
-                "(in progress) show LINES lines after each match. use without -w \
+                "show LINES lines after each match. use without -w \
                  --whole-files",
                 "LINES");
     opts.optflagmulti("R", "recursive", "recurse");
