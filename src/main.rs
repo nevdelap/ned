@@ -222,8 +222,8 @@ fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> NedRe
     for line in 0..context_map.len() {
         if match_map[line] {
             for context_line in
-                std::cmp::max(0, line - parameters.context_before)..
-                std::cmp::min(match_map.len(), line + parameters.context_after + 1) {
+                    std::cmp::max(0, line - parameters.context_before)..
+                    std::cmp::min(match_map.len(), line + parameters.context_after + 1) {
                 context_map[context_line] = true;
             }
         }
