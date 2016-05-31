@@ -211,7 +211,7 @@ fn process_file(output: &mut Write,
     Ok(found_matches)
 }
 
-/// Returns a vector whose capacicity equals the number of lines in the file, and whose
+/// Returns a vector whose capacity equals the number of lines in the file, and whose
 /// value is a boolean that indicates whether or not that line should be shown given
 /// the -C --context, -B --before, and -A --after options specified in the parameters.
 fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> NedResult<Vec<bool>> {
@@ -244,11 +244,20 @@ fn process_text(output: &mut Write,
         // TODO 2: make it respect -n, -k, -b TO TEST
         let found_matches =
             try!(write_captures(output, parameters, &re, file_name, line_number, text, group));
+        if !found_matches {
+            if let Some(line_number) = line_number {
+                if let Some(context_map) = context_map {
+                    if context_map[line_number] {
+                        try!(write_line(output, parameters, file_name, Some(line_number), text));
+                    }
+                }
+            }
+        }
         return Ok(found_matches);
     } else if parameters.no_match {
         let found_matches = re.is_match(&text);
         if !found_matches {
-            try!(write_match(output, parameters, file_name, line_number, &text));
+            try!(write_line(output, parameters, file_name, line_number, &text));
         }
         return Ok(found_matches);
     } else if re.is_match(text) {
@@ -258,7 +267,7 @@ fn process_text(output: &mut Write,
         } else {
             // TODO 4: make it respect -n, -k, -b TO TEST
             let text = color_replacement_with_number_skip_backwards(parameters, re, text);
-            try!(write_match(output, parameters, file_name, line_number, &text));
+            try!(write_line(output, parameters, file_name, line_number, &text));
         }
         return Ok(true);
     } else {
@@ -291,12 +300,12 @@ fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> St
     return new_text;
 }
 
-fn write_match(output: &mut Write,
-               parameters: &Parameters,
-               file_name: &Option<String>,
-               line_number: Option<usize>,
-               text: &str)
-               -> NedResult<()> {
+fn write_line(output: &mut Write,
+              parameters: &Parameters,
+              file_name: &Option<String>,
+              line_number: Option<usize>,
+              text: &str)
+              -> NedResult<()> {
     try!(write_file_name_and_line_number(output, parameters, file_name, line_number));
     try!(output.write(&text.to_string().into_bytes()));
     try!(write_newline_if_replaced_text_ends_with_newline(output, &text));
