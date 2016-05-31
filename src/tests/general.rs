@@ -201,6 +201,45 @@ test/longfile.txt:36:boogies the dark side of her
 }
 
 #[test]
+fn context_1_match() {
+
+    let args = "is test --include long*.txt --context 1";
+    let expected_exit_code = 0;
+    let expected_screen_output =
+        ["\
+test/longfile.txt:1:The bodice ripper writes a love letter to a comely dissident. The
+test/longfile.txt:2:Interloper and I took a self-actualized dissident (with the wisely
+test/longfile.txt:3:sprightly necromancer, another dissident, a few mirrors, and the
+test/longfile.txt:4:looking glass near a taxidermist) to arrive at a state of intimacy
+test/longfile.txt:5:where we can secretly give lectures on morality to our cream puff.
+test/longfile.txt:9:and a trombone defined by a shadow are what got Nimbo into trouble.
+test/longfile.txt:10:The dilettante defined by a clock ceases to exist, and the looking
+test/longfile.txt:11:glass seeks the lovely trombone. The toothache hardly trades baseball
+test/longfile.txt:12:cards with a amour-propre, but a non-chalantly sublime bubble almost
+test/longfile.txt:13:caricatures a dissident. Most people believe that a ghastly gonad
+test/longfile.txt:14:gives lectures on morality to the wisely darling toothpick, but they
+test/longfile.txt:15:need to remember how hesitantly a bonbon daydreams. A widow somewhat
+test/longfile.txt:16:caricatures the widow from a tea party. Nicolas, although somewhat
+test/longfile.txt:17:soothed by an espadrille and a fetishist, still makes a truce with her
+test/longfile.txt:18:from an unseemly gypsy, buy an expensive gift for her a fetishist with
+test/longfile.txt:19:a philosopher, and takes a peek at the dark side of her dilettante.
+test/longfile.txt:23:and the cleavage behind the bride) to arrive at a state of intimacy
+test/longfile.txt:24:where we can feverishly play pinochle with our trombone. The boy for a
+test/longfile.txt:25:shadow, a gypsy living with a boy, and some toothpick for another
+test/longfile.txt:29:bubble living with a ruffian. Some darling toothache trades baseball
+test/longfile.txt:30:cards with an impresario. The labyrinth related to the menagé à trois
+test/longfile.txt:31:lazily secretly admires the boy beyond a tea party. He called her Lila
+test/longfile.txt:32:(or was it Harpo Marx?). Nicolas, although somewhat soothed by the
+test/longfile.txt:33:fetishist defined by a marzipan and a clodhopper, still amorously
+test/longfile.txt:34:teaches her from a gonad behind an impresario, bestow great honor upon
+test/longfile.txt:35:her the lovely fetishist with a cup beyond the pocket, and lazily
+test/longfile.txt:36:boogies the dark side of her
+"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
 fn context_before_1_match() {
 
     let args = "is test --include long*.txt --before 1";
