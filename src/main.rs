@@ -221,16 +221,20 @@ fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> NedRe
     let mut context_map = match_map.clone();
     for line in 0..context_map.len() {
         if match_map[line] {
-            if line >= parameters.context_before &&
-               line + parameters.context_after + 1 <= match_map.len() {
-                for context_line in line - parameters.context_before..line +
-                                                                      parameters.context_after +
-                                                                      1 {
-                    context_map[context_line] = true;
-                }
+            // We can't use std::cmp::min() for this test because the indices are unsigned.
+            let start = if line >= parameters.context_before {
+                line - parameters.context_before
+            } else {
+                0usize
+            };
+            let end = std::cmp::min(match_map.len(), line + parameters.context_after + 1);
+            for context_line in start..end {
+                context_map[context_line] = true;
             }
         }
     }
+    println!("{:?}", match_map);
+    println!("{:?}", context_map);
     Ok(context_map)
 }
 
