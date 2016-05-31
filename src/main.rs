@@ -240,27 +240,20 @@ fn process_text(output: &mut Write,
     if parameters.quiet {
         // Quiet match only is shortcut by the more performant is_match() .
         return Ok(re.is_match(&text));
-    } else if let Some(ref group) = parameters.group {
+    }
+    let mut found_matches = false;
+    if let Some(ref group) = parameters.group {
         // TODO 2: make it respect -n, -k, -b TO TEST
-        let found_matches =
+        found_matches =
             try!(write_captures(output, parameters, &re, file_name, line_number, text, group));
-        if !found_matches {
-            if let Some(line_number) = line_number {
-                if let Some(context_map) = context_map {
-                    if context_map[line_number] {
-                        try!(write_line(output, parameters, file_name, Some(line_number), text));
-                    }
-                }
-            }
-        }
-        return Ok(found_matches);
     } else if parameters.no_match {
-        let found_matches = re.is_match(&text);
+        found_matches = re.is_match(&text);
         if !found_matches {
             try!(write_line(output, parameters, file_name, line_number, &text));
         }
         return Ok(found_matches);
     } else if re.is_match(text) {
+        found_matches = true;
         if parameters.only_matches {
             // TODO 3: make it respect -n, -k, -b DONE!
             try!(write_matches(output, parameters, &re, file_name, line_number, text));
@@ -269,10 +262,19 @@ fn process_text(output: &mut Write,
             let text = color_replacement_with_number_skip_backwards(parameters, re, text);
             try!(write_line(output, parameters, file_name, line_number, &text));
         }
-        return Ok(true);
-    } else {
-        return Ok(false);
     }
+    if !found_matches {
+        if let Some(line_number) = line_number {
+            if let Some(context_map) = context_map {
+                if context_map.len() > 0 {
+                    if context_map[line_number - 1] {
+                        try!(write_line(output, parameters, file_name, Some(line_number), text));
+                    }
+                }
+            }
+        }
+    }
+    Ok(found_matches)
 }
 
 /// Do a replace_all() or a find_iter() taking into account which of --number, --skip, and
