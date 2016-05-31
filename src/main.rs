@@ -216,9 +216,16 @@ fn process_file(output: &mut Write,
 /// the -C --context, -B --before, and -A --after options specified in the parameters.
 fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> NedResult<Vec<bool>> {
     let lines = content.lines().map(|s| s.to_string()).collect::<Vec<String>>();
+    let mut match_map = Vec::<bool>::with_capacity(lines.len());
+    lines.iter().map(|line| match_map.push(re.is_match(&line))).collect::<Vec<_>>();
     let mut context_map = Vec::<bool>::with_capacity(lines.len());
-    lines.iter().map(|line| context_map.push(re.is_match(&line))).collect::<Vec<_>>();
-    // TODO: Process the context_map to set true on lines that should be shown given the parameters.
+    for line in 0..context_map.len() {
+        if match_map[line] {
+            for context_line in parameters.context_before..parameters.context_after + 1 {
+                context_map[context_line] = true;
+            }
+        }
+    }
     Ok(context_map)
 }
 

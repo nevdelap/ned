@@ -14,6 +14,8 @@ pub struct Parameters {
     pub all: bool,
     pub backwards: bool,
     pub colors: bool,
+    pub context_after: usize,
+    pub context_before: usize,
     pub exclude_dirs: Vec<Pattern>,
     pub excludes: Vec<Pattern>,
     pub file_names: bool,
@@ -93,6 +95,56 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
         globs = matches.free.iter().map(|glob| glob.clone()).collect::<Vec<String>>();
     }
 
+    let mut context_after = 0;
+    if let Some(value) = matches.opt_str("context") {
+        match value.trim().parse::<usize>() {
+            Ok(value) => {
+                context_after = value;
+            }
+            Err(_) => {
+                return Err(NedError::ParameterError(StringError {
+                    err: "invalid value for --context option".to_string(),
+                }));
+            }
+        };
+    } else if let Some(value) = matches.opt_str("after") {
+        match value.trim().parse::<usize>() {
+            Ok(value) => {
+                context_after = value;
+            }
+            Err(_) => {
+                return Err(NedError::ParameterError(StringError {
+                    err: "invalid value for --after option".to_string(),
+                }));
+            }
+        };
+    }
+
+    let mut context_before = 0;
+    if let Some(value) = matches.opt_str("context") {
+        match value.trim().parse::<usize>() {
+            Ok(value) => {
+                context_before = value;
+            }
+            Err(_) => {
+                return Err(NedError::ParameterError(StringError {
+                    err: "invalid value for --context option".to_string(),
+                }));
+            }
+        };
+    } else if let Some(value) = matches.opt_str("before") {
+        match value.trim().parse::<usize>() {
+            Ok(value) => {
+                context_before = value;
+            }
+            Err(_) => {
+                return Err(NedError::ParameterError(StringError {
+                    err: "invalid value for --before option".to_string(),
+                }));
+            }
+        };
+    }
+
     let number;
     if let Some(value) = matches.opt_str("number") {
         match value.trim().parse::<usize>() {
@@ -152,6 +204,8 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
     Ok(Parameters {
         all: matches.opt_present("all"),
         backwards: matches.opt_present("backwards"),
+        context_after: context_after,
+        context_before: context_before,
         colors: matches.opt_present("colors") && (stdout || replace.is_none()) && istty,
         excludes: excludes,
         exclude_dirs: exclude_dirs,
