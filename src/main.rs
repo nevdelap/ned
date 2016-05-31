@@ -218,14 +218,17 @@ fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> NedRe
     let lines = content.lines().map(|s| s.to_string()).collect::<Vec<String>>();
     let mut match_map = Vec::<bool>::with_capacity(lines.len());
     lines.iter().map(|line| match_map.push(re.is_match(&line))).collect::<Vec<_>>();
-    let mut context_map = Vec::<bool>::with_capacity(lines.len());
+    let mut context_map = match_map.clone();
     for line in 0..context_map.len() {
         if match_map[line] {
-            for context_line in parameters.context_before..parameters.context_after + 1 {
+            for context_line in line - parameters.context_before..line + parameters.context_after +
+                                                                  1 {
                 context_map[context_line] = true;
             }
         }
     }
+    println!("YYYY: {:?}", match_map);
+    println!("ZZZZ: {:?}", context_map);
     Ok(context_map)
 }
 
