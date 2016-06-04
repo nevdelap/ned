@@ -5,11 +5,10 @@ use ned;
 #[test]
 fn basic_match() {
 
-    let args = "accidentally test"; // TODO
+    let args = "accidentally test";
     let expected_exit_code = 0;
-    let expected_screen_output =
-        ["test/file1.txt:1:The accidentally ghastly hand plans an escape from a cream puff the \
-          placid widow. A slovenly\n"];
+    let expected_screen_output = ["test/file1.txt:1:The accidentally ghastly hand plans an \
+                                   escape from a cream puff the placid widow. A slovenly\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -17,7 +16,7 @@ fn basic_match() {
 #[test]
 fn basic_match_whole_files() {
 
-    let args = "accidentally test --whole-files"; // TODO
+    let args = "accidentally test --whole-files";
     let expected_exit_code = 0;
     let expected_screen_output =
         ["test/file1.txt:\nThe accidentally ghastly hand plans an escape from a cream puff the \
