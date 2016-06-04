@@ -7,7 +7,6 @@ use ned_error::{NedError, NedResult, StringError};
 use regex::Regex;
 use std::iter::Iterator;
 use std::string::String;
-use std::usize;
 
 #[derive(Clone)]
 pub struct Parameters {
@@ -32,8 +31,8 @@ pub struct Parameters {
     pub no_match: bool,
     pub number: Option<usize>,
     pub quiet: bool,
-    pub regex: Option<Regex>,
     pub recursive: bool,
+    pub regex: Option<Regex>,
     pub replace: Option<String>,
     pub skip: usize,
     pub stdin: bool,
@@ -218,11 +217,11 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
     Ok(Parameters {
         all: matches.opt_present("all"),
         backwards: matches.opt_present("backwards"),
+        colors: matches.opt_present("colors") && (stdout || replace.is_none()) && istty,
         context_after: context_after,
         context_before: context_before,
-        colors: matches.opt_present("colors") && (stdout || replace.is_none()) && istty,
-        excludes: excludes,
         exclude_dirs: exclude_dirs,
+        excludes: excludes,
         file_names_only: file_names_only,
         follow: matches.opt_present("follow"),
         globs: globs,
@@ -237,8 +236,8 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
         no_match: matches.opt_present("no-match"),
         number: number,
         quiet: matches.opt_present("quiet"),
-        regex: regex,
         recursive: matches.opt_present("recursive"),
+        regex: regex,
         replace: replace,
         skip: skip,
         stdin: stdin,
