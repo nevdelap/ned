@@ -132,7 +132,18 @@ fn basic_match_no_file_names_no_match() {
 
     let args = "secretly test/dir1 --no-filenames --no-match";
     let expected_exit_code = 0;
-    let expected_screen_output = [""];
+    let expected_screen_output =
+        ["1:The omphalos toward a bubble bath is lowly. The unsightly bicep panics, and a \
+          toothpick feels\n2:nagging remorse; however, a bubble toward a bonbon pees on an \
+          almost ghastly lunatic. Desdemona,\n3:although somewhat soothed by a rapacious \
+          trombone and the girl beyond a gypsy, still bestows great\n4:honor upon her from \
+          another onlooker beyond the maestro, bestow great honor upon her a tea party\n5:with a \
+          bubble, and sells a bonbon to the dark side of her looking glass. If the halfhearted \
+          waif\n6:boogies a menagé à trois, then some bride beams with joy.\n",
+         "1:The tenor related to a dahlia dies, but the curmudgeonly looking glass prefers a \
+          bodice ripper near\n2:the mirror. Some strawberry-blonde amour-propre finds subtle \
+          faults with a taxidermist inside a\n3:hand. The halfhearted trombone, a ruffian, and \
+          the dissident are what got Kafka into trouble. An\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -142,7 +153,14 @@ fn basic_match_no_file_names_no_match_whole_files() {
 
     let args = "secretly test/dir1 --whole-files --no-filenames --no-match";
     let expected_exit_code = 0;
-    let expected_screen_output = [""];
+    let expected_screen_output =
+        ["The omphalos toward a bubble bath is lowly. The unsightly bicep panics, and a \
+          toothpick feels\nnagging remorse; however, a bubble toward a bonbon pees on an almost \
+          ghastly lunatic. Desdemona,\nalthough somewhat soothed by a rapacious trombone and the \
+          girl beyond a gypsy, still bestows great\nhonor upon her from another onlooker beyond \
+          the maestro, bestow great honor upon her a tea party\nwith a bubble, and sells a \
+          bonbon to the dark side of her looking glass. If the halfhearted waif\nboogies a \
+          menagé à trois, then some bride beams with joy.\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -152,7 +170,21 @@ fn basic_match_no_line_numbers_no_match() {
 
     let args = "secretly test/dir1 --no-line-numbers --no-match";
     let expected_exit_code = 0;
-    let expected_screen_output = [""];
+    let expected_screen_output =
+        ["test/dir1/file2.txt:The omphalos toward a bubble bath is lowly. The unsightly bicep \
+          panics, and a toothpick feels\ntest/dir1/file2.txt:nagging remorse; however, a bubble \
+          toward a bonbon pees on an almost ghastly lunatic. \
+          Desdemona,\ntest/dir1/file2.txt:although somewhat soothed by a rapacious trombone and \
+          the girl beyond a gypsy, still bestows great\ntest/dir1/file2.txt:honor upon her from \
+          another onlooker beyond the maestro, bestow great honor upon her a tea \
+          party\ntest/dir1/file2.txt:with a bubble, and sells a bonbon to the dark side of her \
+          looking glass. If the halfhearted waif\n",
+         "test/dir1/file2.txt:boogies a menagé à trois, then some bride beams with \
+          joy.\ntest/dir1/file3.txt:The tenor related to a dahlia dies, but the curmudgeonly \
+          looking glass prefers a bodice ripper near\ntest/dir1/file3.txt:the mirror. Some \
+          strawberry-blonde amour-propre finds subtle faults with a taxidermist inside \
+          a\ntest/dir1/file3.txt:hand. The halfhearted trombone, a ruffian, and the dissident \
+          are what got Kafka into trouble. An\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -160,7 +192,17 @@ fn basic_match_no_line_numbers_no_match() {
 #[test]
 fn only_matches() {
 
-    let args = "accidentally.*hand test --whole-files --matches-only"; // TODO
+    let args = "accidentally.*hand test --matches-only";
+    let expected_exit_code = 0;
+    let expected_screen_output = ["test/file1.txt:1:accidentally ghastly hand\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn only_matches_whole_files() {
+
+    let args = "accidentally.*hand test --whole-files --matches-only";
     let expected_exit_code = 0;
     let expected_screen_output = ["test/file1.txt:\naccidentally ghastly hand\n"];
 
@@ -170,7 +212,19 @@ fn only_matches() {
 #[test]
 fn colored_match() {
 
-    let args = "accidentally.*hand test --whole-files --colors"; // TODO
+    let args = "accidentally.*hand test --colors";
+    let expected_exit_code = 0;
+    let expected_screen_output = ["\u{1b}[35mtest/file1.txt:1:\u{1b}[0mThe \
+                                   \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans an \
+                                   escape from a cream puff the placid widow. A slovenly\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn colored_match_whole_files() {
+
+    let args = "accidentally.*hand test --whole-files --colors";
     let expected_exit_code = 0;
     let expected_screen_output =
         ["\u{1b}[35mtest/file1.txt:\n\u{1b}[0mThe \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m \
@@ -186,7 +240,17 @@ fn colored_match() {
 #[test]
 fn colored_match_file_names_only() {
 
-    let args = "accidentally.*hand test --whole-files --colors --filenames-only"; // TODO
+    let args = "accidentally.*hand test --colors --filenames-only";
+    let expected_exit_code = 0;
+    let expected_screen_output = ["\u{1b}[35mtest/file1.txt\n\u{1b}[0m"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn colored_match_file_names_only_whole_files() {
+
+    let args = "accidentally.*hand test --whole-files --colors --filenames-only";
     let expected_exit_code = 0;
     let expected_screen_output = ["\u{1b}[35mtest/file1.txt\n\u{1b}[0m"];
 
@@ -206,7 +270,7 @@ fn colored_match_line_numbers_only() {
 #[test]
 fn colored_match_no_file_names_whole_files() {
 
-    let args = "accidentally.*hand test --whole-files --colors --no-filenames"; // TODO
+    let args = "accidentally.*hand test --whole-files --colors --no-filenames";
     let expected_exit_code = 0;
     let expected_screen_output =
         ["The \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans an escape from a cream puff \
@@ -246,7 +310,17 @@ fn colored_match_no_line_numbers() {
 #[test]
 fn colored_match_file_names_only_no_match() {
 
-    let args = "secretly test/dir1 --whole-files --colors --filenames-only --no-match"; // TODO
+    let args = "secretly test/dir1 --colors --filenames-only --no-match";
+    let expected_exit_code = 0;
+    let expected_screen_output = ["\u{1b}[35mtest/dir1/file2.txt\n\u{1b}[0m"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn colored_match_file_names_only_no_match_whole_files() {
+
+    let args = "secretly test/dir1 --whole-files --colors --filenames-only --no-match";
     let expected_exit_code = 0;
     let expected_screen_output = ["\u{1b}[35mtest/dir1/file2.txt\n\u{1b}[0m"];
 
@@ -270,7 +344,7 @@ fn colored_match_line_numbers_only_no_match() {
 #[test]
 fn duplicate_options() {
 
-    let args = "accidentally.*hand test --whole-files --colors --colors -c"; // TODO
+    let args = "accidentally.*hand test --whole-files --colors --colors -c";
     let expected_exit_code = 0;
     let expected_screen_output =
         ["\u{1b}[35mtest/file1.txt:\n\u{1b}[0mThe \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m \
@@ -684,7 +758,47 @@ test/longfile.txt:37:snow.
 #[test]
 fn recursive_match() {
 
-    let args = "her test --whole-files --recursive"; // TODO
+    let args = "her test --recursive";
+    let expected_exit_code = 0;
+    let expected_screen_output =
+        ["test/dir2/file4.txt:1:Harpo Marx and I took another hand for some espadrille (with an \
+          irreconcilable tea party, a widow\ntest/dir2/file4.txt:3:intimacy where we can \
+          carelessly slyly organize our necromancer. Another nefarious bubble teaches a\n",
+         "test/dir1/dir4/dir5/file7.txt:2:pencils from the maestro. He called her the Interloper \
+          (or was it Timosha?). Now and then, the\n",
+         "test/dir1/dir4/file6.txt:3:arrive at a state of intimacy where we can accurately mourn \
+          our boy. When another espadrille wakes\ntest/dir1/dir4/file6.txt:4:up, the cup toward \
+          another swamp flies into a rage. Now and then, an onlooker sells a dissident\n",
+         "test/dir1/file2.txt:4:honor upon her from another onlooker beyond the maestro, bestow \
+          great honor upon her a tea party\ntest/dir1/file2.txt:5:with a bubble, and sells a \
+          bonbon to the dark side of her looking glass. If the halfhearted waif\n",
+         "test/longfile.txt:3:sprightly necromancer, another dissident, a few mirrors, and \
+          the\ntest/longfile.txt:5:where we can secretly give lectures on morality to our cream \
+          puff.\ntest/longfile.txt:17:soothed by an espadrille and a fetishist, still makes a \
+          truce with her\ntest/longfile.txt:18:from an unseemly gypsy, buy an expensive gift for \
+          her a fetishist with\ntest/longfile.txt:19:a philosopher, and takes a peek at the dark \
+          side of her dilettante.\ntest/longfile.txt:21:gingerly curse conquers the philosopher. \
+          Toscanini and I took a bicep\ntest/longfile.txt:22:(with a rhetorical haunch, another \
+          rascally cigar, a few omphaloss,\ntest/longfile.txt:24:where we can feverishly play \
+          pinochle with our trombone. The boy for a\ntest/longfile.txt:25:shadow, a gypsy living \
+          with a boy, and some toothpick for another\ntest/longfile.txt:31:lazily secretly \
+          admires the boy beyond a tea party. He called her Lila\ntest/longfile.txt:34:teaches \
+          her from a gonad behind an impresario, bestow great honor \
+          upon\ntest/longfile.txt:35:her the lovely fetishist with a cup beyond the pocket, and \
+          lazily\ntest/longfile.txt:36:boogies the dark side of her\n",
+         "test/dir3/file5.txt:1:An onlooker, a curmudgeonly swamp, and a bubble are what got \
+          Scheherazade into trouble. A slyly\ntest/dir3/file5.txt:3:angel living with a cream \
+          puff, the bubble beyond a swamp, a few dahlias, and another starlet over \
+          a\ntest/dir3/file5.txt:4:bonbon) to arrive at a state of intimacy where we can wisely \
+          write a love letter to our taxidermist.\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn recursive_match_whole_files() {
+
+    let args = "her test --whole-files --recursive";
     let expected_exit_code = 0;
     let expected_screen_output =
         ["test/dir1/dir4/file6.txt:\nThe shadow conquers the hand related to a mastadon. Jespera \
@@ -724,7 +838,21 @@ fn recursive_match() {
 #[test]
 fn recursive_match_file_names_only() {
 
-    let args = "her test --whole-files --recursive --filenames-only"; // TODO
+    let args = "her test --recursive --filenames-only";
+    let expected_exit_code = 0;
+    let expected_screen_output = ["test/dir1/dir4/file6.txt\n",
+                                  "test/dir1/dir4/dir5/file7.txt\n",
+                                  "test/dir1/file2.txt\n",
+                                  "test/dir3/file5.txt\n",
+                                  "test/dir2/file4.txt\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn recursive_match_file_names_only_whole_files() {
+
+    let args = "her test --whole-files --recursive --filenames-only";
     let expected_exit_code = 0;
     let expected_screen_output = ["test/dir1/dir4/file6.txt\n",
                                   "test/dir1/dir4/dir5/file7.txt\n",
@@ -820,6 +948,8 @@ fn test(args: &str, expected_exit_code: i32, expected_screen_output: &[&str]) {
     let args: Vec<String> = args.split_whitespace()
         .map(|arg| arg.to_string())
         .collect::<Vec<String>>();
+
+    assert!(!(expected_screen_output[0].len() == 0 && expected_exit_code == 0));
 
     let mut screen_output: Vec<u8> = vec![];
 
