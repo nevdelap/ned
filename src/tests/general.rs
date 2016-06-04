@@ -88,9 +88,18 @@ fn basic_match_line_numbers_only_no_match() {
 
 #[test]
 fn basic_match_no_file_names_no_match() {
-    // TODO
 
     let args = "secretly test/dir1 --whole-files --no-filenames --no-match";
+    let expected_exit_code = 0;
+    let expected_screen_output = [""];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn basic_match_no_line_numbers_no_match() {
+
+    let args = "secretly test/dir1 --no-line-numbers --no-match";
     let expected_exit_code = 0;
     let expected_screen_output = [""];
 
