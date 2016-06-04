@@ -158,8 +158,8 @@ fn process_file(output: &mut Write,
         if parameters.colors {
             replacement = Red.bold().paint(replacement.as_str()).to_string();
         }
-        let new_content = replace(parameters, &re, &content, &replacement);
-        found_matches = new_content != content;
+        let (new_content, fm) = replace(parameters, &re, &content, &replacement);
+        found_matches = fm; // TODO
         if parameters.stdout {
             if !parameters.quiet {
                 try!(write_file_name_and_line_number(output, parameters, file_name, None));
@@ -190,8 +190,6 @@ fn process_file(output: &mut Write,
             let context_map = try!(make_context_map(&parameters, &re, &content));
             for (index, line) in content.lines().enumerate() {
                 let line_number = index + 1;
-                // TODO: use context_map and line_number to show context in process_text.
-                // Show line numbers when showing the file_name.
                 found_matches |= try!(process_text(output,
                                                    parameters,
                                                    &re,
@@ -217,7 +215,9 @@ fn process_file(output: &mut Write,
 fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> NedResult<Vec<bool>> {
     let lines = content.lines().map(|s| s.to_string()).collect::<Vec<String>>();
     let mut match_map = Vec::<bool>::with_capacity(lines.len());
-    lines.iter().map(|line| match_map.push(re.is_match(&line))).collect::<Vec<_>>();
+    lines.iter()
+        .map(|line| match_map.push(is_match_with_number_skip_backwards(parameters, re, line)))
+        .collect::<Vec<_>>();
     let mut context_map = match_map.clone();
     for line in 0..context_map.len() {
         if match_map[line] {
@@ -236,6 +236,17 @@ fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> NedRe
     Ok(context_map)
 }
 
+fn is_match_with_number_skip_backwards(parameters: &Parameters, re: &Regex, text: &str) -> bool {
+    let start_end_byte_indices = re.find_iter(&text).collect::<Vec<(usize, usize)>>();
+    let count = start_end_byte_indices.len();
+    for index in 0..count {
+        if parameters.include_match(index, count) {
+            return true;
+        }
+    }
+    false
+}
+
 fn process_text(output: &mut Write,
                 parameters: &Parameters,
                 re: &Regex,
@@ -244,7 +255,7 @@ fn process_text(output: &mut Write,
                 text: &str,
                 context_map: Option<&Vec<bool>>)
                 -> NedResult<bool> {
-    if parameters.quiet {
+    if parameters.quiet && parameters.skip == 0 && parameters.number.is_none() {
         // Quiet match only is shortcut by the more performant is_match() .
         return Ok(re.is_match(&text));
     }
@@ -260,14 +271,17 @@ fn process_text(output: &mut Write,
         }
         return Ok(found_matches);
     } else if re.is_match(text) {
-        found_matches = true;
-        if parameters.only_matches {
-            // TODO 3: make it respect -n, -k, -b DONE!
-            try!(write_matches(output, parameters, &re, file_name, line_number, text));
+        if parameters.matches_only {
+            found_matches =
+                try!(write_matches(output, parameters, &re, file_name, line_number, text))
         } else {
             // TODO 4: make it respect -n, -k, -b TO TEST
-            let text = color_replacement_with_number_skip_backwards(parameters, re, text);
-            try!(write_line(output, parameters, file_name, line_number, &text));
+            // Need to get is found_matches out of this...
+            let (text, fm) = color_replacement_with_number_skip_backwards(parameters, re, text);
+            found_matches = fm;
+            if found_matches {
+                try!(write_line(output, parameters, file_name, line_number, &text));
+            }
         }
     }
     if !found_matches {
@@ -286,9 +300,11 @@ fn process_text(output: &mut Write,
 
 /// Do a replace_all() or a find_iter() taking into account which of --number, --skip, and
 /// --backwards have been specified.
-fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> String {
+fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> (String, bool) {
+    let mut found_matches = false;
     let mut new_text;
     if !parameters.limit_matches() {
+        found_matches = re.is_match(text);
         new_text = re.replace_all(text, replace)
     } else {
         new_text = text.to_string();
@@ -297,6 +313,7 @@ fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> St
         for (rev_index, &(start, end)) in start_end_byte_indices.iter().rev().enumerate() {
             let index = count - rev_index - 1;
             if parameters.include_match(index, count) {
+                found_matches = true;
                 new_text = format!("{}{}{}",
                                    // find_iter guarantees that start and end
                                    // are at a Unicode code point boundary.
@@ -306,7 +323,7 @@ fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> St
             }
         }
     };
-    return new_text;
+    return (new_text, found_matches);
 }
 
 fn write_line(output: &mut Write,
@@ -315,10 +332,12 @@ fn write_line(output: &mut Write,
               line_number: Option<usize>,
               text: &str)
               -> NedResult<()> {
-    try!(write_file_name_and_line_number(output, parameters, file_name, line_number));
-    if !parameters.line_numbers_only {
-        try!(output.write(&text.to_string().into_bytes()));
-        try!(write_newline_if_replaced_text_ends_with_newline(output, &text));
+    if !parameters.quiet {
+        try!(write_file_name_and_line_number(output, parameters, file_name, line_number));
+        if !parameters.line_numbers_only && !parameters.quiet {
+            try!(output.write(&text.to_string().into_bytes()));
+            try!(write_newline_if_replaced_text_ends_with_newline(output, &text));
+        }
     }
     Ok(())
 }
@@ -331,32 +350,34 @@ fn write_file_name_and_line_number(output: &mut Write,
                                    file_name: &Option<String>,
                                    line_number: Option<usize>)
                                    -> NedResult<()> {
-    let mut location = "".to_string();
-    if !parameters.no_file_names && !parameters.line_numbers_only {
-        if let &Some(ref file_name) = file_name {
-            location.push_str(&file_name);
-        }
-    }
-    if !parameters.no_line_numbers && !parameters.file_names_only {
-        if let Some(line_number) = line_number {
-            if location.len() > 0 {
-                location.push(':');
+    if !parameters.quiet {
+        let mut location = "".to_string();
+        if !parameters.no_file_names && !parameters.line_numbers_only {
+            if let &Some(ref file_name) = file_name {
+                location.push_str(&file_name);
             }
-            location.push_str(&line_number.to_string());
         }
-    }
-    if location.len() > 0 {
-        location.push_str(if parameters.file_names_only || parameters.line_numbers_only {
-            "\n"
-        } else if parameters.replace.is_some() || parameters.whole_files {
-            ":\n"
-        } else {
-            ":"
-        });
-        if parameters.colors {
-            location = Purple.paint(location).to_string();
+        if !parameters.no_line_numbers && !parameters.file_names_only {
+            if let Some(line_number) = line_number {
+                if location.len() > 0 {
+                    location.push(':');
+                }
+                location.push_str(&line_number.to_string());
+            }
         }
-        try!(output.write(&location.into_bytes()));
+        if location.len() > 0 {
+            location.push_str(if parameters.file_names_only || parameters.line_numbers_only {
+                "\n"
+            } else if parameters.replace.is_some() || parameters.whole_files {
+                ":\n"
+            } else {
+                ":"
+            });
+            if parameters.colors {
+                location = Purple.paint(location).to_string();
+            }
+            try!(output.write(&location.into_bytes()));
+        }
     }
     Ok(())
 }
@@ -369,8 +390,8 @@ fn write_captures(output: &mut Write,
                   text: &str,
                   group: &str)
                   -> NedResult<bool> {
-    try!(write_file_name_and_line_number(output, parameters, file_name, line_number));
     let mut found_matches = false;
+    try!(write_file_name_and_line_number(output, parameters, file_name, line_number));
     let captures = re.captures_iter(text).collect::<Vec<Captures>>();
     for (index, capture) in captures.iter().enumerate() {
         if parameters.include_match(index, captures.len()) {
@@ -381,7 +402,11 @@ fn write_captures(output: &mut Write,
             };
             if let Some(text) = text {
                 let text = color_replacement_all(parameters, re, text);
-                try!(output.write(&text.to_string().into_bytes()));
+                if !parameters.quiet {
+                    try!(output.write(&text.to_string().into_bytes()));
+                } else {
+                    return Ok(found_matches);
+                }
             }
         }
     }
@@ -397,24 +422,30 @@ fn write_matches(output: &mut Write,
                  file_name: &Option<String>,
                  line_number: Option<usize>,
                  text: &str)
-                 -> NedResult<()> {
+                 -> NedResult<bool> {
+    let mut found_matches = false;
     let mut file_name_written = false;
     let start_end_byte_indices = re.find_iter(text).collect::<Vec<(usize, usize)>>();
     let count = start_end_byte_indices.len();
     for (index, &(start, end)) in start_end_byte_indices.iter().enumerate() {
         if parameters.include_match(index, count) {
+            found_matches = true;
             if !file_name_written {
                 try!(write_file_name_and_line_number(output, parameters, file_name, line_number));
                 file_name_written = true;
             }
             let text = color(parameters, &text[start..end]);
-            try!(output.write(&text.to_string().into_bytes()));
+            if !parameters.quiet {
+                try!(output.write(&text.to_string().into_bytes()));
+            } else {
+                return Ok(found_matches);
+            }
         }
     }
     if file_name_written {
         try!(output.write(&"\n".to_string().into_bytes()));
     }
-    Ok(())
+    Ok(found_matches)
 }
 
 fn write_newline_if_replaced_text_ends_with_newline(output: &mut Write,
@@ -437,14 +468,15 @@ fn color_replacement_all(parameters: &Parameters, re: &Regex, text: &str) -> Str
 fn color_replacement_with_number_skip_backwards(parameters: &Parameters,
                                                 re: &Regex,
                                                 text: &str)
-                                                -> String {
+                                                -> (String, bool) {
+    let (new_text, found_matches) = replace(parameters,
+                                            &re,
+                                            text,
+                                            Red.bold().paint("$0").to_string().as_str());
     if parameters.colors {
-        replace(parameters,
-                &re,
-                text,
-                Red.bold().paint("$0").to_string().as_str())
+        (new_text, found_matches)
     } else {
-        text.to_string()
+        (text.to_string(), found_matches)
     }
 }
 

@@ -524,6 +524,7 @@ isisisisisisisisisisisis
          expected_file_content);
 }
 
+#[test]
 fn only_matches_skip_quiet_and_not_quiet() {
 
     let input = "\
@@ -538,12 +539,12 @@ related to the hand to an ungodly dahlia.
     let args = "--matches-only --skip 2"; // Skip 2 is on each line.
     let expected_found_matches = true;
     let expected_screen_output = "\
-bogus_file.txt: o onoo
-bogus_file.txt: ouomonon
-bogus_file.txt: of
-bogus_file.txt: oyotow
-bogus_file.txt: owonoo
-bogus_file.txt: od
+bogus_file.txt:1:o onoo
+bogus_file.txt:2:ouomonon
+bogus_file.txt:3:of
+bogus_file.txt:4:oyotow
+bogus_file.txt:5:owonoo
+bogus_file.txt:6:od
 ";
     let expected_file_content = &input;
 
@@ -567,12 +568,9 @@ another swamp flies into a rage. Now and then, an onlooker sells a dissident
 related to the hand to an ungodly dahlia.
 ";
     let pattern = "on.";
-    let args = "--whole-files --matches-only --skip 2";
+    let args = "--matches-only --skip 2 --whole-files";
     let expected_found_matches = true;
-    let expected_screen_output = "\
-bogus_file.txt:
-on ondon)onl
-";
+    let expected_screen_output = "bogus_file.txt:\non ondon)onl\n";
     let expected_file_content = &input;
 
     test(input,
@@ -632,56 +630,6 @@ related to the hand to an ungodly dahlia.
 bogus_file.txt:
 onqon.on ond
 ";
-    let expected_file_content = &input;
-
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
-}
-
-// #[test]
-fn only_matches_skip_all_quiet_and_not_quiet() {
-
-    let input = "\
-The shadow conquers the hand related to a mastadon. Jespera and I took a cup
-around a toothache (with a lunatic around some debutante, a ribbon beyond a
-curse, a few dahlias, and a ribbon) to arrive at a state of intimacy where we
-can accurately mourn our boy. When another espadrille wakes up, the cup toward
-another swamp flies into a rage. Now and then, an onlooker sells a dissident
-related to the hand to an ungodly dahlia.
-";
-    let pattern = "on. ";
-    let args = "--skip 2";
-    let expected_found_matches = false;
-    let expected_screen_output = "";
-    let expected_file_content = &input;
-
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
-}
-
-// #[test]
-fn only_matches_skip_all_whole_files_quiet_and_not_quiet() {
-
-    let input = "\
-The shadow conquers the hand related to a mastadon. Jespera and I took a cup
-around a toothache (with a lunatic around some debutante, a ribbon beyond a
-curse, a few dahlias, and a ribbon) to arrive at a state of intimacy where we
-can accurately mourn our boy. When another espadrille wakes up, the cup toward
-another swamp flies into a rage. Now and then, an onlooker sells a dissident
-related to the hand to an ungodly dahlia.
-";
-    let pattern = "on. ";
-    let args = "--whole-files --matches-only --skip 10";
-    let expected_found_matches = false;
-    let expected_screen_output = "";
     let expected_file_content = &input;
 
     test(input,
@@ -1289,6 +1237,7 @@ related to the hand to an ungodly dahlia.
 
 #[test]
 fn replace_skip_all_quiet_and_not_quiet() {
+    // TODO
 
     let input = "\
 The shadow conquers the hand related to a mastadon. Jespera and I took a cup
@@ -1320,7 +1269,33 @@ related to the hand to an ungodly dahlia.
 }
 
 #[test]
+fn only_matches_skip_all_whole_files_quiet_and_not_quiet() {
+
+    let input = "\
+The shadow conquers the hand related to a mastadon. Jespera and I took a cup
+around a toothache (with a lunatic around some debutante, a ribbon beyond a
+curse, a few dahlias, and a ribbon) to arrive at a state of intimacy where we
+can accurately mourn our boy. When another espadrille wakes up, the cup toward
+another swamp flies into a rage. Now and then, an onlooker sells a dissident
+related to the hand to an ungodly dahlia.
+";
+    let pattern = "on.";
+    let args = "--whole-files --matches-only --skip 10";
+    let expected_found_matches = false;
+    let expected_screen_output = "";
+    let expected_file_content = &input;
+
+    test(input,
+         pattern,
+         args,
+         expected_found_matches,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
 fn replace_skip_all_backwards_quiet_and_not_quiet() {
+    // TODO
 
     let input = "\
 The shadow conquers the hand related to a mastadon. Jespera and I took a cup
@@ -1549,7 +1524,7 @@ fn test(input: &str,
         expected_found_matches: bool,
         expected_screen_output: &str,
         expected_file_content: &str) {
-
+    println!("NOT QUIET");
     really_test(input,
                 pattern,
                 args,
@@ -1557,6 +1532,7 @@ fn test(input: &str,
                 expected_screen_output,
                 expected_file_content);
     let args = format!("{} --quiet", args);
+    println!("QUIET");
     really_test(input,
                 pattern,
                 &args,
