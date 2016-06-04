@@ -877,7 +877,43 @@ fn recursive_match_line_numbers_only() {
 #[test]
 fn recursive_match_no_files_names() {
 
-    let args = "her test --whole-files --recursive --no-filenames"; // TODO
+    let args = "her test --recursive --no-filenames";
+    let expected_exit_code = 0;
+    let expected_screen_output =
+        ["1:Harpo Marx and I took another hand for some espadrille (with an irreconcilable tea \
+          party, a widow\n3:intimacy where we can carelessly slyly organize our necromancer. \
+          Another nefarious bubble teaches a\n",
+         "2:pencils from the maestro. He called her the Interloper (or was it Timosha?). Now and \
+          then, the\n",
+         "3:arrive at a state of intimacy where we can accurately mourn our boy. When another \
+          espadrille wakes\n4:up, the cup toward another swamp flies into a rage. Now and then, \
+          an onlooker sells a dissident\n",
+         "4:honor upon her from another onlooker beyond the maestro, bestow great honor upon her \
+          a tea party\n5:with a bubble, and sells a bonbon to the dark side of her looking \
+          glass. If the halfhearted waif\n",
+         "3:sprightly necromancer, another dissident, a few mirrors, and the\n5:where we can \
+          secretly give lectures on morality to our cream puff.\n17:soothed by an espadrille and \
+          a fetishist, still makes a truce with her\n18:from an unseemly gypsy, buy an expensive \
+          gift for her a fetishist with\n19:a philosopher, and takes a peek at the dark side of \
+          her dilettante.\n21:gingerly curse conquers the philosopher. Toscanini and I took a \
+          bicep\n22:(with a rhetorical haunch, another rascally cigar, a few \
+          omphaloss,\n24:where we can feverishly play pinochle with our trombone. The boy for \
+          a\n25:shadow, a gypsy living with a boy, and some toothpick for another\n31:lazily \
+          secretly admires the boy beyond a tea party. He called her Lila\n34:teaches her from a \
+          gonad behind an impresario, bestow great honor upon\n35:her the lovely fetishist with \
+          a cup beyond the pocket, and lazily\n36:boogies the dark side of her\n",
+         "1:An onlooker, a curmudgeonly swamp, and a bubble are what got Scheherazade into \
+          trouble. A slyly\n3:angel living with a cream puff, the bubble beyond a swamp, a few \
+          dahlias, and another starlet over a\n4:bonbon) to arrive at a state of intimacy where \
+          we can wisely write a love letter to our taxidermist.\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn recursive_match_no_files_names_whole_files() {
+
+    let args = "her test --whole-files --recursive --no-filenames";
     let expected_exit_code = 0;
     let expected_screen_output =
         ["The shadow conquers the hand related to a mastadon. Jespera and I took a cup around a \
