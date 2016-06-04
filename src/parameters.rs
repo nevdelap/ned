@@ -5,8 +5,6 @@ use glob::Pattern;
 use libc;
 use ned_error::{NedError, NedResult, StringError};
 use regex::Regex;
-use std::iter::Iterator;
-use std::string::String;
 
 #[derive(Clone)]
 pub struct Parameters {
@@ -77,24 +75,9 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
 
     let matches = try!(opts.parse(args));
 
-    let globs;
-    let regex;
-
-    if matches.opt_present("pattern") {
-        let pattern = add_re_options_to_pattern(&matches,
-                                                &matches.opt_str("pattern")
-                                                    .expect("Bug, already checked that pattern \
-                                                             is present."));
-        regex = Some(try!(Regex::new(&pattern)));
-        globs = matches.free.iter().map(|glob| glob.clone()).collect::<Vec<String>>();
-    } else if matches.free.len() > 0 {
-        let pattern = add_re_options_to_pattern(&matches, &matches.free[0]);
-        regex = Some(try!(Regex::new(&pattern)));
-        globs = matches.free.iter().skip(1).map(|glob| glob.clone()).collect::<Vec<String>>();
-    } else {
-        regex = None;
-        globs = matches.free.iter().map(|glob| glob.clone()).collect::<Vec<String>>();
-    }
+    let stdout = matches.opt_present("stdout");
+    let replace = matches.opt_str("replace");
+    let istty = unsafe { libc::isatty(libc::STDOUT_FILENO as i32) } != 0;
 
     let mut context_after = 0;
     if let Some(value) = matches.opt_str("context") {
@@ -146,6 +129,54 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
         };
     }
 
+    let mut exclude_dirs = Vec::<Pattern>::new();
+    for exclude in matches.opt_strs("exclude-dir") {
+        let pattern = try!(Pattern::new(&exclude));
+        exclude_dirs.push(pattern);
+    }
+
+    let mut excludes = Vec::<Pattern>::new();
+    for exclude in matches.opt_strs("exclude") {
+        let pattern = try!(Pattern::new(&exclude));
+        excludes.push(pattern);
+    }
+
+    let mut includes = Vec::<Pattern>::new();
+    for include in matches.opt_strs("include") {
+        let pattern = try!(Pattern::new(&include));
+        includes.push(pattern);
+    }
+
+    let whole_files = matches.opt_present("whole-files");
+
+    // file_names_only takes precedence over line_numbers_only.
+    let file_names_only = matches.opt_present("filenames-only");
+    let line_numbers_only = !whole_files && !file_names_only &&
+                            matches.opt_present("line-numbers-only");
+
+    // file_names_only takes precedence over no_file_names.
+    let no_file_names = matches.opt_present("no-filenames");
+    let no_line_numbers = file_names_only || !whole_files && matches.opt_present("no-line-numbers");
+
+    let regex;
+    let globs;
+
+    if matches.opt_present("pattern") {
+        let pattern = add_re_options_to_pattern(&matches,
+                                                &matches.opt_str("pattern")
+                                                    .expect("Bug, already checked that pattern \
+                                                             is present."));
+        regex = Some(try!(Regex::new(&pattern)));
+        globs = matches.free.iter().map(|glob| glob.clone()).collect::<Vec<String>>();
+    } else if matches.free.len() > 0 {
+        let pattern = add_re_options_to_pattern(&matches, &matches.free[0]);
+        regex = Some(try!(Regex::new(&pattern)));
+        globs = matches.free.iter().skip(1).map(|glob| glob.clone()).collect::<Vec<String>>();
+    } else {
+        regex = None;
+        globs = matches.free.iter().map(|glob| glob.clone()).collect::<Vec<String>>();
+    }
+
     let number;
     if let Some(value) = matches.opt_str("number") {
         match value.trim().parse::<usize>() {
@@ -178,41 +209,7 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
         skip = 0;
     }
 
-    let mut includes = Vec::<Pattern>::new();
-    for include in matches.opt_strs("include") {
-        let pattern = try!(Pattern::new(&include));
-        includes.push(pattern);
-    }
-
-    let mut excludes = Vec::<Pattern>::new();
-    for exclude in matches.opt_strs("exclude") {
-        let pattern = try!(Pattern::new(&exclude));
-        excludes.push(pattern);
-    }
-
-    let mut exclude_dirs = Vec::<Pattern>::new();
-    for exclude in matches.opt_strs("exclude-dir") {
-        let pattern = try!(Pattern::new(&exclude));
-        exclude_dirs.push(pattern);
-    }
-
-    let replace = matches.opt_str("replace");
-    let stdout = matches.opt_present("stdout");
     let stdin = globs.len() == 0 || stdout;
-
-    let istty = unsafe { libc::isatty(libc::STDOUT_FILENO as i32) } != 0;
-
-    let whole_files = matches.opt_present("whole-files");
-
-    // file_names_only takes precedence over line_numbers_only.
-    let file_names_only = matches.opt_present("filenames-only");
-    let line_numbers_only = !whole_files && !file_names_only &&
-                            matches.opt_present("line-numbers-only");
-
-    // file_names_only takes precedence over no_file_names.
-    let no_file_names = matches.opt_present("no-filenames");
-    let no_line_numbers = file_names_only || !whole_files && matches.opt_present("no-line-numbers");
-
 
     Ok(Parameters {
         all: matches.opt_present("all"),
