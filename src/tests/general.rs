@@ -686,7 +686,8 @@ fn recursive_match_line_numbers_only() {
 
     let args = "her test --recursive --line-numbers-only";
     let expected_exit_code = 0;
-    let expected_screen_output = ["1\n3\n2\n3\n4\n4\n5\n3\n5\n17\n18\n19\n21\n22\n24\n25\n31\n34\n35\n36\n1\n3\n4\n"];
+    let expected_screen_output = ["1\n3\n2\n3\n4\n4\n5\n3\n5\n17\n18\n19
+21\n22\n24\n25\n31\n34\n35\n36\n1\n3\n4\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
