@@ -5,7 +5,7 @@ use ned;
 #[test]
 fn basic_match() {
 
-    let args = "accidentally test --whole-files";
+    let args = "accidentally test --whole-files"; // TODO
     let expected_exit_code = 0;
     let expected_screen_output =
         ["test/file1.txt:\nThe accidentally ghastly hand plans an escape from a cream puff the \
@@ -21,7 +21,7 @@ fn basic_match() {
 #[test]
 fn basic_match_file_names_only() {
 
-    let args = "accidentally test --whole-files --filenames-only";
+    let args = "accidentally test --whole-files --filenames-only"; // TODO
     let expected_exit_code = 0;
     let expected_screen_output = ["test/file1.txt\n"];
 
@@ -41,7 +41,7 @@ fn basic_match_line_numbers_only() {
 #[test]
 fn basic_match_no_file_names() {
 
-    let args = "accidentally test --whole-files --no-filenames";
+    let args = "accidentally test --whole-files --no-filenames"; // TODO
     let expected_exit_code = 0;
     let expected_screen_output =
         ["The accidentally ghastly hand plans an escape from a cream puff the placid widow. A \
@@ -68,7 +68,7 @@ fn basic_match_no_line_numbers() {
 #[test]
 fn basic_match_file_names_only_no_match() {
 
-    let args = "secretly test/dir1 --whole-files --filenames-only --no-match";
+    let args = "secretly test/dir1 --whole-files --filenames-only --no-match"; // TODO
     let expected_exit_code = 0;
     let expected_screen_output = ["test/dir1/file2.txt\n"];
 
@@ -88,7 +88,7 @@ fn basic_match_line_numbers_only_no_match() {
 #[test]
 fn basic_match_no_file_names_no_match() {
 
-    let args = "secretly test/dir1 --whole-files --no-filenames --no-match";
+    let args = "secretly test/dir1 --whole-files --no-filenames --no-match"; // TODO
     let expected_exit_code = 0;
     let expected_screen_output = [""];
 
@@ -108,7 +108,7 @@ fn basic_match_no_line_numbers_no_match() {
 #[test]
 fn only_matches() {
 
-    let args = "accidentally.*hand test --whole-files --matches-only";
+    let args = "accidentally.*hand test --whole-files --matches-only"; // TODO
     let expected_exit_code = 0;
     let expected_screen_output = ["test/file1.txt:\naccidentally ghastly hand\n"];
 
@@ -118,7 +118,7 @@ fn only_matches() {
 #[test]
 fn colored_match() {
 
-    let args = "accidentally.*hand test --whole-files --colors";
+    let args = "accidentally.*hand test --whole-files --colors"; // TODO
     let expected_exit_code = 0;
     let expected_screen_output =
         ["\u{1b}[35mtest/file1.txt:\n\u{1b}[0mThe \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m \
@@ -134,7 +134,7 @@ fn colored_match() {
 #[test]
 fn colored_match_file_names_only() {
 
-    let args = "accidentally.*hand test --whole-files --colors --filenames-only";
+    let args = "accidentally.*hand test --whole-files --colors --filenames-only"; // TODO
     let expected_exit_code = 0;
     let expected_screen_output = ["\u{1b}[35mtest/file1.txt\n\u{1b}[0m"];
 
@@ -154,7 +154,7 @@ fn colored_match_line_numbers_only() {
 #[test]
 fn colored_match_no_file_names_whole_files() {
 
-    let args = "accidentally.*hand test --whole-files --colors --no-filenames";
+    let args = "accidentally.*hand test --whole-files --colors --no-filenames"; // TODO
     let expected_exit_code = 0;
     let expected_screen_output =
         ["The \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans an escape from a cream puff \
@@ -194,7 +194,7 @@ fn colored_match_no_line_numbers() {
 #[test]
 fn colored_match_file_names_only_no_match() {
 
-    let args = "secretly test/dir1 --whole-files --colors --filenames-only --no-match";
+    let args = "secretly test/dir1 --whole-files --colors --filenames-only --no-match"; // TODO
     let expected_exit_code = 0;
     let expected_screen_output = ["\u{1b}[35mtest/dir1/file2.txt\n\u{1b}[0m"];
 
@@ -218,7 +218,7 @@ fn colored_match_line_numbers_only_no_match() {
 #[test]
 fn duplicate_options() {
 
-    let args = "accidentally.*hand test --whole-files --colors --colors -c";
+    let args = "accidentally.*hand test --whole-files --colors --colors -c"; // TODO
     let expected_exit_code = 0;
     let expected_screen_output =
         ["\u{1b}[35mtest/file1.txt:\n\u{1b}[0mThe \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m \
@@ -632,7 +632,7 @@ test/longfile.txt:37:snow.
 #[test]
 fn recursive_match() {
 
-    let args = "her test --whole-files --recursive";
+    let args = "her test --whole-files --recursive"; // TODO
     let expected_exit_code = 0;
     let expected_screen_output =
         ["test/dir1/dir4/file6.txt:\nThe shadow conquers the hand related to a mastadon. Jespera \
@@ -672,7 +672,7 @@ fn recursive_match() {
 #[test]
 fn recursive_match_file_names_only() {
 
-    let args = "her test --whole-files --recursive --filenames-only";
+    let args = "her test --whole-files --recursive --filenames-only"; // TODO
     let expected_exit_code = 0;
     let expected_screen_output = ["test/dir1/dir4/file6.txt\n",
                                   "test/dir1/dir4/dir5/file7.txt\n",
@@ -697,7 +697,7 @@ fn recursive_match_line_numbers_only() {
 #[test]
 fn recursive_match_no_files_names() {
 
-    let args = "her test --whole-files --recursive --no-filenames";
+    let args = "her test --whole-files --recursive --no-filenames"; // TODO
     let expected_exit_code = 0;
     let expected_screen_output =
         ["The shadow conquers the hand related to a mastadon. Jespera and I took a cup around a \
@@ -737,7 +737,7 @@ fn recursive_match_no_files_names() {
 #[test]
 fn recursive_match_file_names_only_no_match() {
 
-    let args = "her test --whole-files --recursive --filenames-only --no-match";
+    let args = "her test --whole-files --recursive --filenames-only --no-match"; // TODO
     let expected_exit_code = 0;
     let expected_screen_output = ["test/dir1/file3.txt\n", "test/file1.txt\n"];
 
