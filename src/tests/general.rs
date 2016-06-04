@@ -32,7 +32,17 @@ fn basic_match_whole_files() {
 #[test]
 fn basic_match_file_names_only() {
 
-    let args = "accidentally test --whole-files --filenames-only"; // TODO
+    let args = "accidentally test --filenames-only";
+    let expected_exit_code = 0;
+    let expected_screen_output = ["test/file1.txt\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn basic_match_file_names_only_whole_files() {
+
+    let args = "accidentally test --whole-files --filenames-only";
     let expected_exit_code = 0;
     let expected_screen_output = ["test/file1.txt\n"];
 
@@ -52,7 +62,18 @@ fn basic_match_line_numbers_only() {
 #[test]
 fn basic_match_no_file_names() {
 
-    let args = "accidentally test --whole-files --no-filenames"; // TODO
+    let args = "accidentally test --no-filenames";
+    let expected_exit_code = 0;
+    let expected_screen_output = ["1:The accidentally ghastly hand plans an escape from a cream \
+                                   puff the placid widow. A slovenly\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn basic_match_no_file_names_whole_files() {
+
+    let args = "accidentally test --whole-files --no-filenames";
     let expected_exit_code = 0;
     let expected_screen_output =
         ["The accidentally ghastly hand plans an escape from a cream puff the placid widow. A \
@@ -79,7 +100,17 @@ fn basic_match_no_line_numbers() {
 #[test]
 fn basic_match_file_names_only_no_match() {
 
-    let args = "secretly test/dir1 --whole-files --filenames-only --no-match"; // TODO
+    let args = "secretly test/dir1 --filenames-only --no-match";
+    let expected_exit_code = 0;
+    let expected_screen_output = ["test/dir1/file2.txt\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn basic_match_file_names_only_no_match_whole_files() {
+
+    let args = "secretly test/dir1 --whole-files --filenames-only --no-match";
     let expected_exit_code = 0;
     let expected_screen_output = ["test/dir1/file2.txt\n"];
 
@@ -99,7 +130,17 @@ fn basic_match_line_numbers_only_no_match() {
 #[test]
 fn basic_match_no_file_names_no_match() {
 
-    let args = "secretly test/dir1 --whole-files --no-filenames --no-match"; // TODO
+    let args = "secretly test/dir1 --no-filenames --no-match";
+    let expected_exit_code = 0;
+    let expected_screen_output = [""];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn basic_match_no_file_names_no_match_whole_files() {
+
+    let args = "secretly test/dir1 --whole-files --no-filenames --no-match";
     let expected_exit_code = 0;
     let expected_screen_output = [""];
 
