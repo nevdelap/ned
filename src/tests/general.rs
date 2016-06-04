@@ -207,8 +207,10 @@ fn colored_match_line_numbers_only_no_match() {
     let args = "secretly test/dir1 --colors --line-numbers-only --no-match";
     let expected_exit_code = 0;
     let expected_screen_output = ["\u{1b}[35m1\n\u{1b}[0m\u{1b}[35m2\n\u{1b}[0m\u{1b}[35m3
-\u{1b}[0m\u{1b}[35m4\n\u{1b}[0m\u{1b}[35m5\n\u{1b}[0m\u{1b}[35m6\n\u{1b}[0m", "\u{1b}[35m1
-\u{1b}[0m\u{1b}[35m2\n\u{1b}[0m\u{1b}[35m3\n\u{1b}[0m"];
+\u{1b}[0m\u{1b}[35m4\n\u{1b}[0m\u{1b}[35m5\n\u{1b}[0m\u{1b}[35m6\n\u{1b}[0m",
+                                  "\u{1b}[35m1
+\
+                                   \u{1b}[0m\u{1b}[35m2\n\u{1b}[0m\u{1b}[35m3\n\u{1b}[0m"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -686,8 +688,8 @@ fn recursive_match_line_numbers_only() {
 
     let args = "her test --recursive --line-numbers-only";
     let expected_exit_code = 0;
-    let expected_screen_output = ["1\n3\n2\n3\n4\n4\n5\n3\n5\n17\n18\n19
-21\n22\n24\n25\n31\n34\n35\n36\n1\n3\n4\n"];
+    let expected_screen_output = ["1\n3\n2\n3\n4\n4\n5\n3\n5\n17\n18\n19\n\
+                                  21\n22\n24\n25\n31\n34\n35\n36\n1\n3\n4\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -753,7 +755,8 @@ fn recursive_match_line_numbers_only_no_match() {
                                   "1\n2\n5\n",
                                   "1\n2\n3\n6\n",
                                   "1\n2\n3\n4\n",
-                                  "1\n2\n4\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n20\n23\n26\n27\n28\n29\n30\n32\n33\n37\n",
+                                  "1\n2\n4\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n\
+                                  16\n20\n23\n26\n27\n28\n29\n30\n32\n33\n37\n",
                                   "2\n5\n6\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
