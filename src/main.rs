@@ -192,7 +192,6 @@ fn process_file(output: &mut Write,
                 let line_number = index + 1;
                 // TODO: use context_map and line_number to show context in process_text.
                 // Show line numbers when showing the file_name.
-                println!("A");
                 found_matches |= try!(process_text(output,
                                                    parameters,
                                                    &re,
@@ -205,7 +204,6 @@ fn process_file(output: &mut Write,
                 }
             }
         } else {
-            println!("A");
             found_matches =
                 try!(process_text(output, parameters, &re, file_name, None, &content, None));
         }
@@ -235,8 +233,6 @@ fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> NedRe
             }
         }
     }
-    println!("{:?}", match_map);
-    println!("{:?}", context_map);
     Ok(context_map)
 }
 
@@ -320,8 +316,10 @@ fn write_line(output: &mut Write,
               text: &str)
               -> NedResult<()> {
     try!(write_file_name_and_line_number(output, parameters, file_name, line_number));
-    try!(output.write(&text.to_string().into_bytes()));
-    try!(write_newline_if_replaced_text_ends_with_newline(output, &text));
+    if !parameters.line_numbers_only {
+        try!(output.write(&text.to_string().into_bytes()));
+        try!(write_newline_if_replaced_text_ends_with_newline(output, &text));
+    }
     Ok(())
 }
 
@@ -334,14 +332,12 @@ fn write_file_name_and_line_number(output: &mut Write,
                                    line_number: Option<usize>)
                                    -> NedResult<()> {
     let mut location = "".to_string();
-    if !parameters.no_file_names {
+    if !parameters.no_file_names && !parameters.line_numbers_only {
         if let &Some(ref file_name) = file_name {
             location.push_str(&file_name);
         }
     }
-    println!("X");
-    if !parameters.no_line_numbers {
-        println!("{:?}", line_number);
+    if !parameters.no_line_numbers && !parameters.file_names_only {
         if let Some(line_number) = line_number {
             if location.len() > 0 {
                 location.push(':');

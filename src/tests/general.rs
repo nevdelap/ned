@@ -56,12 +56,32 @@ fn basic_match_no_file_names() {
 }
 
 #[test]
+fn basic_match_no_line_numbers() {
+
+    let args = "accidentally test --no-line-numbers";
+    let expected_exit_code = 0;
+    let expected_screen_output = ["test/file1.txt:The accidentally ghastly hand plans an escape \
+                                   from a cream puff the placid widow. A slovenly"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
 fn basic_match_file_names_only_no_match() {
-    // TODO
 
     let args = "secretly test/dir1 --whole-files --filenames-only --no-match";
     let expected_exit_code = 0;
     let expected_screen_output = ["test/dir1/file2.txt\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn basic_match_line_numbers_only_no_match() {
+
+    let args = "secretly test/dir1 --line-numbers-only --no-match";
+    let expected_exit_code = 0;
+    let expected_screen_output = ["1\n2\n3\n4\n5\n6\n1\n2\n3\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
