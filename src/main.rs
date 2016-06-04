@@ -346,15 +346,13 @@ fn write_file_name_and_line_number(output: &mut Write,
         }
     }
     if location.len() > 0 {
-        location = format!("{}{}",
-                           location,
-                           if parameters.file_names_only || parameters.line_numbers_only {
-                               "\n"
-                           } else if parameters.replace.is_some() || parameters.whole_files {
-                               ":\n"
-                           } else {
-                               ":"
-                           });
+        location.push_str(if parameters.file_names_only || parameters.line_numbers_only {
+            "\n"
+        } else if parameters.replace.is_some() || parameters.whole_files {
+            ":\n"
+        } else {
+            ":"
+        });
         if parameters.colors {
             location = Purple.paint(location).to_string();
         }
