@@ -172,8 +172,9 @@ fn colored_match_no_file_names() {
 
     let args = "accidentally.*hand test --colors --no-filenames";
     let expected_exit_code = 0;
-    let expected_screen_output =
-        ["\u{1b}[35m1:\u{1b}[0mThe \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans an escape from a cream puff the placid widow. A slovenly\n"];
+    let expected_screen_output = ["\u{1b}[35m1:\u{1b}[0mThe \u{1b}[1;31maccidentally ghastly \
+                                   hand\u{1b}[0m plans an escape from a cream puff the placid \
+                                   widow. A slovenly\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -183,8 +184,9 @@ fn colored_match_no_line_numbers() {
 
     let args = "accidentally.*hand test --colors --no-line-numbers";
     let expected_exit_code = 0;
-    let expected_screen_output =
-        ["\u{1b}[35mtest/file1.txt:\u{1b}[0mThe \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans an escape from a cream puff the placid widow. A slovenly\n"];
+    let expected_screen_output = ["\u{1b}[35mtest/file1.txt:\u{1b}[0mThe \
+                                   \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans an \
+                                   escape from a cream puff the placid widow. A slovenly\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -204,7 +206,9 @@ fn colored_match_line_numbers_only_no_match() {
 
     let args = "secretly test/dir1 --colors --line-numbers-only --no-match";
     let expected_exit_code = 0;
-    let expected_screen_output = ["\u{1b}[35m1\n\u{1b}[0m\u{1b}[35m2\n\u{1b}[0m\u{1b}[35m3\n\u{1b}[0m\u{1b}[35m4\n\u{1b}[0m\u{1b}[35m5\n\u{1b}[0m\u{1b}[35m6\n\u{1b}[0m\u{1b}[35m1\n\u{1b}[0m\u{1b}[35m2\n\u{1b}[0m\u{1b}[35m3\n\u{1b}[0m"];
+    let expected_screen_output = ["\u{1b}[35m1\n\u{1b}[0m\u{1b}[35m2\n\u{1b}[0m\u{1b}[35m3
+\u{1b}[0m\u{1b}[35m4\n\u{1b}[0m\u{1b}[35m5\n\u{1b}[0m\u{1b}[35m6\n\u{1b}[0m\u{1b}[35m1
+\u{1b}[0m\u{1b}[35m2\n\u{1b}[0m\u{1b}[35m3\n\u{1b}[0m"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
