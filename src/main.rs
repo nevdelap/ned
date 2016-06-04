@@ -180,7 +180,7 @@ fn process_file(output: &mut Write,
                 _ => {}
             }
         }
-    } else if parameters.file_names {
+    } else if parameters.file_names_only || parameters.line_numbers_only {
         found_matches = re.is_match(&content);
         if found_matches ^ parameters.no_match {
             try!(write_file_name_and_line_number(output, parameters, file_name, None));
@@ -331,28 +331,34 @@ fn write_file_name_and_line_number(output: &mut Write,
                                    file_name: &Option<String>,
                                    line_number: Option<usize>)
                                    -> NedResult<()> {
-    // TODO: support -l -L, and add tests
-    // TODO: separate -f and -F from -l and -L
+    let mut location = "".to_string();
     if !parameters.no_file_names {
         if let &Some(ref file_name) = file_name {
-            let mut file_name = file_name.clone();
-            if let Some(line_number) = line_number {
-                file_name = format!("{}:{}", file_name, line_number);
-            }
-            file_name = format!("{}{}",
-                                file_name,
-                                if parameters.file_names {
-                                    "\n"
-                                } else if parameters.replace.is_some() || parameters.whole_files {
-                                    ":\n"
-                                } else {
-                                    ":"
-                                });
-            if parameters.colors {
-                file_name = Purple.paint(file_name).to_string();
-            }
-            try!(output.write(&file_name.into_bytes()));
+            location.push_str(&file_name);
         }
+    }
+    if !parameters.no_line_numbers {
+        if let Some(line_number) = line_number {
+            if location.len() > 0 {
+                location.push(':');
+            }
+            location.push_str(&line_number.to_string());
+        }
+    }
+    if location.len() > 0 {
+        location = format!("{}{}",
+                           location,
+                           if parameters.file_names_only || parameters.line_numbers_only {
+                               "\n"
+                           } else if parameters.replace.is_some() || parameters.whole_files {
+                               ":\n"
+                           } else {
+                               ":"
+                           });
+        if parameters.colors {
+            location = Purple.paint(location).to_string();
+        }
+        try!(output.write(&location.into_bytes()));
     }
     Ok(())
 }
