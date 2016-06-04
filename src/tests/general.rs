@@ -955,7 +955,7 @@ fn recursive_match_file_names_only_no_match() {
 
     let args = "her test --recursive --filenames-only --no-match";
     let expected_exit_code = 0;
-    let expected_screen_output = ["test/dir1/file3.txt\n", "test/file1.txt\n"];
+    let expected_screen_output = ["test/file1.txt\n", "test/dir1/file3.txt\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -965,7 +965,7 @@ fn recursive_match_file_names_only_no_match_whole_files() {
 
     let args = "her test --whole-files --recursive --filenames-only --no-match";
     let expected_exit_code = 0;
-    let expected_screen_output = ["test/dir1/file3.txt\n", "test/file1.txt\n"];
+    let expected_screen_output = ["test/file1.txt\n", "test/dir1/file3.txt\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
