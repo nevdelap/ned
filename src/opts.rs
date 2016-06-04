@@ -88,11 +88,12 @@ pub fn make_opts() -> Options {
     opts.optflagmulti("F", "no-filenames", "don't show filesnames");
     opts.optflagmulti("l",
                       "line-numbers-only",
-                      "(in progress) show only line numbers containing matches. use with \
-                       -v --no-match to show line numbers without matches");
+                      "(in progress) show only line numbers containing matches. use with -v \
+                       --no-match to show line numbers without matches. use without -w \
+                       --whole-files");
     opts.optflagmulti("L",
                       "no-line-numbers",
-                      "(in progress) don't show line numbers");
+                      "(in progress) don't show line numbers, use without -w --whole-files");
     opts.optopt("C",
                 "context",
                 "show LINES lines around each match. is the same as \

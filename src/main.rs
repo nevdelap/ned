@@ -180,7 +180,7 @@ fn process_file(output: &mut Write,
                 _ => {}
             }
         }
-    } else if parameters.file_names_only || parameters.line_numbers_only {
+    } else if parameters.file_names_only {
         found_matches = re.is_match(&content);
         if found_matches ^ parameters.no_match {
             try!(write_file_name_and_line_number(output, parameters, file_name, None));
@@ -192,6 +192,7 @@ fn process_file(output: &mut Write,
                 let line_number = index + 1;
                 // TODO: use context_map and line_number to show context in process_text.
                 // Show line numbers when showing the file_name.
+                println!("A");
                 found_matches |= try!(process_text(output,
                                                    parameters,
                                                    &re,
@@ -204,6 +205,7 @@ fn process_file(output: &mut Write,
                 }
             }
         } else {
+            println!("A");
             found_matches =
                 try!(process_text(output, parameters, &re, file_name, None, &content, None));
         }
@@ -337,7 +339,9 @@ fn write_file_name_and_line_number(output: &mut Write,
             location.push_str(&file_name);
         }
     }
+    println!("X");
     if !parameters.no_line_numbers {
+        println!("{:?}", line_number);
         if let Some(line_number) = line_number {
             if location.len() > 0 {
                 location.push(':');

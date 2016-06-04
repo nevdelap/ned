@@ -29,7 +29,18 @@ fn basic_match_file_names_only() {
 }
 
 #[test]
+fn basic_match_line_numbers_only() {
+
+    let args = "accidentally test --line-numbers-only";
+    let expected_exit_code = 0;
+    let expected_screen_output = ["1\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
 fn basic_match_no_file_names() {
+    // TODO
 
     let args = "accidentally test --whole-files --no-filenames";
     let expected_exit_code = 0;
@@ -46,6 +57,7 @@ fn basic_match_no_file_names() {
 
 #[test]
 fn basic_match_file_names_only_no_match() {
+    // TODO
 
     let args = "secretly test/dir1 --whole-files --filenames-only --no-match";
     let expected_exit_code = 0;
@@ -56,6 +68,7 @@ fn basic_match_file_names_only_no_match() {
 
 #[test]
 fn basic_match_no_file_names_no_match() {
+    // TODO
 
     let args = "secretly test/dir1 --whole-files --no-filenames --no-match";
     let expected_exit_code = 0;
@@ -92,6 +105,7 @@ fn colored_match() {
 
 #[test]
 fn colored_match_file_names_only() {
+    // TODO
 
     let args = "accidentally.*hand test --whole-files --colors --filenames-only";
     let expected_exit_code = 0;
@@ -102,6 +116,7 @@ fn colored_match_file_names_only() {
 
 #[test]
 fn colored_match_no_file_names() {
+    // TODO
 
     let args = "accidentally.*hand test --whole-files --colors --no-filenames";
     let expected_exit_code = 0;
@@ -118,6 +133,7 @@ fn colored_match_no_file_names() {
 
 #[test]
 fn colored_match_file_names_only_no_match() {
+    // TODO
 
     let args = "secretly test/dir1 --whole-files --colors --filenames-only --no-match";
     let expected_exit_code = 0;
@@ -582,6 +598,7 @@ fn recursive_match() {
 
 #[test]
 fn recursive_match_file_names_only() {
+    // TODO
 
     let args = "her test --whole-files --recursive --filenames-only";
     let expected_exit_code = 0;
@@ -636,6 +653,7 @@ fn recursive_match_no_filesnames() {
 
 #[test]
 fn recursive_match_file_names_only_no_match() {
+    // TODO
 
     let args = "her test --whole-files --recursive --filenames-only --no-match";
     let expected_exit_code = 0;

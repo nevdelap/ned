@@ -39,9 +39,10 @@ Options:
     -l, --line-numbers-only 
                         (in progress) show only line numbers containing
                         matches. use with -v --no-match to show line numbers
-                        without matches
+                        without matches. use without -w --whole-files
     -L, --no-line-numbers 
-                        (in progress) don't show line numbers
+                        (in progress) don't show line numbers, use without -w
+                        --whole-files
     -C, --context LINES show LINES lines around each match. is the same as
                         specifying both -B --before and -A --after with the
                         same LINES. use without -w --whole-files

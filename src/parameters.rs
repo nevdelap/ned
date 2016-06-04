@@ -203,6 +203,18 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
 
     let istty = unsafe { libc::isatty(libc::STDOUT_FILENO as i32) } != 0;
 
+    let whole_files = matches.opt_present("whole-files");
+
+    // file_names_only takes precedence over line_numbers_only.
+    let file_names_only = matches.opt_present("filenames-only");
+    let line_numbers_only = !whole_files && !file_names_only &&
+                            matches.opt_present("line-numbers-only");
+
+    // file_names_only takes precedence over no_file_names.
+    let no_file_names = matches.opt_present("no-filenames");
+    let no_line_numbers = file_names_only || !whole_files && matches.opt_present("no-line-numbers");
+
+
     Ok(Parameters {
         all: matches.opt_present("all"),
         backwards: matches.opt_present("backwards"),
@@ -211,16 +223,16 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
         colors: matches.opt_present("colors") && (stdout || replace.is_none()) && istty,
         excludes: excludes,
         exclude_dirs: exclude_dirs,
-        file_names_only: matches.opt_present("filenames-only"),
+        file_names_only: file_names_only,
         follow: matches.opt_present("follow"),
         globs: globs,
         group: matches.opt_str("group"),
         help: matches.opt_present("help"),
         ignore_non_utf8: matches.opt_present("ignore-non-utf8"),
         includes: includes,
-        line_numbers_only: matches.opt_present("line-numbers-only"),
-        no_file_names: matches.opt_present("no-filenames"),
-        no_line_numbers: matches.opt_present("no-line-numbers"),
+        line_numbers_only: line_numbers_only,
+        no_file_names: no_file_names,
+        no_line_numbers: no_line_numbers,
         no_match: matches.opt_present("no-match"),
         number: number,
         only_matches: matches.opt_present("matches-only"),
@@ -232,7 +244,7 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
         stdin: stdin,
         stdout: stdout,
         version: matches.opt_present("version"),
-        whole_files: matches.opt_present("whole-files"),
+        whole_files: whole_files,
     })
 }
 
