@@ -152,41 +152,42 @@ fn process_file(output: &mut Write,
     }
 
     let re = parameters.regex.clone().expect("Bug, already checked parameters.");
-    let mut found_matches = false;
 
     if let Some(mut replacement) = parameters.replace.clone() {
         if parameters.colors {
             replacement = Red.bold().paint(replacement.as_str()).to_string();
         }
-        let (new_content, fm) = replace(parameters, &re, &content, &replacement);
-        found_matches = fm; // TODO
+        let (content, found_matches) = replace(parameters, &re, &content, &replacement);
         if parameters.stdout {
             if !parameters.quiet {
                 try!(write_file_name_and_line_number(output, parameters, file_name, None));
-                try!(output.write(&new_content.into_bytes()));
+                try!(output.write(&content.into_bytes()));
             }
         } else {
             match source {
                 // A better way???
                 &mut Source::File(ref mut file) => {
                     try!(file.seek(SeekFrom::Start(0)));
-                    try!(file.write(&new_content.into_bytes()));
+                    try!(file.write(&content.into_bytes()));
                 }
                 #[cfg(test)]
                 &mut Source::Cursor(ref mut cursor) => {
                     try!(cursor.seek(SeekFrom::Start(0)));
-                    try!(cursor.write(&new_content.into_bytes()));
+                    try!(cursor.write(&content.into_bytes()));
                 }
                 _ => {}
             }
         }
+        return Ok(found_matches);
     } else if parameters.file_names_only {
-        found_matches = re.is_match(&content);
+        let found_matches = re.is_match(&content);
         if found_matches ^ parameters.no_match {
             try!(write_file_name_and_line_number(output, parameters, file_name, None));
         }
+        return Ok(found_matches);
     } else {
         if !parameters.whole_files {
+            let mut found_matches = false;
             let context_map = try!(make_context_map(&parameters, &re, &content));
             for (index, line) in content.lines().enumerate() {
                 let line_number = index + 1;
@@ -201,12 +202,13 @@ fn process_file(output: &mut Write,
                     break;
                 }
             }
+            return Ok(found_matches);
         } else {
-            found_matches =
+            let found_matches =
                 try!(process_text(output, parameters, &re, file_name, None, &content, None));
+            return Ok(found_matches);
         }
     }
-    Ok(found_matches)
 }
 
 /// Returns a vector whose capacity equals the number of lines in the file, and whose
@@ -255,47 +257,48 @@ fn process_text(output: &mut Write,
                 text: &str,
                 context_map: Option<&Vec<bool>>)
                 -> NedResult<bool> {
-    if parameters.quiet && parameters.skip == 0 && parameters.number.is_none() {
+    if parameters.quiet && !parameters.limit_matches() {
         // Quiet match only is shortcut by the more performant is_match() .
         return Ok(re.is_match(&text));
     }
-    let mut found_matches = false;
     if let Some(ref group) = parameters.group {
         // TODO 2: make it respect -n, -k, -b TO TEST
-        found_matches =
-            try!(write_captures(output, parameters, &re, file_name, line_number, text, group));
+        if try!(write_captures(output, parameters, &re, file_name, line_number, text, group)) {
+            return Ok(true);
+        }
     } else if parameters.no_match {
-        found_matches = re.is_match(&text);
+        let found_matches = re.is_match(&text);
         if !found_matches {
             try!(write_line(output, parameters, file_name, line_number, &text));
         }
         return Ok(found_matches);
     } else if re.is_match(text) {
         if parameters.matches_only {
-            found_matches =
-                try!(write_matches(output, parameters, &re, file_name, line_number, text))
+            if try!(write_matches(output, parameters, &re, file_name, line_number, text)) {
+                return Ok(true);
+            }
         } else {
             // TODO 4: make it respect -n, -k, -b TO TEST
             // Need to get is found_matches out of this...
-            let (text, fm) = color_replacement_with_number_skip_backwards(parameters, re, text);
-            found_matches = fm;
+            let (text, found_matches) =
+                color_matches_with_number_skip_backwards(parameters, re, text);
             if found_matches {
                 try!(write_line(output, parameters, file_name, line_number, &text));
+                return Ok(true);
             }
         }
     }
-    if !found_matches {
-        if let Some(line_number) = line_number {
-            if let Some(context_map) = context_map {
-                if context_map.len() > 0 {
-                    if context_map[line_number - 1] {
-                        try!(write_line(output, parameters, file_name, Some(line_number), text));
-                    }
+
+    if let Some(line_number) = line_number {
+        if let Some(context_map) = context_map {
+            if context_map.len() > 0 {
+                if context_map[line_number - 1] {
+                    try!(write_line(output, parameters, file_name, Some(line_number), text));
                 }
             }
         }
     }
-    Ok(found_matches)
+    Ok(false)
 }
 
 /// Do a replace_all() or a find_iter() taking into account which of --number, --skip, and
@@ -342,46 +345,6 @@ fn write_line(output: &mut Write,
     Ok(())
 }
 
-/// Taking into account parameters specifying to display or not display file names and line numbers,
-/// write the filename, and line number if they are given, colored if the parameters specify color,
-/// and with a newline, colon and newline, or colon, also depending on the specified parameters.
-fn write_file_name_and_line_number(output: &mut Write,
-                                   parameters: &Parameters,
-                                   file_name: &Option<String>,
-                                   line_number: Option<usize>)
-                                   -> NedResult<()> {
-    if !parameters.quiet {
-        let mut location = "".to_string();
-        if !parameters.no_file_names && !parameters.line_numbers_only {
-            if let &Some(ref file_name) = file_name {
-                location.push_str(&file_name);
-            }
-        }
-        if !parameters.no_line_numbers && !parameters.file_names_only {
-            if let Some(line_number) = line_number {
-                if location.len() > 0 {
-                    location.push(':');
-                }
-                location.push_str(&line_number.to_string());
-            }
-        }
-        if location.len() > 0 {
-            location.push_str(if parameters.file_names_only || parameters.line_numbers_only {
-                "\n"
-            } else if parameters.replace.is_some() || parameters.whole_files {
-                ":\n"
-            } else {
-                ":"
-            });
-            if parameters.colors {
-                location = Purple.paint(location).to_string();
-            }
-            try!(output.write(&location.into_bytes()));
-        }
-    }
-    Ok(())
-}
-
 fn write_captures(output: &mut Write,
                   parameters: &Parameters,
                   re: &Regex,
@@ -401,7 +364,7 @@ fn write_captures(output: &mut Write,
                 Err(_) => capture.name(group),
             };
             if let Some(text) = text {
-                let text = color_replacement_all(parameters, re, text);
+                let text = color_matches_all(parameters, re, text);
                 if !parameters.quiet {
                     try!(output.write(&text.to_string().into_bytes()));
                 } else {
@@ -448,6 +411,46 @@ fn write_matches(output: &mut Write,
     Ok(found_matches)
 }
 
+/// Taking into account parameters specifying to display or not display file names and line numbers,
+/// write the filename, and line number if they are given, colored if the parameters specify color,
+/// and with a newline, colon and newline, or colon, also depending on the specified parameters.
+fn write_file_name_and_line_number(output: &mut Write,
+                                   parameters: &Parameters,
+                                   file_name: &Option<String>,
+                                   line_number: Option<usize>)
+                                   -> NedResult<()> {
+    if !parameters.quiet {
+        let mut location = "".to_string();
+        if !parameters.no_file_names && !parameters.line_numbers_only {
+            if let &Some(ref file_name) = file_name {
+                location.push_str(&file_name);
+            }
+        }
+        if !parameters.no_line_numbers && !parameters.file_names_only {
+            if let Some(line_number) = line_number {
+                if location.len() > 0 {
+                    location.push(':');
+                }
+                location.push_str(&line_number.to_string());
+            }
+        }
+        if location.len() > 0 {
+            location.push_str(if parameters.file_names_only || parameters.line_numbers_only {
+                "\n"
+            } else if parameters.replace.is_some() || parameters.whole_files {
+                ":\n"
+            } else {
+                ":"
+            });
+            if parameters.colors {
+                location = Purple.paint(location).to_string();
+            }
+            try!(output.write(&location.into_bytes()));
+        }
+    }
+    Ok(())
+}
+
 fn write_newline_if_replaced_text_ends_with_newline(output: &mut Write,
                                                     text: &str)
                                                     -> NedResult<()> {
@@ -457,18 +460,12 @@ fn write_newline_if_replaced_text_ends_with_newline(output: &mut Write,
     Ok(())
 }
 
-fn color_replacement_all(parameters: &Parameters, re: &Regex, text: &str) -> String {
-    if parameters.colors {
-        re.replace_all(&text, Red.bold().paint("$0").to_string().as_str())
-    } else {
-        text.to_string()
-    }
-}
+// TODO: use Cows to reduce allocations in the color*() functions.
 
-fn color_replacement_with_number_skip_backwards(parameters: &Parameters,
-                                                re: &Regex,
-                                                text: &str)
-                                                -> (String, bool) {
+fn color_matches_with_number_skip_backwards(parameters: &Parameters,
+                                            re: &Regex,
+                                            text: &str)
+                                            -> (String, bool) {
     let (new_text, found_matches) = replace(parameters,
                                             &re,
                                             text,
@@ -477,6 +474,14 @@ fn color_replacement_with_number_skip_backwards(parameters: &Parameters,
         (new_text, found_matches)
     } else {
         (text.to_string(), found_matches)
+    }
+}
+
+fn color_matches_all(parameters: &Parameters, re: &Regex, text: &str) -> String {
+    if parameters.colors {
+        re.replace_all(&text, Red.bold().paint("$0").to_string().as_str())
+    } else {
+        text.to_string()
     }
 }
 

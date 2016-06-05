@@ -5,6 +5,7 @@ use glob::Pattern;
 use libc;
 use ned_error::{NedError, NedResult, StringError};
 use regex::Regex;
+use std::str::FromStr;
 
 #[derive(Clone)]
 pub struct Parameters {
@@ -41,7 +42,7 @@ pub struct Parameters {
 
 impl Parameters {
     pub fn limit_matches(&self) -> bool {
-        self.skip > 0 || self.number.is_some() || self.backwards
+        self.skip > 0 || self.number.is_some()
     }
 
     pub fn include_match(&self, index: usize, count: usize) -> bool {
@@ -189,9 +190,12 @@ fn add_re_options_to_pattern(matches: &Matches, pattern: &str) -> String {
     }
 }
 
-fn parse_optional_opt_str(matches: &Matches, option: &str) -> NedResult<Option<usize>> {
+// TODO: Figure out how to refactor parse_optional_opt_str() and parse_opt_str() to get rid of the
+// duplication. Change it to compose rather than if/match.
+
+fn parse_optional_opt_str<T: FromStr>(matches: &Matches, option: &str) -> NedResult<Option<T>> {
     if let Some(value) = matches.opt_str(option) {
-        match value.trim().parse::<usize>() {
+        match value.trim().parse::<T>() {
             Ok(value) => {
                 return Ok(Some(value));
             }
@@ -205,9 +209,9 @@ fn parse_optional_opt_str(matches: &Matches, option: &str) -> NedResult<Option<u
     Ok(None)
 }
 
-fn parse_opt_str(matches: &Matches, option: &str, default: usize) -> NedResult<usize> {
+fn parse_opt_str<T: FromStr>(matches: &Matches, option: &str, default: T) -> NedResult<T> {
     if let Some(value) = matches.opt_str(option) {
-        match value.trim().parse::<usize>() {
+        match value.trim().parse::<T>() {
             Ok(value) => {
                 return Ok(value);
             }
