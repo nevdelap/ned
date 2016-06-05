@@ -79,54 +79,14 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
     let replace = matches.opt_str("replace");
     let istty = unsafe { libc::isatty(libc::STDOUT_FILENO as i32) } != 0;
 
-    let mut context_after = 0;
-    if let Some(value) = matches.opt_str("context") {
-        match value.trim().parse::<usize>() {
-            Ok(value) => {
-                context_after = value;
-            }
-            Err(_) => {
-                return Err(NedError::ParameterError(StringError {
-                    err: "invalid value for --context option".to_string(),
-                }));
-            }
-        };
-    } else if let Some(value) = matches.opt_str("after") {
-        match value.trim().parse::<usize>() {
-            Ok(value) => {
-                context_after = value;
-            }
-            Err(_) => {
-                return Err(NedError::ParameterError(StringError {
-                    err: "invalid value for --after option".to_string(),
-                }));
-            }
-        };
-    }
-
-    let mut context_before = 0;
-    if let Some(value) = matches.opt_str("context") {
-        match value.trim().parse::<usize>() {
-            Ok(value) => {
-                context_before = value;
-            }
-            Err(_) => {
-                return Err(NedError::ParameterError(StringError {
-                    err: "invalid value for --context option".to_string(),
-                }));
-            }
-        };
-    } else if let Some(value) = matches.opt_str("before") {
-        match value.trim().parse::<usize>() {
-            Ok(value) => {
-                context_before = value;
-            }
-            Err(_) => {
-                return Err(NedError::ParameterError(StringError {
-                    err: "invalid value for --before option".to_string(),
-                }));
-            }
-        };
+    // -C --context takes precedence over -B --before and -A --after.
+    let mut context_before = try!(parse_opt_str(&matches, "context", 0));
+    let context_after;
+    if context_before != 0 {
+        context_after = context_before;
+    } else {
+        context_before = try!(parse_opt_str(&matches, "before", 0));
+        context_after = try!(parse_opt_str(&matches, "after", 0));
     }
 
     let mut exclude_dirs = Vec::<Pattern>::new();
@@ -177,37 +137,8 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
         globs = matches.free.iter().map(|glob| glob.clone()).collect::<Vec<String>>();
     }
 
-    let number;
-    if let Some(value) = matches.opt_str("number") {
-        match value.trim().parse::<usize>() {
-            Ok(value) => {
-                number = Some(value);
-            }
-            Err(_) => {
-                return Err(NedError::ParameterError(StringError {
-                    err: "invalid value for --number option".to_string(),
-                }));
-            }
-        };
-    } else {
-        number = None;
-    }
-
-    let skip;
-    if let Some(value) = matches.opt_str("skip") {
-        match value.trim().parse::<usize>() {
-            Ok(value) => {
-                skip = value;
-            }
-            Err(_) => {
-                return Err(NedError::ParameterError(StringError {
-                    err: "invalid value for --skip option".to_string(),
-                }));
-            }
-        };
-    } else {
-        skip = 0;
-    }
+    let number = try!(parse_optional_opt_str(&matches, "number"));
+    let skip = try!(parse_opt_str(&matches, "skip", 0));
 
     let stdin = globs.len() == 0 || stdout;
 
@@ -256,4 +187,36 @@ fn add_re_options_to_pattern(matches: &Matches, pattern: &str) -> String {
     } else {
         pattern.to_string()
     }
+}
+
+fn parse_optional_opt_str(matches: &Matches, option: &str) -> NedResult<Option<usize>> {
+    if let Some(value) = matches.opt_str(option) {
+        match value.trim().parse::<usize>() {
+            Ok(value) => {
+                return Ok(Some(value));
+            }
+            Err(_) => {
+                return Err(NedError::ParameterError(StringError {
+                    err: format!("invalid value for --{} option", option),
+                }));
+            }
+        };
+    }
+    Ok(None)
+}
+
+fn parse_opt_str(matches: &Matches, option: &str, default: usize) -> NedResult<usize> {
+    if let Some(value) = matches.opt_str(option) {
+        match value.trim().parse::<usize>() {
+            Ok(value) => {
+                return Ok(value);
+            }
+            Err(_) => {
+                return Err(NedError::ParameterError(StringError {
+                    err: format!("invalid value for --{} option", option),
+                }));
+            }
+        };
+    }
+    Ok(default)
 }
