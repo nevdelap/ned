@@ -42,13 +42,13 @@ Options:
                         without -w --whole-files
     -L, --no-line-numbers 
                         don't show line numbers, use without -w --whole-files
-    -C, --context LINES show LINES lines around each match. is the same as
-                        specifying both -B --before and -A --after with the
-                        same LINES. use without -w --whole-files
-    -B, --before LINES  show LINES lines before each match. use without -w
-                        --whole-files
-    -A, --after LINES   show LINES lines after each match. use without -w
-                        --whole-files
+    -C, --context LINES show LINES lines around each matching line. is the
+                        same as specifying both -B --before and -A --after
+                        with the same LINES. use without -w --whole-files
+    -B, --before LINES  show LINES lines before each matching line. use
+                        without -w --whole-files
+    -A, --after LINES   show LINES lines after each matching line. use without
+                        -w --whole-files
     -R, --recursive     recurse
     -l, --follow        follow symlinks
         --include GLOB  match only files that match GLOB
