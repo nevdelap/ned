@@ -1,5 +1,4 @@
 use getopts::{Options, ParsingStyle};
-use rustc_version;
 use std::string::String;
 use time;
 
@@ -147,19 +146,14 @@ pub fn usage_brief() -> String {
 
 pub fn usage_full(opts: &Options) -> String {
     let version = option_env!("CARGO_PKG_VERSION");
-    let rustc_version = rustc_version::version();
-    let rustc_version_meta = rustc_version::version_meta();
     let now = time::now();
-    format!("\n{}\n{}\n\n{} {} {}\n\n{}\n\nBuilt with rustc {} ({} {}) on {}-{:02}-{:02}.\n\n",
+    format!("\n{}\n{}\n\n{} {} {}\n\n{}\n\nBuilt {}-{:02}-{:02}.\n\n",
             opts.usage(&usage_brief()),
             POST_DESCRIPTION,
             PROGRAM,
             version.unwrap(),
             COPYRIGHT,
             LICENSE,
-            rustc_version,
-            &rustc_version_meta.commit_hash.unwrap()[..9],
-            rustc_version_meta.commit_date.unwrap(),
             1900 + now.tm_year,
             now.tm_mon + 1,
             now.tm_mday)

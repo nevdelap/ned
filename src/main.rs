@@ -5,7 +5,6 @@ extern crate getopts;
 extern crate glob;
 extern crate libc;
 extern crate regex;
-extern crate rustc_version;
 extern crate time;
 extern crate walkdir;
 
