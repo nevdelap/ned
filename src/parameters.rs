@@ -72,7 +72,7 @@ impl Parameters {
     }
 }
 
-pub fn get_parameters(opts: &Options, args: &[&str]) -> NedResult<Parameters> {
+pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> {
 
     let matches = try!(opts.parse(args));
 
@@ -116,8 +116,10 @@ pub fn get_parameters(opts: &Options, args: &[&str]) -> NedResult<Parameters> {
                             matches.opt_present("line-numbers-only");
 
     // file_names_only takes precedence over no_file_names.
-    let no_file_names = matches.opt_present("no-filenames");
-    let no_line_numbers = file_names_only || !whole_files && matches.opt_present("no-line-numbers");
+    let no_file_names = !file_names_only && matches.opt_present("no-filenames");
+    let no_line_numbers = !line_numbers_only &&
+                          (file_names_only ||
+                           !whole_files && matches.opt_present("no-line-numbers"));
 
     let regex;
     let globs;
