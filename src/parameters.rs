@@ -53,7 +53,7 @@ impl Parameters {
             (self.skip, self.number)
         } else {
             if let Some(number) = self.number {
-                (if number + self.skip >= count {
+                (if self.skip + number >= count {
                     0
                 } else {
                     count - number - self.skip
@@ -72,7 +72,7 @@ impl Parameters {
     }
 }
 
-pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> {
+pub fn get_parameters(opts: &Options, args: &[&str]) -> NedResult<Parameters> {
 
     let matches = try!(opts.parse(args));
 
