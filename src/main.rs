@@ -5,6 +5,8 @@ extern crate getopts;
 extern crate glob;
 extern crate libc;
 extern crate regex;
+extern crate rustc_version;
+extern crate time;
 extern crate walkdir;
 
 mod files;
@@ -39,10 +41,7 @@ fn main() {
     match ned(&mut output, &args) {
         Ok(exit_code) => process::exit(exit_code),
         Err(err) => {
-            // Aside from output exsting so that tests can read the stdout, this uses write()
-            // rather than println!() because of this issue...
-            // https://github.com/rust-lang/rfcs/blob/master/text/1014-stdout-existential-crisis.md
-            let _ = output.write(&format!("{}: {}\n", PROGRAM, err.to_string()).into_bytes());
+            let _ = stderr().write(&format!("{}: {}\n", PROGRAM, err.to_string()).into_bytes());
             process::exit(1)
         }
     }
@@ -72,9 +71,14 @@ fn ned(output: &mut Write, args: &[String]) -> NedResult<i32> {
         process::exit(0);
     }
 
-    if parameters.regex.is_none() || parameters.help {
+    if parameters.help {
         let _ = output.write(&format!("{}", usage_full(&opts)).into_bytes());
         process::exit(0);
+    }
+
+    if parameters.regex.is_none() {
+        let _ = stderr().write(&format!("{}", usage_full(&opts)).into_bytes());
+        process::exit(1);
     }
 
     let found_matches = try!(process_files(output, &parameters));

@@ -1,6 +1,6 @@
 [package]
 name = "ned"
-version = "0.1.10"
+version = "0.1.10-alpha"
 authors = ["Nev Delap <nevdelap@gmail.com>"]
 
 [dependencies]
@@ -8,6 +8,8 @@ ansi_term = "0.7.*"
 getopts = "0.2.*"
 glob = "0.2.*"
 regex = "0.1.*"
+rustc_version = "0.1.*"
+time = "0.1.*"
 walkdir = "0.1.*"
 
 [profile.release]

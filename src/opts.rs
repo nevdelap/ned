@@ -1,8 +1,9 @@
 use getopts::{Options, ParsingStyle};
+use rustc_version;
 use std::string::String;
+use time;
 
 pub static PROGRAM: &'static str = "ned";
-const VERSION: Option<&'static str> = option_env!("CARGO_PKG_VERSION");
 static OPTS_AND_ARGS: &'static str = "[OPTION]... [-p] <PATTERN> [FILE]...";
 
 static PRE_DESCRIPTION: &'static str = "\
@@ -129,9 +130,10 @@ pub fn make_opts() -> Options {
 }
 
 pub fn usage_version() -> String {
+    let version = option_env!("CARGO_PKG_VERSION");
     format!("\n{} {} {}\n\n{}\n\n",
             PROGRAM,
-            VERSION.unwrap(),
+            version.unwrap(),
             COPYRIGHT,
             LICENSE)
 }
@@ -144,11 +146,21 @@ pub fn usage_brief() -> String {
 }
 
 pub fn usage_full(opts: &Options) -> String {
-    format!("\n{}\n{}\n\n{} {} {}\n\n{}\n\n",
+    let version = option_env!("CARGO_PKG_VERSION");
+    let rustc_version = rustc_version::version();
+    let rustc_version_meta = rustc_version::version_meta();
+    let now = time::now();
+    format!("\n{}\n{}\n\n{} {} {}\n\n{}\n\nBuilt with rustc {} ({} {}) on {}-{:02}-{:02}.\n\n",
             opts.usage(&usage_brief()),
             POST_DESCRIPTION,
             PROGRAM,
-            VERSION.unwrap(),
+            version.unwrap(),
             COPYRIGHT,
-            LICENSE)
+            LICENSE,
+            rustc_version,
+            &rustc_version_meta.commit_hash.unwrap()[..9],
+            rustc_version_meta.commit_date.unwrap(),
+            1900 + now.tm_year,
+            now.tm_mon + 1,
+            now.tm_mday)
 }

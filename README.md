@@ -83,10 +83,12 @@ Quiet:
     as many files as needed to find a match. Even without this shortcutting
     behaviour quiet matches are more performant than non-quiet matches.
 
-ned 0.1.10 Copyright (C) 2016 Nev Delap - https://github.com/nevdelap/ned
+ned 0.1.10-alpha Copyright (C) 2016 Nev Delap - https://github.com/nevdelap/ned
 
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
+
+Built with rustc 1.10.0-nightly (267cde259 2016-05-25) on 2016-06-06.
 
 ```
