@@ -332,10 +332,8 @@ fn colored_match_line_numbers_only_no_match() {
 
     let args = "secretly test/dir1 --colors --line-numbers-only --no-match";
     let expected_exit_code = 0;
-    let expected_screen_output =
-        ["\u{1b}[35m1\n\u{1b}[0m\u{1b}[35m2\n\u{1b}[0m\u{1b}[35m3\n\u{1b}[0m\u{1b}[35m4\n\u{1b}[0m\
-         \u{1b}[35m5\n\u{1b}[0m\u{1b}[35m6\n\u{1b}[0m",
-         "\u{1b}[35m1\n\u{1b}[0m\u{1b}[35m2\n\u{1b}[0m\u{1b}[35m3\n\u{1b}[0m"];
+    let expected_screen_output = ["\u{1b}[35m1\n\u{1b}[0m\u{1b}[35m2\n\u{1b}[0m\u{1b}[35m3\n\u{1b}[0m\u{1b}[35m4\n\u{1b}[0m\u{1b}[35m5\n\u{1b}[0m\u{1b}[35m6\n\u{1b}[0m",
+                                  "\u{1b}[35m1\n\u{1b}[0m\u{1b}[35m2\n\u{1b}[0m\u{1b}[35m3\n\u{1b}[0m"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
