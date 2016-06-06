@@ -5,6 +5,7 @@ use glob::Pattern;
 use libc;
 use ned_error::{NedError, NedResult, StringError};
 use regex::Regex;
+use std::iter::Iterator;
 use std::str::FromStr;
 
 #[derive(Clone)]
@@ -110,6 +111,8 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
 
     let whole_files = matches.opt_present("whole-files");
 
+    // TODO: Test combinations of file name and line number options.
+
     // file_names_only takes precedence over line_numbers_only.
     let file_names_only = matches.opt_present("filenames-only");
     let line_numbers_only = !whole_files && !file_names_only &&
@@ -122,7 +125,7 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
                            !whole_files && matches.opt_present("no-line-numbers"));
 
     let regex;
-    let globs;
+    let mut glob_iter: Box<Iterator<Item = _>> = Box::new(matches.free.iter());
 
     if matches.opt_present("pattern") {
         let pattern = add_re_options_to_pattern(&matches,
@@ -130,15 +133,15 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
                                                     .expect("Bug, already checked that pattern \
                                                              is present."));
         regex = Some(try!(Regex::new(&pattern)));
-        globs = matches.free.iter().map(|glob| glob.clone()).collect::<Vec<String>>();
     } else if matches.free.len() > 0 {
         let pattern = add_re_options_to_pattern(&matches, &matches.free[0]);
         regex = Some(try!(Regex::new(&pattern)));
-        globs = matches.free.iter().skip(1).map(|glob| glob.clone()).collect::<Vec<String>>();
+        glob_iter = Box::new(glob_iter.skip(1));
     } else {
         regex = None;
-        globs = matches.free.iter().map(|glob| glob.clone()).collect::<Vec<String>>();
     }
+
+    let globs = glob_iter.map(|glob| glob.clone()).collect::<Vec<String>>();
 
     let number = try!(parse_optional_opt_str(&matches, "number"));
     let skip = try!(parse_opt_str(&matches, "skip", 0));
