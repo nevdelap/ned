@@ -46,6 +46,7 @@ ubuntu: downloads
 	docker run -it -v /home/nev/dev/ned/build/bin:/root/bin ned-ubuntu
 	cp bin/ned bin/ned.ubuntu
 
+.PHONY: deploy
 deploy:
 	./deploy # Not source controlled.
 
