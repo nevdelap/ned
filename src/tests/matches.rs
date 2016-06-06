@@ -1563,7 +1563,7 @@ fn really_test(input: &str,
                                      &parameters,
                                      &Some("bogus_file.txt".to_string()),
                                      &mut file)
-                            .unwrap();
+        .unwrap();
 
     let screen_output = String::from_utf8(screen_output).unwrap();
 

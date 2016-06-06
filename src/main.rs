@@ -94,22 +94,20 @@ fn process_files(output: &mut Write, parameters: &Parameters) -> NedResult<bool>
         for glob in &parameters.globs {
             for path_buf in &mut Files::new(parameters, &glob) {
                 match OpenOptions::new()
-                          .read(true)
-                          .write(parameters.replace.is_some())
-                          .open(path_buf.as_path()) {
+                    .read(true)
+                    .write(parameters.replace.is_some())
+                    .open(path_buf.as_path()) {
                     Ok(file) => {
                         let mut source = Source::File(Box::new(file));
                         let file_name = &Some(path_buf.as_path().to_string_lossy().to_string());
-                        found_matches |= match process_file(output,
-                                                            parameters,
-                                                            &file_name,
-                                                            &mut source) {
-                            Ok(found_matches) => found_matches,
-                            Err(err) => {
-                                stderr_write_file_err(&path_buf, &err);
-                                false
+                        found_matches |=
+                            match process_file(output, parameters, &file_name, &mut source) {
+                                Ok(found_matches) => found_matches,
+                                Err(err) => {
+                                    stderr_write_file_err(&path_buf, &err);
+                                    false
+                                }
                             }
-                        }
                     }
                     Err(err) => stderr_write_file_err(&path_buf, &err),
                 }
@@ -206,13 +204,8 @@ fn process_file(output: &mut Write,
             }
             return Ok(found_matches);
         } else {
-            let found_matches = try!(process_text(output,
-                                                  parameters,
-                                                  &re,
-                                                  file_name,
-                                                  None,
-                                                  &content,
-                                                  None));
+            let found_matches =
+                try!(process_text(output, parameters, &re, file_name, None, &content, None));
             return Ok(found_matches);
         }
     }
@@ -225,8 +218,8 @@ fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> NedRe
     let lines = content.lines().map(|s| s.to_string()).collect::<Vec<String>>();
     let mut match_map = Vec::<bool>::with_capacity(lines.len());
     lines.iter()
-         .map(|line| match_map.push(is_match_with_number_skip_backwards(parameters, re, line)))
-         .collect::<Vec<_>>();
+        .map(|line| match_map.push(is_match_with_number_skip_backwards(parameters, re, line)))
+        .collect::<Vec<_>>();
     let mut context_map = match_map.clone();
     for line in 0..context_map.len() {
         if match_map[line] {
@@ -287,9 +280,8 @@ fn process_text(output: &mut Write,
         } else {
             // TODO 4: make it respect -n, -k, -b TO TEST
             // Need to get is found_matches out of this...
-            let (text, found_matches) = color_matches_with_number_skip_backwards(parameters,
-                                                                                 re,
-                                                                                 text);
+            let (text, found_matches) =
+                color_matches_with_number_skip_backwards(parameters, re, text);
             if found_matches {
                 try!(write_line(output, parameters, file_name, line_number, &text));
                 return Ok(true);
