@@ -9,3 +9,6 @@ getopts = "0.2.*"
 glob = "0.2.*"
 regex = "0.1.*"
 walkdir = "0.1.*"
+
+[profile.release]
+lto = true

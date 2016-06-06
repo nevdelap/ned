@@ -126,6 +126,6 @@ pub fn stderr_write_file_err(path_buf: &path::PathBuf, err: &error::Error) {
                         PROGRAM,
                         path_buf.as_path().to_string_lossy(),
                         err.to_string())
-            .into_bytes())
+                    .into_bytes())
         .expect("Can't write to stderr!");
 }

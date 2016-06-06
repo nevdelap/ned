@@ -125,8 +125,8 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
     if matches.opt_present("pattern") {
         let pattern = add_re_options_to_pattern(&matches,
                                                 &matches.opt_str("pattern")
-                                                    .expect("Bug, already checked that pattern \
-                                                             is present."));
+                                                        .expect("Bug, already checked that \
+                                                                 pattern is present."));
         regex = Some(try!(Regex::new(&pattern)));
         globs = matches.free.iter().map(|glob| glob.clone()).collect::<Vec<String>>();
     } else if matches.free.len() > 0 {

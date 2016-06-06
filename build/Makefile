@@ -8,7 +8,9 @@
 
 RUST_TARBALL=rust-nightly-x86_64-unknown-linux-gnu.tar.gz
 
-default: centos ubuntu
+default: ubuntu
+
+all: centos ubuntu
 
 downloads:
 	if [ ! -e files/rust.tar.gz ]; then \

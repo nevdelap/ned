@@ -36,23 +36,29 @@ impl Iterator for Files {
                                     let file_type = entry.file_type();
                                     let excluded_dir = entry.file_type().is_dir() &&
                                                        self.parameters
-                                        .exclude_dirs
-                                        .iter()
-                                        .any(|pattern| pattern.matches(file_name));
+                                                           .exclude_dirs
+                                                           .iter()
+                                                           .any(|pattern| {
+                                                               pattern.matches(file_name)
+                                                           });
                                     if excluded_dir {
                                         self.walkdir.skip_current_dir();
                                     }
                                     let included_file = file_type.is_file() &&
                                                         (self.parameters.includes.len() == 0 ||
                                                          self.parameters
-                                        .includes
-                                        .iter()
-                                        .any(|pattern| pattern.matches(file_name)));
+                                                             .includes
+                                                             .iter()
+                                                             .any(|pattern| {
+                                                                 pattern.matches(file_name)
+                                                             }));
                                     let excluded_file = file_type.is_file() &&
                                                         self.parameters
-                                        .excludes
-                                        .iter()
-                                        .any(|pattern| pattern.matches(file_name));
+                                                            .excludes
+                                                            .iter()
+                                                            .any(|pattern| {
+                                                                pattern.matches(file_name)
+                                                            });
                                     let all = self.parameters.all;
                                     let hidden = file_name.starts_with(".");
                                     if included_file && !excluded_file && (all || !hidden) {

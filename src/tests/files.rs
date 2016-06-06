@@ -130,8 +130,12 @@ fn exclude_files() {
 fn exclude_directory() {
 
     let args = "pattern -R test --exclude-dir dir4";
-    let expected_file_names =
-        ["file1.txt", "file2.txt", "file3.txt", "file4.txt", "file5.txt", "longfile.txt"];
+    let expected_file_names = ["file1.txt",
+                               "file2.txt",
+                               "file3.txt",
+                               "file4.txt",
+                               "file5.txt",
+                               "longfile.txt"];
 
     test(&args, &expected_file_names);
 }
@@ -142,11 +146,11 @@ fn test(args: &str, expected_file_names: &[&str]) {
     let parameters = get_parameters(&opts, &args).unwrap();
     let paths = Files::new(&parameters, &parameters.globs[0]);
     let mut file_names = paths.map(|path| path.file_name().unwrap().to_str().unwrap().to_string())
-        .collect::<Vec<String>>();
+                              .collect::<Vec<String>>();
     file_names.sort();
 
     assert_eq!(&file_names,
                &expected_file_names.iter()
-                   .map(|file_name| file_name.to_string())
-                   .collect::<Vec<String>>());
+                                   .map(|file_name| file_name.to_string())
+                                   .collect::<Vec<String>>());
 }
