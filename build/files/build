@@ -3,4 +3,5 @@ cd ~/ned && \
 git fetch && \
 git checkout origin/master && \
 cargo build --release && \
+strip target/release/ned && \
 cp target/release/ned ~/bin
