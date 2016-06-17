@@ -53,9 +53,9 @@ fn get_args() -> Vec<String> {
         // if when using fish shell someone has done "set NED_DEFAULTS -u -c" rather
         // than this "set NED_DEFAULTS '-u -c'" they don't get a cryptic complaint.
         default_args = default_args.replace("\u{1e}", " ");
-        let old_args = args;
+        let original_args = args;
         args = default_args.split_whitespace().map(|s| s.to_string()).collect::<Vec<String>>();
-        args.extend(old_args);
+        args.extend(original_args);
     }
     args
 }
@@ -226,7 +226,7 @@ fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> NedRe
     let mut context_map = match_map.clone();
     for line in 0..context_map.len() {
         if match_map[line] {
-            // We can't use std::cmp::min() for this test because the indices are unsigned.
+            // We can't use std::cmp::max() for this test because the indices are unsigned.
             let start = if line >= parameters.context_before {
                 line - parameters.context_before
             } else {
@@ -260,15 +260,13 @@ fn process_text(output: &mut Write,
                 text: &str,
                 context_map: Option<&Vec<bool>>)
                 -> NedResult<bool> {
-    if parameters.quiet && !parameters.limit_matches() {
+    if parameters.quiet && !parameters.limit_matches() && parameters.group.is_none() {
         // Quiet match only is shortcut by the more performant is_match() .
         return Ok(re.is_match(&text));
     }
     if let Some(ref group) = parameters.group {
         // TODO 2: make it respect -n, -k, -b TO TEST
-        if try!(write_captures(output, parameters, &re, file_name, line_number, text, group)) {
-            return Ok(true);
-        }
+        return Ok(try!(write_groups(output, parameters, &re, file_name, line_number, text, group)));
     } else if parameters.no_match {
         let found_matches = re.is_match(&text);
         if !found_matches {
@@ -316,6 +314,7 @@ fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> (S
         new_text = text.to_string();
         let start_end_byte_indices = re.find_iter(&text).collect::<Vec<(usize, usize)>>();
         let count = start_end_byte_indices.len();
+        // Walk it backwards so that replacements don't invalidate indices.
         for (rev_index, &(start, end)) in start_end_byte_indices.iter().rev().enumerate() {
             let index = count - rev_index - 1;
             if parameters.include_match(index, count) {
@@ -348,7 +347,7 @@ fn write_line(output: &mut Write,
     Ok(())
 }
 
-fn write_captures(output: &mut Write,
+fn write_groups(output: &mut Write,
                   parameters: &Parameters,
                   re: &Regex,
                   file_name: &Option<String>,
@@ -356,27 +355,33 @@ fn write_captures(output: &mut Write,
                   text: &str,
                   group: &str)
                   -> NedResult<bool> {
+    let mut wrote_file_name = false;
     let mut found_matches = false;
-    try!(write_file_name_and_line_number(output, parameters, file_name, line_number));
     let captures = re.captures_iter(text).collect::<Vec<Captures>>();
     for (index, capture) in captures.iter().enumerate() {
         if parameters.include_match(index, captures.len()) {
-            found_matches = true;
             let text = match group.trim().parse::<usize>() {
                 Ok(index) => capture.at(index),
                 Err(_) => capture.name(group),
             };
             if let Some(text) = text {
-                let text = color_matches_all(parameters, re, text);
+                found_matches = true;
                 if !parameters.quiet {
+                    let text = color_matches_all(parameters, re, text);
+                    if !wrote_file_name {
+                        try!(write_file_name_and_line_number(output, parameters, file_name, line_number));
+                        wrote_file_name = true;
+                    }
                     try!(output.write(&text.to_string().into_bytes()));
                 } else {
-                    return Ok(found_matches);
+                    break;
                 }
             }
         }
     }
-    try!(output.write(&"\n".to_string().into_bytes()));
+    if !parameters.quiet && found_matches {
+        try!(output.write(&"\n".to_string().into_bytes()));
+    }
     Ok(found_matches)
 }
 

@@ -977,6 +977,56 @@ testtesttesttesttesttest
 }
 
 #[test]
+fn invalid_named_group_match_quiet_and_not_quiet() {
+
+    let input = "\
+This is a test.
+This is a test.
+This is a test.
+This is a test.
+This is a test.
+This is a test.
+";
+    let pattern = "is (a) (?P<dave>test)";
+    let args = "--group christine";
+    let expected_found_matches = false;
+    let expected_screen_output = "";
+    let expected_file_content = &input;
+
+    test(input,
+         pattern,
+         args,
+         expected_found_matches,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
+fn invalid_named_group_match_whole_files_quiet_and_not_quiet() {
+
+    let input = "\
+This is a test.
+This is a test.
+This is a test.
+This is a test.
+This is a test.
+This is a test.
+";
+    let pattern = "is (a) (?P<dave>test)";
+    let args = "--whole-files --group christine";
+    let expected_found_matches = false;
+    let expected_screen_output = "";
+    let expected_file_content = &input;
+
+    test(input,
+         pattern,
+         args,
+         expected_found_matches,
+         expected_screen_output,
+         expected_file_content);
+}
+
+#[test]
 fn colored_match_quiet_and_not_quiet() {
 
     let input = "\
@@ -1531,8 +1581,8 @@ fn test(input: &str,
                 expected_found_matches,
                 expected_screen_output,
                 expected_file_content);
-    let args = format!("{} --quiet", args);
     println!("QUIET");
+    let args = format!("{} --quiet", args);
     really_test(input,
                 pattern,
                 &args,
