@@ -348,13 +348,13 @@ fn write_line(output: &mut Write,
 }
 
 fn write_groups(output: &mut Write,
-                  parameters: &Parameters,
-                  re: &Regex,
-                  file_name: &Option<String>,
-                  line_number: Option<usize>,
-                  text: &str,
-                  group: &str)
-                  -> NedResult<bool> {
+                parameters: &Parameters,
+                re: &Regex,
+                file_name: &Option<String>,
+                line_number: Option<usize>,
+                text: &str,
+                group: &str)
+                -> NedResult<bool> {
     let mut wrote_file_name = false;
     let mut found_matches = false;
     let captures = re.captures_iter(text).collect::<Vec<Captures>>();
@@ -369,7 +369,10 @@ fn write_groups(output: &mut Write,
                 if !parameters.quiet {
                     let text = color_matches_all(parameters, re, text);
                     if !wrote_file_name {
-                        try!(write_file_name_and_line_number(output, parameters, file_name, line_number));
+                        try!(write_file_name_and_line_number(output,
+                                                             parameters,
+                                                             file_name,
+                                                             line_number));
                         wrote_file_name = true;
                     }
                     try!(output.write(&text.to_string().into_bytes()));
