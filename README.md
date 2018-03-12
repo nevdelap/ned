@@ -10,7 +10,7 @@ edit files.
 
 FILEs are ASCII or UTF-8 text files. For regex syntax see:
 
-  http://rust-lang-nursery.github.io/regex/regex/#syntax
+  https://doc.rust-lang.org/regex/regex/index.html#syntax
 
 Options:
     -p, --pattern PATTERN
