@@ -85,7 +85,7 @@ Quiet:
     as many files as needed to find a match. Even without this shortcutting
     behaviour quiet matches are more performant than non-quiet matches.
 
-ned 0.1.10-alpha2 Copyright (C) 2016-2017 Nev Delap - https://github.com/nevdelap/ned
+ned 0.1.10-alpha2 Copyright (C) 2016-2018 Nev Delap - https://github.com/nevdelap/ned
 
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it.
@@ -105,12 +105,12 @@ To build for the current platform. (Last tested on Ubuntu 17.10 with Rust 1.24.1
 
 ```
 cd ned
-cargo build
+cargo build --release
 ```
 
-To build for the release supported platforms. (Last tested 2016 when the current releases were published.)
+To build for the release supported platforms using rust nightly. (Last tested on Ubuntu 17.10 with Rust 1.24.1 and Docker 17.12.1-ce.)
 
 ```
-cd ned
-make
+cd ned/build
+make ubuntu centos6 centos7
 ```

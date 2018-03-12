@@ -25,7 +25,7 @@ centos6: downloads
 	cat Dockerfile.common >> Dockerfile && \
 	docker build --tag=ned-centos6 .
 	rm Dockerfile
-	docker run -it -v /home/nev/dev/ned/build/bin:/root/bin ned-centos6
+	docker run -it -v bin:/root/bin ned-centos6
 	cp bin/ned bin/ned.centos6
 
 centos7: downloads
@@ -34,7 +34,7 @@ centos7: downloads
 	cat Dockerfile.common >> Dockerfile && \
 	docker build --tag=ned-centos7 .
 	rm Dockerfile
-	docker run -it -v /home/nev/dev/ned/build/bin:/root/bin ned-centos7
+	docker run -it -v bin:/root/bin ned-centos7
 	cp bin/ned bin/ned.centos7
 
 ubuntu: downloads
@@ -43,7 +43,7 @@ ubuntu: downloads
 	cat Dockerfile.common >> Dockerfile && \
 	docker build --tag=ned-ubuntu .
 	rm Dockerfile
-	docker run -it -v /home/nev/dev/ned/build/bin:/root/bin ned-ubuntu
+	docker run -it -v bin:/root/bin ned-ubuntu
 	cp bin/ned bin/ned.ubuntu
 
 .PHONY: deploy
