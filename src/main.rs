@@ -1,4 +1,3 @@
-#![feature(libc)]
 
 extern crate ansi_term;
 extern crate getopts;

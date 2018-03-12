@@ -51,4 +51,4 @@ deploy:
 	./deploy # Not source controlled.
 
 clean:
-	rm files/rust.tar.gz
+	rm -f files/rust.tar.gz

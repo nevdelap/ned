@@ -1,3 +1,5 @@
+# Ned Usage
+
 ```text
 Usage: ned [OPTION]... [-p] <PATTERN> [FILE]...
 
@@ -83,12 +85,32 @@ Quiet:
     as many files as needed to find a match. Even without this shortcutting
     behaviour quiet matches are more performant than non-quiet matches.
 
-ned 0.1.10-alpha2 Copyright (C) 2016 Nev Delap - https://github.com/nevdelap/ned
+ned 0.1.10-alpha2 Copyright (C) 2016-2017 Nev Delap - https://github.com/nevdelap/ned
 
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 
-Built 2016-06-06.
+Built 2018-03-12.
+```
 
+# Machine Setup To Build Ned
+
+* Install rust as per: https://www.rust-lang.org/en-US/install.html
+* Install docker as per: https://docs.docker.com/install/linux/docker-ce/ubuntu/
+
+# Build Ned
+
+To build for the current platform. (Last tested on Ubuntu 17.10 with Rust 1.24.1.)
+
+```
+cd ned
+cargo build
+```
+
+To build for the release supported platforms. (Last tested 2016 when the current releases were published.)
+
+```
+cd ned
+make
 ```
