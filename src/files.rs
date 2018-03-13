@@ -1,17 +1,19 @@
 use ned_error::stderr_write_err;
 use parameters::Parameters;
-use std::iter::Iterator;
+use std::iter::IntoIterator;
 use std::path::PathBuf;
-use walkdir::{self, WalkDir, WalkDirIterator};
+use walkdir::{IntoIter, WalkDir};
 
 pub struct Files {
     parameters: Parameters,
-    walkdir: Box<walkdir::Iter>,
+    walkdir: Box<IntoIter>,
 }
 
 impl Files {
     pub fn new(parameters: &Parameters, glob: &str) -> Files {
-        let mut walkdir = WalkDir::new(&glob).follow_links(parameters.follow);
+        let mut walkdir = WalkDir::new(&glob)
+                                    .follow_links(parameters.follow)
+                                    .sort_by(|a,b| a.file_name().cmp(b.file_name()));;
         if !parameters.recursive {
             walkdir = walkdir.max_depth(1);
         }

@@ -101,7 +101,7 @@ Built 2018-03-12.
 
 # Build Ned
 
-To build for the current platform. (Last tested on Ubuntu 17.10 with Rust 1.24.1.) Version 0.1.10-alpha2 currently fails 3 tests of 119.
+To build for the current platform. (Last tested on Ubuntu 17.10 with Rust 1.24.1.) Version 0.1.10-alpha2 currently fails 1 tests of 119.
 
 ```
 cd ned
