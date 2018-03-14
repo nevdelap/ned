@@ -101,12 +101,15 @@ Built 2018-03-12.
 
 # Build Ned
 
-To build for the current platform. (Last tested on Ubuntu 17.10 with Rust 1.24.1.) Version 0.1.10-alpha2 currently fails 1 tests of 119.
+To build for the current platform. (Last tested on Ubuntu 17.10 with Rust 1.24.1.)
 
 ```
 cd ned
 cargo build --release
 cargo test
+...
+test result: ok. 119 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+
 ```
 
 To build for the release supported platforms using rust nightly. (Last tested on Ubuntu 17.10 with Rust 1.24.1 and Docker 17.12.1-ce.)

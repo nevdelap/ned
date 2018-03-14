@@ -853,11 +853,12 @@ fn recursive_match_file_names_only_whole_files() {
 
     let args = "her test --whole-files --recursive --filenames-only";
     let expected_exit_code = 0;
-    let expected_screen_output = ["test/dir1/dir4/file6.txt\n",
-                                  "test/dir1/dir4/dir5/file7.txt\n",
+    let expected_screen_output = ["test/dir1/dir4/dir5/file7.txt\n",
+                                  "test/dir1/dir4/file6.txt\n",
                                   "test/dir1/file2.txt\n",
                                   "test/dir3/file5.txt\n",
-                                  "test/dir2/file4.txt\n"];
+                                  "test/dir2/file4.txt\n",
+                                  "test/longfile.txt\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -867,10 +868,12 @@ fn recursive_match_line_numbers_only() {
 
     let args = "her test --recursive --line-numbers-only";
     let expected_exit_code = 0;
-    let expected_screen_output = ["1\n3\n2\n3\n4\n",
+    let expected_screen_output = ["2\n", // expected results matching results from recursive_match_file_names_only_whole_files.
+                                  "3\n4\n",
                                   "4\n5\n",
-                                  "3\n5\n17\n18\n19\n21\n22\n24\n25\n31\n34\n35\n36\n",
-                                  "1\n3\n4\n"];
+                                  "1\n3\n4\n",
+                                  "2\n",
+                                  "5\n17\n18\n19\n21\n22\n24\n25\n31\n34\n35\n36\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
