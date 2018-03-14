@@ -126,7 +126,7 @@ test result: ok. 119 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 ### To build for 64bit windows.
 
-Tell cargo to using the mingw linker. See https://github.com/rust-lang/rust/issues/32859 for why.
+Tell cargo to use the mingw linker. See https://github.com/rust-lang/rust/issues/32859 for why.
 
 Add this to ~/.cargo/config...
 
@@ -135,7 +135,7 @@ Add this to ~/.cargo/config...
 linker = "/usr/bin/x86_64-w64-mingw32-gcc"
 ```
 
-Install mingw, the 64bit Windows target and build and test. (Builds. I'll test next time I boot Windows.)
+Install mingw, the 64bit Windows target and build and test. Currently tests do not all pass because of backslash and hidden file issues. Only tests should need updating. See: https://github.com/nevdelap/ned/issues/11
 
 ```
 sudo apt install mingw-w64
@@ -145,6 +145,8 @@ cargo build --target x86_64-pc-windows-gnu
 ```
 
 ### To build for the release supported platforms using rust nightly. (Last tested on Ubuntu 17.10 with Rust 1.24.1 and Docker 17.12.1-ce.)
+
+This will be removed. When I wrote this originally, two years ago, musl wasn't as super duper easy as it is today with rustup. (Yay!)
 
 ```
 cd ned/build
