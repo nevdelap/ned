@@ -101,7 +101,7 @@ Built 2018-03-12.
 
 # Build Ned
 
-To build for the current platform. (Last tested on Ubuntu 17.10 with Rust 1.24.1.)
+### To build for the current platform. (Last tested on Ubuntu 17.10 with Rust 1.24.1.)
 
 ```
 cd ned
@@ -112,7 +112,39 @@ test result: ok. 119 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 ```
 
-To build for the release supported platforms using rust nightly. (Last tested on Ubuntu 17.10 with Rust 1.24.1 and Docker 17.12.1-ce.)
+### To build for 64bit musl. (Last tested on Ubuntu 17.10 with Rust 1.24.1.)
+
+```
+cd ned
+rustup target add x86_64-unknown-linux-musl
+cargo build --target x86_64-unknown-linux-musl
+cargo test --target x86_64-unknown-linux-musl
+...
+test result: ok. 119 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+
+```
+
+### To build for 64bit windows.
+
+Tell cargo to using the mingw linker. See https://github.com/rust-lang/rust/issues/32859 for why.
+
+Add this to ~/.cargo/config...
+
+```
+[target.x86_64-pc-windows-gnu]
+linker = "/usr/bin/x86_64-w64-mingw32-gcc"
+```
+
+Install mingw, the 64bit Windows target and build and test. (Builds. I'll test next time I boot Windows.)
+
+```
+sudo apt install mingw-w64
+cd ned
+rustup target add x86_64-pc-windows-gnu
+cargo build --target x86_64-pc-windows-gnu
+```
+
+### To build for the release supported platforms using rust nightly. (Last tested on Ubuntu 17.10 with Rust 1.24.1 and Docker 17.12.1-ce.)
 
 ```
 cd ned/build

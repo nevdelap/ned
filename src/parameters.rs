@@ -79,7 +79,9 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
 
     let stdout = matches.opt_present("stdout");
     let replace = matches.opt_str("replace");
-    let istty = unsafe { libc::isatty(libc::STDOUT_FILENO as i32) } != 0;
+    // TODO: decide what is the best way to deal with STDOUT_FILENO not
+    // being defined in the x86_64-pc-windows-gnu version of libc.
+    let isatty = unsafe { libc::isatty(/*libc::STDOUT_FILENO as i32*/ 1) } != 0;
 
     // -C --context takes precedence over -B --before and -A --after.
     let mut context_before = try!(parse_opt_str(&matches, "context", 0));
@@ -151,7 +153,7 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
     Ok(Parameters {
         all: matches.opt_present("all"),
         backwards: matches.opt_present("backwards"),
-        colors: matches.opt_present("colors") && (stdout || replace.is_none()) && istty,
+        colors: matches.opt_present("colors") && (stdout || replace.is_none()) && isatty,
         context_after: context_after,
         context_before: context_before,
         exclude_dirs: exclude_dirs,
