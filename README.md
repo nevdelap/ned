@@ -117,7 +117,7 @@ test result: ok. 119 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 ```
 cd ned
 rustup target add x86_64-unknown-linux-musl
-cargo build --target x86_64-unknown-linux-musl
+cargo build --release --target x86_64-unknown-linux-musl
 cargo test --target x86_64-unknown-linux-musl
 ...
 test result: ok. 119 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
@@ -141,7 +141,7 @@ Install mingw, the 64bit Windows target and build and test. Currently tests do n
 sudo apt install mingw-w64
 cd ned
 rustup target add x86_64-pc-windows-gnu
-cargo build --target x86_64-pc-windows-gnu
+cargo build --release --target x86_64-pc-windows-gnu
 ```
 
 ### To build for the release supported platforms using rust nightly. (Last tested on Ubuntu 17.10 with Rust 1.24.1 and Docker 17.12.1-ce.)
