@@ -166,7 +166,7 @@ pub fn make_opts() -> Options {
 pub fn usage_version() -> String {
     let version = option_env!("CARGO_PKG_VERSION");
     format!(
-        "\n{} {} {}\n\n{}\n\n",
+        "{} {} {}\n\n{}",
         PROGRAM,
         version.unwrap(),
         COPYRIGHT,
@@ -185,7 +185,7 @@ pub fn usage_full(opts: &Options) -> String {
     let version = option_env!("CARGO_PKG_VERSION");
     let now = time::now();
     format!(
-        "\n{}\n{}\n\n{} {} {}\n\n{}\n\nBuilt {}-{:02}-{:02}.\n\n",
+        "{}\n{}\n\n{} {} {}\n\n{}\n\nBuilt {}-{:02}-{:02}.",
         opts.usage(&usage_brief()),
         POST_DESCRIPTION,
         PROGRAM,

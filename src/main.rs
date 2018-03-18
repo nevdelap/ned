@@ -19,7 +19,7 @@ use ansi_term::Colour::{Purple, Red};
 use ansi_term::enable_ansi_support;
 use files::Files;
 use ned_error::{stderr_write_file_err, NedError, NedResult};
-use opts::{make_opts, usage_full, usage_version, PROGRAM};
+use opts::{make_opts, usage_brief, usage_full, usage_version};
 use parameters::{get_parameters, Parameters};
 use regex::{Captures, Regex};
 use source::Source;
@@ -39,7 +39,8 @@ fn main() {
     match ned(&mut output, &args) {
         Ok(exit_code) => process::exit(exit_code),
         Err(err) => {
-            let _ = stderr().write(&format!("{}: {}\n", PROGRAM, err.to_string()).into_bytes());
+            let _ =
+                stderr().write(&format!("{}\n\n{}\n", usage_brief(), err.to_string()).into_bytes());
             process::exit(1)
         }
     }
@@ -67,17 +68,17 @@ fn ned(output: &mut Write, args: &[String]) -> NedResult<i32> {
     let parameters = try!(get_parameters(&opts, args));
 
     if parameters.version {
-        let _ = output.write(&format!("{}", usage_version()).into_bytes());
+        let _ = output.write(&format!("\n{}\n", usage_version()).into_bytes());
         process::exit(0);
     }
 
     if parameters.help {
-        let _ = output.write(&format!("{}", usage_full(&opts)).into_bytes());
+        let _ = output.write(&format!("\n{}\n", usage_full(&opts)).into_bytes());
         process::exit(0);
     }
 
     if parameters.regex.is_none() {
-        let _ = stderr().write(&format!("{}", usage_full(&opts)).into_bytes());
+        let _ = stderr().write(&format!("\n{}\n", usage_brief()).into_bytes());
         process::exit(1);
     }
 

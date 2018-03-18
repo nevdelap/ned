@@ -1,6 +1,7 @@
 # Ned Usage
 
 ```text
+
 Usage: ned [OPTION]... [-p] <PATTERN> [FILE]...
 
 ned is a bit like grep and a bit like sed. But unlike grep you don't have to
@@ -85,13 +86,14 @@ Quiet:
     as many files as needed to find a match. Even without this shortcutting
     behaviour quiet matches are more performant than non-quiet matches.
 
-ned 0.1.10-alpha2 Copyright (C) 2016-2018 Nev Delap - https://github.com/nevdelap/ned
+ned 0.1.10-beta Copyright (C) 2016-2018 Nev Delap - https://github.com/nevdelap/ned
 
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 
 Built 2018-03-18.
+
 ```
 
 # Machine Setup To Build Ned
@@ -131,7 +133,7 @@ test result: ok. 119 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 Last tested on Windows 10 1709 with Rust 1.24.1. Tests run in cmd.exe.
 
-**NOTE**: The --colors option is ignored and all the colour tests fail when run in mintty (Git Bash) because its terminal not detected as being a tty. The colour tests and colours work in cmd.
+**NOTE**: The --colors option is ignored and all the colour tests fail when run in mintty (Git Bash) because its terminal is not detected as being a tty. The colour tests and colours work in cmd.
 
 ```
 cd ned
