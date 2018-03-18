@@ -54,18 +54,19 @@ impl Parameters {
             (self.skip, self.number)
         } else {
             if let Some(number) = self.number {
-                (if self.skip + number >= count {
-                    0
-                } else {
-                    count - number - self.skip
-                },
-                 Some(number))
+                (
+                    if self.skip + number >= count {
+                        0
+                    } else {
+                        count - number - self.skip
+                    },
+                    Some(number),
+                )
             } else {
                 (0, Some(count - self.skip))
             }
         };
-        index >= skip &&
-        if let Some(number) = number {
+        index >= skip && if let Some(number) = number {
             index - skip < number
         } else {
             true
@@ -74,14 +75,15 @@ impl Parameters {
 }
 
 pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> {
-
     let matches = try!(opts.parse(args));
 
     let stdout = matches.opt_present("stdout");
     let replace = matches.opt_str("replace");
     // TODO: decide what is the best way to deal with STDOUT_FILENO not
     // being defined in the x86_64-pc-windows-gnu version of libc.
-    let isatty = unsafe { libc::isatty(/*libc::STDOUT_FILENO as i32*/ 1) } != 0;
+    let isatty = unsafe {
+        libc::isatty(/*libc::STDOUT_FILENO as i32*/ 1)
+    } != 0;
 
     // -C --context takes precedence over -B --before and -A --after.
     let mut context_before = try!(parse_opt_str(&matches, "context", 0));
@@ -117,23 +119,25 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
 
     // file_names_only takes precedence over line_numbers_only.
     let file_names_only = matches.opt_present("filenames-only");
-    let line_numbers_only = !whole_files && !file_names_only &&
-                            matches.opt_present("line-numbers-only");
+    let line_numbers_only =
+        !whole_files && !file_names_only && matches.opt_present("line-numbers-only");
 
     // file_names_only takes precedence over no_file_names.
     let no_file_names = !file_names_only && matches.opt_present("no-filenames");
-    let no_line_numbers = !line_numbers_only &&
-                          (file_names_only ||
-                           !whole_files && matches.opt_present("no-line-numbers"));
+    let no_line_numbers = !line_numbers_only
+        && (file_names_only || !whole_files && matches.opt_present("no-line-numbers"));
 
     let regex;
     let mut glob_iter: Box<Iterator<Item = _>> = Box::new(matches.free.iter());
 
     if matches.opt_present("pattern") {
-        let pattern = add_re_options_to_pattern(&matches,
-                                                &matches.opt_str("pattern")
-                                                    .expect("Bug, already checked that pattern \
-                                                             is present."));
+        let pattern = add_re_options_to_pattern(
+            &matches,
+            &matches.opt_str("pattern").expect(
+                "Bug, already checked that pattern \
+                 is present.",
+            ),
+        );
         regex = Some(try!(Regex::new(&pattern)));
     } else if matches.free.len() > 0 {
         let pattern = add_re_options_to_pattern(&matches, &matches.free[0]);

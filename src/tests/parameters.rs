@@ -61,12 +61,14 @@ fn skip_too_many() {
     test_include_match(None, 11, 100, 10, false, false);
 }
 
-fn test_include_match(number: Option<usize>,
-                      skip: usize,
-                      index: usize,
-                      count: usize,
-                      forward_expected: bool,
-                      backward_expected: bool) {
+fn test_include_match(
+    number: Option<usize>,
+    skip: usize,
+    index: usize,
+    count: usize,
+    forward_expected: bool,
+    backward_expected: bool,
+) {
     let mut parameters = Parameters {
         all: false,
         backwards: false,

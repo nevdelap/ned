@@ -122,10 +122,11 @@ pub fn stderr_write_err(err: &error::Error) {
 
 pub fn stderr_write_file_err(path_buf: &path::PathBuf, err: &error::Error) {
     io::stderr()
-        .write(&format!("{}: {} {}\n",
-                        PROGRAM,
-                        path_buf.as_path().to_string_lossy(),
-                        err.to_string())
-            .into_bytes())
+        .write(&format!(
+            "{}: {} {}\n",
+            PROGRAM,
+            path_buf.as_path().to_string_lossy(),
+            err.to_string()
+        ).into_bytes())
         .expect("Can't write to stderr!");
 }

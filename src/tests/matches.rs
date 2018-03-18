@@ -11,7 +11,6 @@ use std::io::{Cursor, Read, Seek, SeekFrom, Write};
 
 #[test]
 fn basic_match_quiet_and_not_quiet() {
-
     let input = "\
 This is a test.
 This is a test.
@@ -33,17 +32,18 @@ bogus_file.txt:6:This is a test.
 ";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn basic_match_whole_files_quiet_and_not_quiet() {
-
     let input = "\
 This is a test.
 This is a test.
@@ -66,17 +66,18 @@ This is a test.
 ";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn no_match_quiet_and_not_quiet() {
-
     let input = "\
 This is a test.
 This is a test.
@@ -91,17 +92,18 @@ This is a test.
     let expected_screen_output = "";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn no_match_whole_files_quiet_and_not_quiet() {
-
     let input = "\
 This is a test.
 This is a test.
@@ -116,17 +118,18 @@ This is a test.
     let expected_screen_output = "";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn ignore_case_match_quiet_and_not_quiet() {
-
     let input = "\
 This is a test.
 This is a test.
@@ -148,17 +151,18 @@ bogus_file.txt:6:This is a test.
 ";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn ignore_case_match_whole_files_quiet_and_not_quiet() {
-
     let input = "\
 This is a test.
 This is a test.
@@ -181,17 +185,18 @@ This is a test.
 ";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn single_line_match_quiet_and_not_quiet() {
-
     let input = "
 This is a test with
 multiple lines of very
@@ -206,17 +211,18 @@ would want to read it.
     let expected_screen_output = "";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn single_line_match_whole_files_quiet_and_not_quiet() {
-
     let input = "
 This is a test with
 multiple lines of very
@@ -231,17 +237,18 @@ would want to read it.
     let expected_screen_output = &format!("bogus_file.txt:\n{}", input);
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn multi_line_match_beginning_and_end_of_file_quiet_and_not_quiet() {
-
     let input = "
 This is a test with
 multiple lines of very
@@ -256,17 +263,18 @@ would want to read it.
     let expected_screen_output = "";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn multi_line_match_beginning_and_end_of_file_whole_files_quiet_and_not_quiet() {
-
     let input = "
 This is a test with
 multiple lines of very
@@ -281,17 +289,18 @@ would want to read it.
     let expected_screen_output = &format!("bogus_file.txt:\n{}", &input);
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn multi_line_match_beginning_and_end_of_lines_quiet_and_not_quiet() {
-
     let input = "
 This is a test with
 multiple lines of very
@@ -306,17 +315,18 @@ would want to read it.
     let expected_screen_output = "";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn multi_line_match_beginning_and_end_of_lines_whole_files_quiet_and_not_quiet() {
-
     let input = "
 This is a test with
 multiple lines of very
@@ -331,17 +341,18 @@ would want to read it.
     let expected_screen_output = &format!("bogus_file.txt:\n{}", input);
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn single_and_multi_line_match_quiet_and_not_quiet() {
-
     let input = "
 This is a test with
 multiple lines of very
@@ -356,17 +367,18 @@ would want to read it.
     let expected_screen_output = "";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn single_and_multi_line_match_whole_files_quiet_and_not_quiet() {
-
     let input = "
 This is a test with
 multiple lines of very
@@ -381,17 +393,18 @@ would want to read it.
     let expected_screen_output = &format!("bogus_file.txt:\n{}", input);
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn extended_match_quiet_and_not_quiet() {
-
     let input = "\
 This is a test.
 This is a test.
@@ -418,17 +431,18 @@ bogus_file.txt:6:This is a test.
 ";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn extended_match_whole_files_quiet_and_not_quiet() {
-
     let input = "\
 This is a test.
 This is a test.
@@ -456,17 +470,18 @@ This is a test.
 ";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn only_matches_quiet_and_not_quiet() {
-
     let input = "\
 This is a test.
 This is a test.
@@ -488,17 +503,18 @@ bogus_file.txt:6:isis
 ";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn only_matches_whole_files_quiet_and_not_quiet() {
-
     let input = "\
 This is a test.
 This is a test.
@@ -516,17 +532,18 @@ isisisisisisisisisisisis
 ";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn only_matches_skip_quiet_and_not_quiet() {
-
     let input = "\
 The shadow conquers the hand related to a mastadon. Jespera and I took a cup
 around a toothache (with a lunatic around some debutante, a ribbon beyond a
@@ -548,17 +565,18 @@ bogus_file.txt:6:od
 ";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn only_matches_skip_whole_files_quiet_and_not_quiet() {
-
     let input = "\
 The shadow conquers the hand related to a mastadon. Jespera and I took a cup
 around a toothache (with a lunatic around some debutante, a ribbon beyond a
@@ -573,17 +591,18 @@ related to the hand to an ungodly dahlia.
     let expected_screen_output = "bogus_file.txt:\non ondon)onl\n";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn only_matches_skip_backwards_quiet_and_not_quiet() {
-
     let input = "\
 The shadow conquers the hand related to a mastadon. Jespera and I took a cup
 around a toothache (with a lunatic around some debutante, a ribbon beyond a
@@ -604,17 +623,18 @@ bogus_file.txt:5:oto ow
 bogus_file.txt:6:o \n";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn only_matches_skip_backwards_whole_files_quiet_and_not_quiet() {
-
     let input = "\
 The shadow conquers the hand related to a mastadon. Jespera and I took a cup
 around a toothache (with a lunatic around some debutante, a ribbon beyond a
@@ -632,17 +652,18 @@ onqon.on ond
 ";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn match_line_oriented_quiet_and_not_quiet() {
-
     let input = "
 This is a test with
 multiple lines of very
@@ -661,17 +682,18 @@ bogus_file.txt:6:tests because no one
 ";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn show_unmatched_lines_quiet_and_not_quiet() {
-
     let input = "
 This is a test with
 multiple lines of very
@@ -691,17 +713,18 @@ bogus_file.txt:7:would want to read it.
 ";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn show_unmatched_lines_oriented_whole_files_quiet_and_not_quiet() {
-
     let input = "
 This is a test with
 multiple lines of very
@@ -725,17 +748,18 @@ would want to read it.
 ";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn group_0_match_quiet_and_not_quiet() {
-
     let input = "\
 This is a test.
 This is a test.
@@ -757,17 +781,18 @@ bogus_file.txt:6:This
 ";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn group_0_match_whole_files_quiet_and_not_quiet() {
-
     let input = "\
 This is a test.
 This is a test.
@@ -785,17 +810,18 @@ ThisThisThisThisThisThis
 ";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn group_1_match_quiet_and_not_quiet() {
-
     let input = "This is a test. This is a test.";
     let pattern = "Th(is)";
     let args = "--group 1";
@@ -805,17 +831,18 @@ bogus_file.txt:1:isis
 ";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn group_1_match_whole_files_quiet_and_not_quiet() {
-
     let input = "This is a test. This is a test.";
     let pattern = "Th(is)";
     let args = "--whole-files --group 1";
@@ -826,17 +853,18 @@ isis
 ";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn group_1_multiple_match_quiet_and_not_quiet() {
-
     let input = "This is a test.";
     let pattern = "(is)";
     let args = "--group 1";
@@ -846,17 +874,18 @@ bogus_file.txt:1:isis
 ";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn group_1_multiple_match_whole_files_hquiet_and_not_quiet() {
-
     let input = "This is a test.";
     let pattern = "(is)";
     let args = "--whole-files --group 1";
@@ -867,17 +896,18 @@ isis
 ";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn group_2_match_quiet_and_not_quiet() {
-
     let input = "This is a test. This is a test.";
     let pattern = "is (a) (test)";
     let args = "--group 2";
@@ -887,17 +917,18 @@ bogus_file.txt:1:testtest
 ";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn group_2_match_whole_files_quiet_and_not_quiet() {
-
     let input = "This is a test. This is a test.";
     let pattern = "is (a) (test)";
     let args = "--whole-files --group 2";
@@ -908,17 +939,18 @@ testtest
 ";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn named_group_match_quiet_and_not_quiet() {
-
     let input = "\
 This is a test.
 This is a test.
@@ -940,17 +972,18 @@ bogus_file.txt:6:test
 ";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn named_group_match_whole_files_quiet_and_not_quiet() {
-
     let input = "\
 This is a test.
 This is a test.
@@ -968,17 +1001,18 @@ testtesttesttesttesttest
 ";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn invalid_named_group_match_quiet_and_not_quiet() {
-
     let input = "\
 This is a test.
 This is a test.
@@ -993,17 +1027,18 @@ This is a test.
     let expected_screen_output = "";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn invalid_named_group_match_whole_files_quiet_and_not_quiet() {
-
     let input = "\
 This is a test.
 This is a test.
@@ -1018,17 +1053,18 @@ This is a test.
     let expected_screen_output = "";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn colored_match_quiet_and_not_quiet() {
-
     let input = "\
 This is a test.
 This is a test.
@@ -1050,17 +1086,18 @@ This is a test.
 ";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn colored_match_whole_files_quiet_and_not_quiet() {
-
     let input = "\
 This is a test.
 This is a test.
@@ -1083,17 +1120,18 @@ Th\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
 ";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn basic_replace_quiet_and_not_quiet() {
-
     let input = "\
 This is a test.
 This is a test.
@@ -1115,17 +1153,18 @@ That at a test.
 That at a test.
 ";
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn basic_replace_whole_files_quiet_and_not_quiet() {
-
     let input = "\
 This is a test.
 This is a test.
@@ -1147,17 +1186,18 @@ That at a test.
 That at a test.
 ";
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn basic_replace_to_stdout_quiet_and_not_quiet() {
-
     let input = "\
 This is a test.
 This is a test.
@@ -1180,17 +1220,18 @@ That at a test.
 ";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn basic_replace_to_stdout_whole_files_quiet_and_not_quiet() {
-
     let input = "\
 This is a test.
 This is a test.
@@ -1213,17 +1254,18 @@ That at a test.
 ";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn replace_skip_quiet_and_not_quiet() {
-
     let input = "\
 The shadow conquers the hand related to a mastadon. Jespera and I took a cup
 around a toothache (with a lunatic around some debutante, a ribbon beyond a
@@ -1245,17 +1287,18 @@ another swamp flies into a rage. Now and then, an XXXooker sells a dissident
 related to the hand to an ungodly dahlia.
 ";
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn replace_skip_backwards_quiet_and_not_quiet() {
-
     let input = "\
 The shadow conquers the hand related to a mastadon. Jespera and I took a cup
 around a toothache (with a lunatic around some debutante, a ribbon beyond a
@@ -1277,12 +1320,14 @@ another swamp flies into a rage. Now and then, an onlooker sells a dissident
 related to the hand to an ungodly dahlia.
 ";
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
@@ -1310,17 +1355,18 @@ another swamp flies into a rage. Now and then, an onlooker sells a dissident
 related to the hand to an ungodly dahlia.
 ";
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn only_matches_skip_all_whole_files_quiet_and_not_quiet() {
-
     let input = "\
 The shadow conquers the hand related to a mastadon. Jespera and I took a cup
 around a toothache (with a lunatic around some debutante, a ribbon beyond a
@@ -1335,12 +1381,14 @@ related to the hand to an ungodly dahlia.
     let expected_screen_output = "";
     let expected_file_content = &input;
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
@@ -1368,17 +1416,18 @@ another swamp flies into a rage. Now and then, an onlooker sells a dissident
 related to the hand to an ungodly dahlia.
 ";
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn replace_number_quiet_and_not_quiet() {
-
     let input = "\
 The shadow conquers the hand related to a mastadon. Jespera and I took a cup
 around a toothache (with a lunatic around some debutante, a ribbon beyond a
@@ -1400,17 +1449,18 @@ another swamp flies into a rage. Now and then, an onlooker sells a dissident
 related to the hand to an ungodly dahlia.
 ";
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn replace_number_backwards_quiet_and_not_quiet() {
-
     let input = "\
 The shadow conquers the hand related to a mastadon. Jespera and I took a cup
 around a toothache (with a lunatic around some debutante, a ribbon beyond a
@@ -1432,17 +1482,18 @@ another swamp flies into a rage. Now and then, an XXXooker sells a dissident
 related to the hand to an ungodly dahlia.
 ";
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn replace_number_more_than_there_are_quiet_and_not_quiet() {
-
     let input = "\
 The shadow conquers the hand related to a mastadon. Jespera and I took a cup
 around a toothache (with a lunatic around some debutante, a ribbon beyond a
@@ -1464,17 +1515,18 @@ another swamp flies into a rage. Now and then, an XXXooker sells a dissident
 related to the hand to an ungodly dahlia.
 ";
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn replace_number_more_than_there_are_backwards_quiet_and_not_quiet() {
-
     let input = "\
 The shadow conquers the hand related to a mastadon. Jespera and I took a cup
 around a toothache (with a lunatic around some debutante, a ribbon beyond a
@@ -1496,17 +1548,18 @@ another swamp flies into a rage. Now and then, an XXXooker sells a dissident
 related to the hand to an ungodly dahlia.
 ";
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn replace_skip_number_quiet_and_not_quiet() {
-
     let input = "\
 The shadow conquers the hand related to a mastadon. Jespera and I took a cup
 around a toothache (with a lunatic around some debutante, a ribbon beyond a
@@ -1528,17 +1581,18 @@ another swamp flies into a rage. Now and then, an onlooker sells a dissident
 related to the hand to an ungodly dahlia.
 ";
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
 #[test]
 fn replace_skip_number_backwards_quiet_and_not_quiet() {
-
     let input = "\
 The shadow conquers the hand related to a mastadon. Jespera and I took a cup
 around a toothache (with a lunatic around some debutante, a ribbon beyond a
@@ -1560,46 +1614,57 @@ another swamp flies into a rage. Now and then, an onlooker sells a dissident
 related to the hand to an ungodly dahlia.
 ";
 
-    test(input,
-         pattern,
-         args,
-         expected_found_matches,
-         expected_screen_output,
-         expected_file_content);
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
 }
 
-fn test(input: &str,
-        pattern: &str,
-        args: &str,
-        expected_found_matches: bool,
-        expected_screen_output: &str,
-        expected_file_content: &str) {
+fn test(
+    input: &str,
+    pattern: &str,
+    args: &str,
+    expected_found_matches: bool,
+    expected_screen_output: &str,
+    expected_file_content: &str,
+) {
     println!("NOT QUIET");
-    really_test(input,
-                pattern,
-                args,
-                expected_found_matches,
-                expected_screen_output,
-                expected_file_content);
+    really_test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
     println!("QUIET");
     let args = format!("{} --quiet", args);
-    really_test(input,
-                pattern,
-                &args,
-                expected_found_matches,
-                "",
-                expected_file_content);
+    really_test(
+        input,
+        pattern,
+        &args,
+        expected_found_matches,
+        "",
+        expected_file_content,
+    );
 }
 
-fn really_test(input: &str,
-               pattern: &str,
-               args: &str,
-               expected_found_matches: bool,
-               expected_screen_output: &str,
-               expected_file_content: &str) {
-
+fn really_test(
+    input: &str,
+    pattern: &str,
+    args: &str,
+    expected_found_matches: bool,
+    expected_screen_output: &str,
+    expected_file_content: &str,
+) {
     let opts = make_opts();
-    let mut args = args.split_whitespace().map(|arg| arg.to_string()).collect::<Vec<String>>();
+    let mut args = args.split_whitespace()
+        .map(|arg| arg.to_string())
+        .collect::<Vec<String>>();
     args.insert(0, pattern.to_string());
     let parameters = get_parameters(&opts, &args).unwrap();
 
@@ -1609,11 +1674,12 @@ fn really_test(input: &str,
     let mut file = Source::Cursor(Box::new(cursor));
     let mut screen_output: Vec<u8> = vec![];
 
-    let found_matches = process_file(&mut screen_output,
-                                     &parameters,
-                                     &Some("bogus_file.txt".to_string()),
-                                     &mut file)
-        .unwrap();
+    let found_matches = process_file(
+        &mut screen_output,
+        &parameters,
+        &Some("bogus_file.txt".to_string()),
+        &mut file,
+    ).unwrap();
 
     let screen_output = String::from_utf8(screen_output).unwrap();
 

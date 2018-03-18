@@ -1,4 +1,3 @@
-
 extern crate ansi_term;
 extern crate getopts;
 extern crate glob;
@@ -19,19 +18,18 @@ use ansi_term::Colour::{Purple, Red};
 #[cfg(target_os = "windows")]
 use ansi_term::enable_ansi_support;
 use files::Files;
-use ned_error::{NedError, NedResult, stderr_write_file_err};
-use opts::{make_opts, PROGRAM, usage_full, usage_version};
+use ned_error::{stderr_write_file_err, NedError, NedResult};
+use opts::{make_opts, usage_full, usage_version, PROGRAM};
 use parameters::{get_parameters, Parameters};
 use regex::{Captures, Regex};
 use source::Source;
 use std::fs::OpenOptions;
-use std::io::{Read, Seek, SeekFrom, stderr, stdin, stdout, Write};
+use std::io::{stderr, stdin, stdout, Read, Seek, SeekFrom, Write};
 use std::iter::Iterator;
 use std::string::String;
 use std::{env, process};
 
 fn main() {
-
     let args = get_args();
 
     // Output is passed here so that tests can
@@ -55,14 +53,16 @@ fn get_args() -> Vec<String> {
         // than this "set NED_DEFAULTS '-u -c'" they don't get a cryptic complaint.
         default_args = default_args.replace("\u{1e}", " ");
         let original_args = args;
-        args = default_args.split_whitespace().map(|s| s.to_string()).collect::<Vec<String>>();
+        args = default_args
+            .split_whitespace()
+            .map(|s| s.to_string())
+            .collect::<Vec<String>>();
         args.extend(original_args);
     }
     args
 }
 
 fn ned(output: &mut Write, args: &[String]) -> NedResult<i32> {
-
     let opts = make_opts();
     let parameters = try!(get_parameters(&opts, args));
 
@@ -84,20 +84,18 @@ fn ned(output: &mut Write, args: &[String]) -> NedResult<i32> {
     if parameters.colors {
         #[cfg(target_os = "windows")]
         match enable_ansi_support() {
-            Ok(_) => {},
+            Ok(_) => {}
             Err(_) => {
-                let _ = stderr().write(&"colors are not supported in this terminal".to_string().into_bytes());
+                let _ = stderr().write(&"colors are not supported in this terminal"
+                    .to_string()
+                    .into_bytes());
                 process::exit(1);
             }
         }
     }
 
     let found_matches = try!(process_files(output, &parameters));
-    Ok(if found_matches {
-        0
-    } else {
-        1
-    })
+    Ok(if found_matches { 0 } else { 1 })
 }
 
 fn process_files(output: &mut Write, parameters: &Parameters) -> NedResult<bool> {
@@ -111,7 +109,8 @@ fn process_files(output: &mut Write, parameters: &Parameters) -> NedResult<bool>
                 match OpenOptions::new()
                     .read(true)
                     .write(parameters.replace.is_some())
-                    .open(path_buf.as_path()) {
+                    .open(path_buf.as_path())
+                {
                     Ok(file) => {
                         let mut source = Source::File(Box::new(file));
                         let file_name = &Some(path_buf.as_path().to_string_lossy().to_string());
@@ -137,11 +136,12 @@ fn process_files(output: &mut Write, parameters: &Parameters) -> NedResult<bool>
     Ok(found_matches)
 }
 
-fn process_file(output: &mut Write,
-                parameters: &Parameters,
-                file_name: &Option<String>,
-                source: &mut Source)
-                -> NedResult<bool> {
+fn process_file(
+    output: &mut Write,
+    parameters: &Parameters,
+    file_name: &Option<String>,
+    source: &mut Source,
+) -> NedResult<bool> {
     let content: String;
     {
         let read: &mut Read = match source {
@@ -166,7 +166,10 @@ fn process_file(output: &mut Write,
         }
     }
 
-    let re = parameters.regex.clone().expect("Bug, already checked parameters.");
+    let re = parameters
+        .regex
+        .clone()
+        .expect("Bug, already checked parameters.");
 
     if let Some(mut replacement) = parameters.replace.clone() {
         if parameters.colors {
@@ -175,7 +178,12 @@ fn process_file(output: &mut Write,
         let (content, found_matches) = replace(parameters, &re, &content, &replacement);
         if parameters.stdout {
             if !parameters.quiet {
-                try!(write_file_name_and_line_number(output, parameters, file_name, None));
+                try!(write_file_name_and_line_number(
+                    output,
+                    parameters,
+                    file_name,
+                    None
+                ));
                 try!(output.write(&content.into_bytes()));
             }
         } else {
@@ -197,7 +205,12 @@ fn process_file(output: &mut Write,
     } else if parameters.file_names_only {
         let found_matches = re.is_match(&content);
         if found_matches ^ parameters.no_match {
-            try!(write_file_name_and_line_number(output, parameters, file_name, None));
+            try!(write_file_name_and_line_number(
+                output,
+                parameters,
+                file_name,
+                None
+            ));
         }
         return Ok(found_matches);
     } else {
@@ -206,21 +219,30 @@ fn process_file(output: &mut Write,
             let context_map = try!(make_context_map(&parameters, &re, &content));
             for (index, line) in content.lines().enumerate() {
                 let line_number = index + 1;
-                found_matches |= try!(process_text(output,
-                                                   parameters,
-                                                   &re,
-                                                   file_name,
-                                                   Some(line_number),
-                                                   line,
-                                                   Some(&context_map)));
+                found_matches |= try!(process_text(
+                    output,
+                    parameters,
+                    &re,
+                    file_name,
+                    Some(line_number),
+                    line,
+                    Some(&context_map)
+                ));
                 if parameters.quiet && found_matches {
                     break;
                 }
             }
             return Ok(found_matches);
         } else {
-            let found_matches =
-                try!(process_text(output, parameters, &re, file_name, None, &content, None));
+            let found_matches = try!(process_text(
+                output,
+                parameters,
+                &re,
+                file_name,
+                None,
+                &content,
+                None
+            ));
             return Ok(found_matches);
         }
     }
@@ -230,9 +252,13 @@ fn process_file(output: &mut Write,
 /// value is a boolean that indicates whether or not that line should be shown given
 /// the -C --context, -B --before, and -A --after options specified in the parameters.
 fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> NedResult<Vec<bool>> {
-    let lines = content.lines().map(|s| s.to_string()).collect::<Vec<String>>();
+    let lines = content
+        .lines()
+        .map(|s| s.to_string())
+        .collect::<Vec<String>>();
     let mut match_map = Vec::<bool>::with_capacity(lines.len());
-    lines.iter()
+    lines
+        .iter()
         .map(|line| match_map.push(is_match_with_number_skip_backwards(parameters, re, line)))
         .collect::<Vec<_>>();
     let mut context_map = match_map.clone();
@@ -264,30 +290,52 @@ fn is_match_with_number_skip_backwards(parameters: &Parameters, re: &Regex, text
     false
 }
 
-fn process_text(output: &mut Write,
-                parameters: &Parameters,
-                re: &Regex,
-                file_name: &Option<String>,
-                line_number: Option<usize>,
-                text: &str,
-                context_map: Option<&Vec<bool>>)
-                -> NedResult<bool> {
+fn process_text(
+    output: &mut Write,
+    parameters: &Parameters,
+    re: &Regex,
+    file_name: &Option<String>,
+    line_number: Option<usize>,
+    text: &str,
+    context_map: Option<&Vec<bool>>,
+) -> NedResult<bool> {
     if parameters.quiet && !parameters.limit_matches() && parameters.group.is_none() {
         // Quiet match only is shortcut by the more performant is_match() .
         return Ok(re.is_match(&text));
     }
     if let Some(ref group) = parameters.group {
         // TODO 2: make it respect -n, -k, -b TO TEST
-        return Ok(try!(write_groups(output, parameters, &re, file_name, line_number, text, group)));
+        return Ok(try!(write_groups(
+            output,
+            parameters,
+            &re,
+            file_name,
+            line_number,
+            text,
+            group
+        )));
     } else if parameters.no_match {
         let found_matches = re.is_match(&text);
         if !found_matches {
-            try!(write_line(output, parameters, file_name, line_number, &text));
+            try!(write_line(
+                output,
+                parameters,
+                file_name,
+                line_number,
+                &text
+            ));
         }
         return Ok(found_matches);
     } else if re.is_match(text) {
         if parameters.matches_only {
-            if try!(write_matches(output, parameters, &re, file_name, line_number, text)) {
+            if try!(write_matches(
+                output,
+                parameters,
+                &re,
+                file_name,
+                line_number,
+                text
+            )) {
                 return Ok(true);
             }
         } else {
@@ -296,7 +344,13 @@ fn process_text(output: &mut Write,
             let (text, found_matches) =
                 color_matches_with_number_skip_backwards(parameters, re, text);
             if found_matches {
-                try!(write_line(output, parameters, file_name, line_number, &text));
+                try!(write_line(
+                    output,
+                    parameters,
+                    file_name,
+                    line_number,
+                    &text
+                ));
                 return Ok(true);
             }
         }
@@ -306,7 +360,13 @@ fn process_text(output: &mut Write,
         if let Some(context_map) = context_map {
             if context_map.len() > 0 {
                 if context_map[line_number - 1] {
-                    try!(write_line(output, parameters, file_name, Some(line_number), text));
+                    try!(write_line(
+                        output,
+                        parameters,
+                        file_name,
+                        Some(line_number),
+                        text
+                    ));
                 }
             }
         }
@@ -331,42 +391,54 @@ fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> (S
             let index = count - rev_index - 1;
             if parameters.include_match(index, count) {
                 found_matches = true;
-                new_text = format!("{}{}{}",
-                                   // find_iter guarantees that start and end
-                                   // are at a Unicode code point boundary.
-                                   unsafe { &new_text.slice_unchecked(0, start) },
-                                   replace,
-                                   unsafe { &new_text.slice_unchecked(end, new_text.len()) });
+                new_text = format!(
+                    "{}{}{}",
+                    // find_iter guarantees that start and end
+                    // are at a Unicode code point boundary.
+                    unsafe { &new_text.slice_unchecked(0, start) },
+                    replace,
+                    unsafe { &new_text.slice_unchecked(end, new_text.len()) }
+                );
             }
         }
     };
     return (new_text, found_matches);
 }
 
-fn write_line(output: &mut Write,
-              parameters: &Parameters,
-              file_name: &Option<String>,
-              line_number: Option<usize>,
-              text: &str)
-              -> NedResult<()> {
+fn write_line(
+    output: &mut Write,
+    parameters: &Parameters,
+    file_name: &Option<String>,
+    line_number: Option<usize>,
+    text: &str,
+) -> NedResult<()> {
     if !parameters.quiet {
-        try!(write_file_name_and_line_number(output, parameters, file_name, line_number));
+        try!(write_file_name_and_line_number(
+            output,
+            parameters,
+            file_name,
+            line_number
+        ));
         if !parameters.line_numbers_only && !parameters.quiet {
             try!(output.write(&text.to_string().into_bytes()));
-            try!(write_newline_if_replaced_text_ends_with_newline(output, &text));
+            try!(write_newline_if_replaced_text_ends_with_newline(
+                output,
+                &text
+            ));
         }
     }
     Ok(())
 }
 
-fn write_groups(output: &mut Write,
-                parameters: &Parameters,
-                re: &Regex,
-                file_name: &Option<String>,
-                line_number: Option<usize>,
-                text: &str,
-                group: &str)
-                -> NedResult<bool> {
+fn write_groups(
+    output: &mut Write,
+    parameters: &Parameters,
+    re: &Regex,
+    file_name: &Option<String>,
+    line_number: Option<usize>,
+    text: &str,
+    group: &str,
+) -> NedResult<bool> {
     let mut wrote_file_name = false;
     let mut found_matches = false;
     let captures = re.captures_iter(text).collect::<Vec<Captures>>();
@@ -381,10 +453,12 @@ fn write_groups(output: &mut Write,
                 if !parameters.quiet {
                     let text = color_matches_all(parameters, re, text);
                     if !wrote_file_name {
-                        try!(write_file_name_and_line_number(output,
-                                                             parameters,
-                                                             file_name,
-                                                             line_number));
+                        try!(write_file_name_and_line_number(
+                            output,
+                            parameters,
+                            file_name,
+                            line_number
+                        ));
                         wrote_file_name = true;
                     }
                     try!(output.write(&text.to_string().into_bytes()));
@@ -402,13 +476,14 @@ fn write_groups(output: &mut Write,
 
 /// Write matches taking into account which of --number, --skip, and --backwards have been
 /// specified.
-fn write_matches(output: &mut Write,
-                 parameters: &Parameters,
-                 re: &Regex,
-                 file_name: &Option<String>,
-                 line_number: Option<usize>,
-                 text: &str)
-                 -> NedResult<bool> {
+fn write_matches(
+    output: &mut Write,
+    parameters: &Parameters,
+    re: &Regex,
+    file_name: &Option<String>,
+    line_number: Option<usize>,
+    text: &str,
+) -> NedResult<bool> {
     let mut found_matches = false;
     let mut file_name_written = false;
     let start_end_byte_indices = re.find_iter(text).collect::<Vec<(usize, usize)>>();
@@ -417,7 +492,12 @@ fn write_matches(output: &mut Write,
         if parameters.include_match(index, count) {
             found_matches = true;
             if !file_name_written {
-                try!(write_file_name_and_line_number(output, parameters, file_name, line_number));
+                try!(write_file_name_and_line_number(
+                    output,
+                    parameters,
+                    file_name,
+                    line_number
+                ));
                 file_name_written = true;
             }
             let text = color(parameters, &text[start..end]);
@@ -437,11 +517,12 @@ fn write_matches(output: &mut Write,
 /// Taking into account parameters specifying to display or not display file names and line numbers,
 /// write the filename, and line number if they are given, colored if the parameters specify color,
 /// and with a newline, colon and newline, or colon, also depending on the specified parameters.
-fn write_file_name_and_line_number(output: &mut Write,
-                                   parameters: &Parameters,
-                                   file_name: &Option<String>,
-                                   line_number: Option<usize>)
-                                   -> NedResult<()> {
+fn write_file_name_and_line_number(
+    output: &mut Write,
+    parameters: &Parameters,
+    file_name: &Option<String>,
+    line_number: Option<usize>,
+) -> NedResult<()> {
     if !parameters.quiet {
         let mut location = "".to_string();
         if !parameters.no_file_names && !parameters.line_numbers_only {
@@ -458,13 +539,15 @@ fn write_file_name_and_line_number(output: &mut Write,
             }
         }
         if location.len() > 0 {
-            location.push_str(if parameters.file_names_only || parameters.line_numbers_only {
-                "\n"
-            } else if parameters.replace.is_some() || parameters.whole_files {
-                ":\n"
-            } else {
-                ":"
-            });
+            location.push_str(
+                if parameters.file_names_only || parameters.line_numbers_only {
+                    "\n"
+                } else if parameters.replace.is_some() || parameters.whole_files {
+                    ":\n"
+                } else {
+                    ":"
+                },
+            );
             if parameters.colors {
                 location = Purple.paint(location).to_string();
             }
@@ -474,9 +557,10 @@ fn write_file_name_and_line_number(output: &mut Write,
     Ok(())
 }
 
-fn write_newline_if_replaced_text_ends_with_newline(output: &mut Write,
-                                                    text: &str)
-                                                    -> NedResult<()> {
+fn write_newline_if_replaced_text_ends_with_newline(
+    output: &mut Write,
+    text: &str,
+) -> NedResult<()> {
     if !text.ends_with("\n") {
         try!(output.write(&"\n".to_string().into_bytes()));
     }
@@ -485,14 +569,17 @@ fn write_newline_if_replaced_text_ends_with_newline(output: &mut Write,
 
 // TODO: use Cows to reduce allocations in the color*() functions.
 
-fn color_matches_with_number_skip_backwards(parameters: &Parameters,
-                                            re: &Regex,
-                                            text: &str)
-                                            -> (String, bool) {
-    let (new_text, found_matches) = replace(parameters,
-                                            &re,
-                                            text,
-                                            Red.bold().paint("$0").to_string().as_str());
+fn color_matches_with_number_skip_backwards(
+    parameters: &Parameters,
+    re: &Regex,
+    text: &str,
+) -> (String, bool) {
+    let (new_text, found_matches) = replace(
+        parameters,
+        &re,
+        text,
+        Red.bold().paint("$0").to_string().as_str(),
+    );
     if parameters.colors {
         (new_text, found_matches)
     } else {
