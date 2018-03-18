@@ -62,7 +62,7 @@ Options:
                         (or ASCII). because this requires reading the file the
                         --exclude option should be preferred
     -a, --all           do not ignore entries starting with .
-    -c, --colors        show filenames and matches in color
+    -c, --colors        show filenames and matches in color when a real stdout
         --stdout        output to stdout
     -q, --quiet         suppress all normal output
     -V, --version       output version information and exit
@@ -131,8 +131,7 @@ test result: ok. 119 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 Last tested on Windows 10 1709 with Rust 1.24.1. Tests run in cmd.exe.
 
-**NOTE**: All the colour tests fail when run in mintty (Git Bash) because for some
-reason it doesn't support colours in a way that ansi_term can recognise. https://github.com/nevdelap/ned/issues/14
+**NOTE**: The --colors option is ignored and all the colour tests fail when run in mintty (Git Bash) because its terminal not detected as being a tty. The colour tests and colours work in cmd.
 
 ```
 cd ned

@@ -120,7 +120,7 @@ pub fn make_opts() -> Options {
                       "quietly ignore files that cannot be parsed as UTF-8 (or ASCII). because \
                        this requires reading the file the --exclude option should be preferred");
     opts.optflagmulti("a", "all", "do not ignore entries starting with .");
-    opts.optflagmulti("c", "colors", "show filenames and matches in color");
+    opts.optflagmulti("c", "colors", "show filenames and matches in color when a real stdout");
     opts.optflagmulti("", "stdout", "output to stdout");
     opts.optflagmulti("q", "quiet", "suppress all normal output");
     opts.optflagmulti("V", "version", "output version information and exit");

@@ -16,6 +16,8 @@ mod source;
 mod tests;
 
 use ansi_term::Colour::{Purple, Red};
+#[cfg(target_os = "windows")]
+use ansi_term::enable_ansi_support;
 use files::Files;
 use ned_error::{NedError, NedResult, stderr_write_file_err};
 use opts::{make_opts, PROGRAM, usage_full, usage_version};
@@ -77,6 +79,17 @@ fn ned(output: &mut Write, args: &[String]) -> NedResult<i32> {
     if parameters.regex.is_none() {
         let _ = stderr().write(&format!("{}", usage_full(&opts)).into_bytes());
         process::exit(1);
+    }
+
+    if parameters.colors {
+        #[cfg(target_os = "windows")]
+        match enable_ansi_support() {
+            Ok(_) => {},
+            Err(_) => {
+                let _ = stderr().write(&"colors are not supported in this terminal".to_string().into_bytes());
+                process::exit(1);
+            }
+        }
     }
 
     let found_matches = try!(process_files(output, &parameters));
