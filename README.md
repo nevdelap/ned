@@ -129,12 +129,17 @@ test result: ok. 119 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 ### To build for 64bit Windows without downloading a load of MSVC junk.
 
-Last tested on Windows 10 1709 with Rust 1.24.1. Not all tests pass as per
-https://github.com/nevdelap/ned/issues/11. The ansi_term crate doesn't seem to
-write ansi colour sequences to the terminal in Windows.
+Last tested on Windows 10 1709 with Rust 1.24.1. Tests run in cmd.exe.
+
+**NOTE**: All the colour tests fail when run in mintty (Git Bash) because for some
+reason it doesn't support colours in a way that ansi_term can recognise. https://github.com/nevdelap/ned/issues/14
 
 ```
 cd ned
 rustup target add x86_64-pc-windows-gnu
 cargo build --release --target x86_64-pc-windows-gnu
+cargo test --target x86_64-pc-windows-gnu
+...
+test result: ok. 119 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+...
 ```
