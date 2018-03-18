@@ -1,6 +1,7 @@
 /// Just a few general tests. The specifics are tested in the other test files.
 
 use ned;
+use std;
 
 #[test]
 fn basic_match() {
@@ -995,6 +996,7 @@ fn recursive_match_line_numbers_only_no_match() {
 // These tests look for each of the file's matches it expects to be in the screen output, which
 // can be in any order, because the order that walkdir walks directories is undefined.
 fn test(args: &str, expected_exit_code: i32, expected_screen_output: &[&str]) {
+    let args = fix_path_for_windows(args);
     let args: Vec<String> = args.split_whitespace()
         .map(|arg| arg.to_string())
         .collect::<Vec<String>>();
@@ -1009,9 +1011,17 @@ fn test(args: &str, expected_exit_code: i32, expected_screen_output: &[&str]) {
 
     assert_eq!(exit_code, expected_exit_code);
     for part in expected_screen_output.into_iter() {
-        if !screen_output.contains(part) {
+        let part = fix_path_for_windows(&part);
+        if !screen_output.contains(&part) {
             println!("{:?} not in {:?}", part, screen_output);
             assert!(false);
         }
     }
+}
+
+fn fix_path_for_windows(part: &str) -> String {
+    // Is sufficient for current requirements as I make tests
+    // written on Linux work on Windows. Future tests will
+    // be written to work on both platforms .
+    part.replace("/", &std::path::MAIN_SEPARATOR.to_string())
 }

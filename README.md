@@ -97,7 +97,6 @@ Built 2018-03-12.
 # Machine Setup To Build Ned
 
 * Install rust as per: https://www.rust-lang.org/en-US/install.html
-* Install docker as per: https://docs.docker.com/install/linux/docker-ce/ubuntu/
 
 # Build Ned
 
@@ -142,13 +141,4 @@ sudo apt install mingw-w64
 cd ned
 rustup target add x86_64-pc-windows-gnu
 cargo build --target x86_64-pc-windows-gnu
-```
-
-### To build for the release supported platforms using rust nightly. (Last tested on Ubuntu 17.10 with Rust 1.24.1 and Docker 17.12.1-ce.)
-
-This will be removed. When I wrote this originally, two years ago, musl wasn't as super duper easy as it is today with rustup. (Yay!)
-
-```
-cd ned/build
-make ubuntu centos6 centos7
 ```
