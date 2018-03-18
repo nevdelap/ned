@@ -8,7 +8,7 @@ use files::Files;
 fn no_recursion() {
 
     let args = "pattern test";
-    let expected_file_names = ["file1.txt", "longfile.txt"];
+    let expected_file_names = ["file1.txt", "file8.txt", "longfile.txt"];
 
     test(&args, &expected_file_names);
 }
@@ -17,7 +17,7 @@ fn no_recursion() {
 fn no_recursion_all() {
 
     let args = "pattern --all test";
-    let expected_file_names = [".hidden_file1", "file1.txt", "longfile.txt"];
+    let expected_file_names = [".hidden_file1", "file1.txt", "file8.txt", "longfile.txt"];
 
     test(&args, &expected_file_names);
 }
@@ -51,6 +51,7 @@ fn recursion() {
                                "file5.txt",
                                "file6.txt",
                                "file7.txt",
+                               "file8.txt",
                                "longfile.txt"];
 
     test(&args, &expected_file_names);
@@ -69,6 +70,7 @@ fn recursion_all() {
                                "file5.txt",
                                "file6.txt",
                                "file7.txt",
+                               "file8.txt",
                                "longfile.txt"];
 
     test(&args, &expected_file_names);
@@ -121,6 +123,7 @@ fn exclude_files() {
                                "file4.txt",
                                "file5.txt",
                                "file6.txt",
+                               "file8.txt",
                                "longfile.txt"];
 
     test(&args, &expected_file_names);
@@ -130,8 +133,13 @@ fn exclude_files() {
 fn exclude_directory() {
 
     let args = "pattern -R test --exclude-dir dir4";
-    let expected_file_names =
-        ["file1.txt", "file2.txt", "file3.txt", "file4.txt", "file5.txt", "longfile.txt"];
+    let expected_file_names = ["file1.txt",
+                               "file2.txt",
+                               "file3.txt", 
+                               "file4.txt", 
+                               "file5.txt", 
+                               "file8.txt", 
+                               "longfile.txt"];
 
     test(&args, &expected_file_names);
 }
