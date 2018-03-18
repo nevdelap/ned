@@ -34,15 +34,15 @@ Options:
     -o, --matches-only  show only matches
     -g, --group GROUP   show the match group, specified by number or name
     -v, --no-match      show only non-matching
-    -f, --filenames-only 
+    -f, --filenames-only
                         show only filenames containing matches. use with -v
                         --no-match to show filenames without matches
     -F, --no-filenames  don't show filesnames
-    -l, --line-numbers-only 
+    -l, --line-numbers-only
                         show only line numbers containing matches. use with -v
                         --no-match to show line numbers without matches. use
                         without -w --whole-files
-    -L, --no-line-numbers 
+    -L, --no-line-numbers
                         don't show line numbers, use without -w --whole-files
     -C, --context LINES show LINES lines around each matching line. is the
                         same as specifying both -B --before and -A --after
@@ -52,12 +52,12 @@ Options:
     -A, --after LINES   show LINES lines after each matching line. use without
                         -w --whole-files
     -R, --recursive     recurse
-    -l, --follow        follow symlinks
+    -l, --follow        follow symlinks (Ignored on Windows.)
         --include GLOB  match only files that match GLOB
         --exclude GLOB  skip files matching GLOB
         --exclude-dir GLOB
                         skip directories matching GLOB
-    -u, --ignore-non-utf8 
+    -u, --ignore-non-utf8
                         quietly ignore files that cannot be parsed as UTF-8
                         (or ASCII). because this requires reading the file the
                         --exclude option should be preferred
@@ -91,7 +91,7 @@ License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 
-Built 2018-03-12.
+Built 2018-03-18.
 ```
 
 # Machine Setup To Build Ned
