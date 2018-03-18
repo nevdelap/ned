@@ -8,7 +8,11 @@ use files::Files;
 fn no_recursion() {
 
     let args = "pattern test";
-    let expected_file_names = ["file1.txt", "file8.txt", "longfile.txt"];
+    let mut expected_file_names = vec!["file1.txt", "longfile.txt"];
+    if cfg!(windows) {
+        // Windows presents the symlink as a regular file.
+        expected_file_names.insert(1, "file8.txt"); 
+    }
 
     test(&args, &expected_file_names);
 }
@@ -17,7 +21,11 @@ fn no_recursion() {
 fn no_recursion_all() {
 
     let args = "pattern --all test";
-    let expected_file_names = [".hidden_file1", "file1.txt", "file8.txt", "longfile.txt"];
+    let mut expected_file_names = vec![".hidden_file1", "file1.txt", "longfile.txt"];
+    if cfg!(windows) {
+        // Windows presents the symlink as a regular file.
+        expected_file_names.insert(2, "file8.txt"); 
+    }
 
     test(&args, &expected_file_names);
 }
@@ -44,15 +52,18 @@ fn no_recursion_follow_all() {
 fn recursion() {
 
     let args = "pattern --recursive test";
-    let expected_file_names = ["file1.txt",
-                               "file2.txt",
-                               "file3.txt",
-                               "file4.txt",
-                               "file5.txt",
-                               "file6.txt",
-                               "file7.txt",
-                               "file8.txt",
-                               "longfile.txt"];
+    let mut expected_file_names = vec!["file1.txt",
+                                       "file2.txt",
+                                       "file3.txt",
+                                       "file4.txt",
+                                       "file5.txt",
+                                       "file6.txt",
+                                       "file7.txt",
+                                       "longfile.txt"];
+    if cfg!(windows) {
+        // Windows presents the symlink as a regular file.
+        expected_file_names.insert(7, "file8.txt"); 
+    }
 
     test(&args, &expected_file_names);
 }
@@ -61,17 +72,20 @@ fn recursion() {
 fn recursion_all() {
 
     let args = "pattern --recursive --all test";
-    let expected_file_names = [".hidden_file1",
-                               ".hidden_file2",
-                               "file1.txt",
-                               "file2.txt",
-                               "file3.txt",
-                               "file4.txt",
-                               "file5.txt",
-                               "file6.txt",
-                               "file7.txt",
-                               "file8.txt",
-                               "longfile.txt"];
+    let mut expected_file_names = vec![".hidden_file1",
+                                       ".hidden_file2",
+                                       "file1.txt",
+                                       "file2.txt",
+                                       "file3.txt",
+                                       "file4.txt",
+                                       "file5.txt",
+                                       "file6.txt",
+                                       "file7.txt",
+                                       "longfile.txt"];
+    if cfg!(windows) {
+        // Windows presents the symlink as a regular file.
+        expected_file_names.insert(9, "file8.txt"); 
+    }
 
     test(&args, &expected_file_names);
 }
@@ -117,14 +131,17 @@ fn include_files() {
 fn exclude_files() {
 
     let args = "pattern -R test --exclude file7*";
-    let expected_file_names = ["file1.txt",
-                               "file2.txt",
-                               "file3.txt",
-                               "file4.txt",
-                               "file5.txt",
-                               "file6.txt",
-                               "file8.txt",
-                               "longfile.txt"];
+    let mut expected_file_names =vec!["file1.txt",
+                                      "file2.txt",
+                                      "file3.txt",
+                                      "file4.txt",
+                                      "file5.txt",
+                                      "file6.txt",
+                                      "longfile.txt"];
+    if cfg!(windows) {
+        // Windows presents the symlink as a regular file.
+        expected_file_names.insert(6, "file8.txt"); 
+    }
 
     test(&args, &expected_file_names);
 }
@@ -133,13 +150,12 @@ fn exclude_files() {
 fn exclude_directory() {
 
     let args = "pattern -R test --exclude-dir dir4";
-    let expected_file_names = ["file1.txt",
-                               "file2.txt",
-                               "file3.txt", 
-                               "file4.txt", 
-                               "file5.txt", 
-                               "file8.txt", 
-                               "longfile.txt"];
+    let mut expected_file_names =
+        vec!["file1.txt", "file2.txt", "file3.txt", "file4.txt", "file5.txt", "longfile.txt"];
+    if cfg!(windows) {
+        // Windows presents the symlink as a regular file.
+        expected_file_names.insert(5, "file8.txt"); 
+    }
 
     test(&args, &expected_file_names);
 }

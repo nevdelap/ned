@@ -111,7 +111,7 @@ pub fn make_opts() -> Options {
                  --whole-files",
                 "LINES");
     opts.optflagmulti("R", "recursive", "recurse");
-    opts.optflagmulti("l", "follow", "follow symlinks");
+    opts.optflagmulti("l", "follow", "follow symlinks (Ignored on Windows.)");
     opts.optmulti("", "include", "match only files that match GLOB", "GLOB");
     opts.optmulti("", "exclude", "skip files matching GLOB", "GLOB");
     opts.optmulti("", "exclude-dir", "skip directories matching GLOB", "GLOB");
