@@ -97,11 +97,12 @@ Built 2018-03-12.
 # Machine Setup To Build Ned
 
 * Install rust as per: https://www.rust-lang.org/en-US/install.html
-* Install docker as per: https://docs.docker.com/install/linux/docker-ce/ubuntu/
 
 # Build Ned
 
-### To build for the current platform. (Last tested on Ubuntu 17.10 with Rust 1.24.1.)
+### To build for the current Linux platform.
+
+Last tested on Ubuntu 17.10 with Rust 1.24.1.
 
 ```
 cd ned
@@ -112,7 +113,9 @@ test result: ok. 119 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 ```
 
-### To build for 64bit musl. (Last tested on Ubuntu 17.10 with Rust 1.24.1.)
+### To build for 64bit musl.
+
+Last tested on Ubuntu 17.10 with Rust 1.24.1.
 
 ```
 cd ned
@@ -124,31 +127,14 @@ test result: ok. 119 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 ```
 
-### To build for 64bit windows.
+### To build for 64bit Windows without downloading a load of MSVC junk.
 
-Tell cargo to use the mingw linker. See https://github.com/rust-lang/rust/issues/32859 for why.
-
-Add this to ~/.cargo/config...
-
-```
-[target.x86_64-pc-windows-gnu]
-linker = "/usr/bin/x86_64-w64-mingw32-gcc"
-```
-
-Install mingw, the 64bit Windows target and build and test. Currently tests do not all pass because of backslash and hidden file issues. Only tests should need updating. See: https://github.com/nevdelap/ned/issues/11
+Last tested on Windows 10 1709 with Rust 1.24.1. Not all tests pass as per
+https://github.com/nevdelap/ned/issues/11. The ansi_term crate doesn't seem to
+write ansi colour sequences to the terminal in Windows.
 
 ```
-sudo apt install mingw-w64
 cd ned
 rustup target add x86_64-pc-windows-gnu
 cargo build --release --target x86_64-pc-windows-gnu
-```
-
-### To build for the release supported platforms using rust nightly. (Last tested on Ubuntu 17.10 with Rust 1.24.1 and Docker 17.12.1-ce.)
-
-This will be removed. When I wrote this originally, two years ago, musl wasn't as super duper easy as it is today with rustup. (Yay!)
-
-```
-cd ned/build
-make ubuntu centos6 centos7
 ```
