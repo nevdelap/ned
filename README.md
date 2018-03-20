@@ -99,12 +99,13 @@ Built 2018-03-18.
 # Machine Setup To Build Ned
 
 * Install rust as per: https://www.rust-lang.org/en-US/install.html
+* (Windows) Install Visual Studio Build Tools 2017 as per: https://www.visualstudio.com/downloads/
 
 # Build Ned
 
-### To build for the current Linux platform.
+### To build for the current platform.
 
-Last tested on Ubuntu 17.10 with Rust 1.24.1.
+Last tested on Ubuntu 17.10 and on Windows 10 1709 with Rust 1.24.1.
 
 ```
 cd ned
@@ -115,9 +116,11 @@ test result: ok. 119 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 ```
 
+**NOTE/Windows**: The --colors option is ignored and all the color tests fail when run in mintty (Git Bash) because its terminal is not detected as being a tty. This is not a rust nor ned problem. It affects all terminal applications that try to output ansi terminal sequences to terminals but not to pipes - the correct behaviour.
+
 ### To build for 64bit musl.
 
-Last tested on Ubuntu 17.10 with Rust 1.24.1.
+Last tested on Ubuntu 17.10 with Rust 1.24.1.x
 
 ```
 cd ned
@@ -127,20 +130,4 @@ cargo test --target x86_64-unknown-linux-musl
 ...
 test result: ok. 119 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
-```
-
-### To build for 64bit Windows without downloading a load of MSVC junk.
-
-Last tested on Windows 10 1709 with Rust 1.24.1. Tests run in cmd.exe.
-
-**NOTE**: The --colors option is ignored and all the colour tests fail when run in mintty (Git Bash) because its terminal is not detected as being a tty. The colour tests and colours work in cmd.
-
-```
-cd ned
-rustup target add x86_64-pc-windows-gnu
-cargo build --release --target x86_64-pc-windows-gnu
-cargo test --target x86_64-pc-windows-gnu
-...
-test result: ok. 119 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
-...
 ```
