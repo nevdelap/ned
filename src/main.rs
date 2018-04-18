@@ -192,7 +192,9 @@ fn process_file(
                 // A better way???
                 &mut Source::File(ref mut file) => {
                     try!(file.seek(SeekFrom::Start(0)));
-                    try!(file.write(&content.into_bytes()));
+                    let bytes = &content.into_bytes();
+                    try!(file.write(bytes));
+                    try!(file.set_len(bytes.len() as u64));
                 }
                 #[cfg(test)]
                 &mut Source::Cursor(ref mut cursor) => {
