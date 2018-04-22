@@ -1,3 +1,5 @@
+![ned Screenshot](https://github.com/nevdelap/ned/blob/master/img/nedScreenshot.png)
+
 # Ned Usage
 
 ```text
