@@ -16,6 +16,66 @@ fn basic_match() {
 }
 
 #[test]
+fn basic_match_stdout() {
+    let args = "--stdout accidentally test";
+    let expected_exit_code = 0;
+    let expected_screen_output = [
+        "test/file1.txt:1:The accidentally ghastly hand plans an \
+         escape from a cream puff the placid widow. A slovenly\n",
+    ];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn basic_replace() {
+    let args = "--stdout accidentally test --replace outstandingly";
+    let expected_exit_code = 0;
+    let expected_screen_output = [
+        "test/file1.txt:\nThe outstandingly ghastly hand plans an \
+         escape from a cream puff the placid widow. A slovenly\n",
+    ];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn basic_replace_backref() {
+    let args = "--stdout accidental(ly) test --replace outstanding$1";
+    let expected_exit_code = 0;
+    let expected_screen_output = [
+        "test/file1.txt:\nThe outstandingly ghastly hand plans an \
+         escape from a cream puff the placid widow. A slovenly\n",
+    ];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn basic_replace_backref_braces() {
+    let args = "--stdout (accidental)ly test --replace ${1}iest";
+    let expected_exit_code = 0;
+    let expected_screen_output = [
+        "test/file1.txt:\nThe accidentaliest ghastly hand plans an \
+         escape from a cream puff the placid widow. A slovenly\n",
+    ];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+/* To be activated when Issue 22 enhancement is implemented.
+#[test]
+fn basic_replace_backref_braces_skip() {
+    let args = "--stdout -ignore-case (th)e\\b test --replace ${1}at --skip 1";
+    let expected_exit_code = 0;
+    let expected_screen_output = [
+        "test/file1.txt:\nThe accidentally ghastly hand plans an \
+         escape from a cream puff that placid widow. A slovenly\n",
+    ];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+*/
+#[test]
 fn basic_match_whole_files() {
     let args = "accidentally test --whole-files";
     let expected_exit_code = 0;
