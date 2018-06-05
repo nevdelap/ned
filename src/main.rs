@@ -21,7 +21,7 @@ use files::Files;
 use ned_error::{stderr_write_file_err, NedError, NedResult};
 use opts::{make_opts, usage_brief, usage_full, usage_version};
 use parameters::{get_parameters, Parameters};
-use regex::{Captures, Regex};
+use regex::{Captures, Match, Regex};
 use source::Source;
 use std::fs::OpenOptions;
 use std::io::{stderr, stdin, stdout, Read, Seek, SeekFrom, Write};
@@ -36,14 +36,17 @@ fn main() {
     // call ned() directly to read the output
     // that would go to stdout.
     let mut output = stdout();
-    match ned(&mut output, &args) {
-        Ok(exit_code) => process::exit(exit_code),
-        Err(err) => {
-            let _ =
-                stderr().write(&format!("{}\n\n{}\n", usage_brief(), err.to_string()).into_bytes());
-            process::exit(1)
-        }
-    }
+    let exit_code =
+        match ned(&mut output, &args) {
+            Ok(exit_code) => exit_code,
+            Err(err) => {
+                let _ =
+                    stderr().write(&format!("{}\n\n{}\n", usage_brief(), err.to_string()).into_bytes());
+                1
+            }
+        };
+    output.flush().unwrap();
+    process::exit(exit_code)
 }
 
 fn get_args() -> Vec<String> {
@@ -285,7 +288,7 @@ fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> NedRe
 }
 
 fn is_match_with_number_skip_backwards(parameters: &Parameters, re: &Regex, text: &str) -> bool {
-    let start_end_byte_indices = re.find_iter(&text).collect::<Vec<(usize, usize)>>();
+    let start_end_byte_indices = re.find_iter(&text).collect::<Vec<Match>>();
     let count = start_end_byte_indices.len();
     for index in 0..count {
         if parameters.include_match(index, count) {
@@ -386,13 +389,13 @@ fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> (S
     let mut new_text;
     if !parameters.limit_matches() {
         found_matches = re.is_match(text);
-        new_text = re.replace_all(text, replace)
+        new_text = re.replace_all(text, replace).into_owned()
     } else {
         new_text = text.to_string();
-        let start_end_byte_indices = re.find_iter(&text).collect::<Vec<(usize, usize)>>();
+        let start_end_byte_indices = re.find_iter(&text).collect::<Vec<Match>>();
         let count = start_end_byte_indices.len();
         // Walk it backwards so that replacements don't invalidate indices.
-        for (rev_index, &(start, end)) in start_end_byte_indices.iter().rev().enumerate() {
+        for (rev_index, &_match) in start_end_byte_indices.iter().rev().enumerate() {
             let index = count - rev_index - 1;
             if parameters.include_match(index, count) {
                 found_matches = true;
@@ -400,9 +403,9 @@ fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> (S
                     "{}{}{}",
                     // find_iter guarantees that start and end
                     // are at a Unicode code point boundary.
-                    unsafe { &new_text.slice_unchecked(0, start) },
+                    unsafe { &new_text.slice_unchecked(0, _match.start()) },
                     replace,
-                    unsafe { &new_text.slice_unchecked(end, new_text.len()) }
+                    unsafe { &new_text.slice_unchecked(_match.end(), new_text.len()) }
                 );
             }
         }
@@ -449,14 +452,14 @@ fn write_groups(
     let captures = re.captures_iter(text).collect::<Vec<Captures>>();
     for (index, capture) in captures.iter().enumerate() {
         if parameters.include_match(index, captures.len()) {
-            let text = match group.trim().parse::<usize>() {
-                Ok(index) => capture.at(index),
+            let _match = match group.trim().parse::<usize>() {
+                Ok(index) => capture.get(index),
                 Err(_) => capture.name(group),
             };
-            if let Some(text) = text {
+            if let Some(_match) = _match {
                 found_matches = true;
                 if !parameters.quiet {
-                    let text = color_matches_all(parameters, re, text);
+                    let text = color_matches_all(parameters, re, _match.as_str());
                     if !wrote_file_name {
                         try!(write_file_name_and_line_number(
                             output,
@@ -491,9 +494,9 @@ fn write_matches(
 ) -> NedResult<bool> {
     let mut found_matches = false;
     let mut file_name_written = false;
-    let start_end_byte_indices = re.find_iter(text).collect::<Vec<(usize, usize)>>();
+    let start_end_byte_indices = re.find_iter(text).collect::<Vec<Match>>();
     let count = start_end_byte_indices.len();
-    for (index, &(start, end)) in start_end_byte_indices.iter().enumerate() {
+    for (index, &_match) in start_end_byte_indices.iter().enumerate() {
         if parameters.include_match(index, count) {
             found_matches = true;
             if !file_name_written {
@@ -505,7 +508,7 @@ fn write_matches(
                 ));
                 file_name_written = true;
             }
-            let text = color(parameters, &text[start..end]);
+            let text = color(parameters, &text[_match.start().._match.end()]);
             if !parameters.quiet {
                 try!(output.write(&text.to_string().into_bytes()));
             } else {
@@ -594,7 +597,7 @@ fn color_matches_with_number_skip_backwards(
 
 fn color_matches_all(parameters: &Parameters, re: &Regex, text: &str) -> String {
     if parameters.colors {
-        re.replace_all(&text, Red.bold().paint("$0").to_string().as_str())
+        re.replace_all(&text, Red.bold().paint("$0").to_string().as_str()).into_owned()
     } else {
         text.to_string()
     }
