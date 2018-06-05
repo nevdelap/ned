@@ -152,7 +152,7 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
     let number = try!(parse_optional_opt_str(&matches, "number"));
     let skip = try!(parse_opt_str(&matches, "skip", 0));
 
-    let stdin = globs.len() == 0 || stdout;
+    let stdin = globs.len() == 0;
 
     Ok(Parameters {
         all: matches.opt_present("all"),
