@@ -122,7 +122,7 @@ test result: ok. 119 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 ### To build for 64bit musl.
 
-Last tested on Ubuntu 17.10 with Rust 1.24.1.x
+Last tested on Ubuntu 18.04 with Rust 1.24.1.x
 
 ```
 cd ned
