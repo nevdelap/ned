@@ -62,7 +62,7 @@ fn basic_replace_backref_braces() {
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
-/* To be activated when Issue 22 enhancement is implemented.
+
 #[test]
 fn basic_replace_backref_braces_skip() {
     let args = "--stdout -ignore-case (th)e\\b test --replace ${1}at --skip 1";
@@ -74,7 +74,7 @@ fn basic_replace_backref_braces_skip() {
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
-*/
+
 #[test]
 fn basic_match_whole_files() {
     let args = "accidentally test --whole-files";
