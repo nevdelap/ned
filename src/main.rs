@@ -399,12 +399,13 @@ fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> (S
             let index = count - rev_index - 1;
             if parameters.include_match(index, count) {
                 found_matches = true;
+                let this_replace = re.replace(_match.as_str(), replace).into_owned();
                 new_text = format!(
                     "{}{}{}",
                     // find_iter guarantees that start and end
                     // are at a Unicode code point boundary.
                     unsafe { &new_text.slice_unchecked(0, _match.start()) },
-                    replace,
+                    this_replace,
                     unsafe { &new_text.slice_unchecked(_match.end(), new_text.len()) }
                 );
             }
