@@ -107,7 +107,7 @@ Built 2018-03-18.
 
 ### To build for the current platform.
 
-Last tested on Ubuntu 17.10 and on Windows 10 1709 with Rust 1.24.1.
+Last tested on Ubuntu 18.04 and on Windows 10.0.16299.192 with Rust 1.26.2. For Windows using the x64 Native Tools Command Prompt for VS2017.
 
 ```
 cd ned
@@ -122,7 +122,7 @@ test result: ok. 119 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 ### To build for 64bit musl.
 
-Last tested on Ubuntu 18.04 with Rust 1.24.1.x
+Last tested on Ubuntu 18.04 with Rust 1.26.2.x
 
 ```
 cd ned
