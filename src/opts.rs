@@ -13,7 +13,7 @@ edit files.
 
 FILEs are ASCII or UTF-8 text files. For regex syntax see:
 
-  https://doc.rust-lang.org/regex/regex/index.html#syntax";
+  https://docs.rs/regex/1.0.0/regex/#syntax";
 
 static POST_DESCRIPTION: &'static str = "Environment:
     NED_DEFAULTS        ned options prepended to the program's arguments. is
