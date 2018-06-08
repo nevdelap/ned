@@ -13,7 +13,7 @@ edit files.
 
 FILEs are ASCII or UTF-8 text files. For regex syntax see:
 
-  https://doc.rust-lang.org/regex/regex/index.html#syntax
+  https://docs.rs/regex/1.0.0/regex/#syntax
 
 Options:
     -p, --pattern PATTERN
@@ -88,13 +88,13 @@ Quiet:
     as many files as needed to find a match. Even without this shortcutting
     behaviour quiet matches are more performant than non-quiet matches.
 
-ned 0.1.10-beta Copyright (C) 2016-2018 Nev Delap - https://github.com/nevdelap/ned
+ned 1.0.0 Copyright (C) 2016-2018 Nev Delap - https://github.com/nevdelap/ned
 
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 
-Built 2018-03-18.
+Built 2018-06-08.
 
 ```
 
@@ -114,7 +114,7 @@ cd ned
 cargo build --release
 cargo test
 ...
-test result: ok. 119 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+test result: ok. 124 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 ```
 
@@ -130,6 +130,6 @@ rustup target add x86_64-unknown-linux-musl
 cargo build --release --target x86_64-unknown-linux-musl
 cargo test --target x86_64-unknown-linux-musl
 ...
-test result: ok. 119 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+test result: ok. 124 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 ```
