@@ -1,8 +1,7 @@
 /// Test file related functionality - recursion, inclusion, exclusion, symlinks, etc.
-
+use files::Files;
 use opts::make_opts;
 use parameters::get_parameters;
-use files::Files;
 
 #[test]
 fn no_recursion() {

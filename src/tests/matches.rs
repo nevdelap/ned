@@ -1,11 +1,8 @@
 /// Test match related functionality - different types of matches, matches with color, quiet, etc.
 /// The use of re, not re itself.
-
-// TO TEST: -l and -L
-
-use process_file;
 use opts::make_opts;
 use parameters::get_parameters;
+use process_file;
 use source::Source;
 use std::io::{Cursor, Read, Seek, SeekFrom, Write};
 

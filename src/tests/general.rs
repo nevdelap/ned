@@ -1,5 +1,4 @@
 /// Just a few general tests. The specifics are tested in the other test files.
-
 use ned;
 use std;
 
@@ -7,10 +6,8 @@ use std;
 fn basic_match() {
     let args = "accidentally test";
     let expected_exit_code = 0;
-    let expected_screen_output = [
-        "test/file1.txt:1:The accidentally ghastly hand plans an \
-         escape from a cream puff the placid widow. A slovenly\n",
-    ];
+    let expected_screen_output = ["test/file1.txt:1:The accidentally ghastly hand plans an \
+                                   escape from a cream puff the placid widow. A slovenly\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -19,10 +16,8 @@ fn basic_match() {
 fn basic_match_stdout() {
     let args = "--stdout accidentally test";
     let expected_exit_code = 0;
-    let expected_screen_output = [
-        "test/file1.txt:1:The accidentally ghastly hand plans an \
-         escape from a cream puff the placid widow. A slovenly\n",
-    ];
+    let expected_screen_output = ["test/file1.txt:1:The accidentally ghastly hand plans an \
+                                   escape from a cream puff the placid widow. A slovenly\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -31,10 +26,8 @@ fn basic_match_stdout() {
 fn basic_replace() {
     let args = "--stdout accidentally test --replace outstandingly";
     let expected_exit_code = 0;
-    let expected_screen_output = [
-        "test/file1.txt:\nThe outstandingly ghastly hand plans an \
-         escape from a cream puff the placid widow. A slovenly\n",
-    ];
+    let expected_screen_output = ["test/file1.txt:\nThe outstandingly ghastly hand plans an \
+                                   escape from a cream puff the placid widow. A slovenly\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -43,10 +36,8 @@ fn basic_replace() {
 fn basic_replace_backref() {
     let args = "--stdout accidental(ly) test --replace outstanding$1";
     let expected_exit_code = 0;
-    let expected_screen_output = [
-        "test/file1.txt:\nThe outstandingly ghastly hand plans an \
-         escape from a cream puff the placid widow. A slovenly\n",
-    ];
+    let expected_screen_output = ["test/file1.txt:\nThe outstandingly ghastly hand plans an \
+                                   escape from a cream puff the placid widow. A slovenly\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -55,10 +46,8 @@ fn basic_replace_backref() {
 fn basic_replace_backref_braces() {
     let args = "--stdout (accidental)ly test --replace ${1}iest";
     let expected_exit_code = 0;
-    let expected_screen_output = [
-        "test/file1.txt:\nThe accidentaliest ghastly hand plans an \
-         escape from a cream puff the placid widow. A slovenly\n",
-    ];
+    let expected_screen_output = ["test/file1.txt:\nThe accidentaliest ghastly hand plans an \
+                                   escape from a cream puff the placid widow. A slovenly\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -67,10 +56,8 @@ fn basic_replace_backref_braces() {
 fn basic_replace_backref_braces_skip() {
     let args = "--stdout -ignore-case (th)e\\b test --replace ${1}at --skip 1";
     let expected_exit_code = 0;
-    let expected_screen_output = [
-        "test/file1.txt:\nThe accidentally ghastly hand plans an \
-         escape from a cream puff that placid widow. A slovenly\n",
-    ];
+    let expected_screen_output = ["test/file1.txt:\nThe accidentally ghastly hand plans an \
+                                   escape from a cream puff that placid widow. A slovenly\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -269,11 +256,9 @@ fn only_matches_whole_files() {
 fn colored_match() {
     let args = "accidentally.*hand test --colors";
     let expected_exit_code = 0;
-    let expected_screen_output = [
-        "\u{1b}[35mtest/file1.txt:1:\u{1b}[0mThe \
-         \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans an \
-         escape from a cream puff the placid widow. A slovenly\n",
-    ];
+    let expected_screen_output = ["\u{1b}[35mtest/file1.txt:1:\u{1b}[0mThe \
+                                   \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans an \
+                                   escape from a cream puff the placid widow. A slovenly\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -341,11 +326,9 @@ fn colored_match_no_file_names_whole_files() {
 fn colored_match_no_file_names() {
     let args = "accidentally.*hand test --colors --no-filenames";
     let expected_exit_code = 0;
-    let expected_screen_output = [
-        "\u{1b}[35m1:\u{1b}[0mThe \u{1b}[1;31maccidentally ghastly \
-         hand\u{1b}[0m plans an escape from a cream puff the placid \
-         widow. A slovenly\n",
-    ];
+    let expected_screen_output = ["\u{1b}[35m1:\u{1b}[0mThe \u{1b}[1;31maccidentally ghastly \
+                                   hand\u{1b}[0m plans an escape from a cream puff the placid \
+                                   widow. A slovenly\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -354,11 +337,9 @@ fn colored_match_no_file_names() {
 fn colored_match_no_line_numbers() {
     let args = "accidentally.*hand test --colors --no-line-numbers";
     let expected_exit_code = 0;
-    let expected_screen_output = [
-        "\u{1b}[35mtest/file1.txt:\u{1b}[0mThe \
-         \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans an \
-         escape from a cream puff the placid widow. A slovenly\n",
-    ];
+    let expected_screen_output = ["\u{1b}[35mtest/file1.txt:\u{1b}[0mThe \
+                                   \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans an \
+                                   escape from a cream puff the placid widow. A slovenly\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -416,8 +397,7 @@ fn duplicate_options() {
 fn context_0_match() {
     let args = "is test --include long*.txt";
     let expected_exit_code = 0;
-    let expected_screen_output = [
-        "\
+    let expected_screen_output = ["\
 test/longfile.txt:1:The bodice ripper writes a love letter to a comely dissident. The
 test/longfile.txt:2:Interloper and I took a self-actualized dissident (with the wisely
 test/longfile.txt:3:sprightly necromancer, another dissident, a few mirrors, and the
@@ -431,8 +411,7 @@ test/longfile.txt:24:where we can feverishly play pinochle with our trombone. Th
 test/longfile.txt:30:cards with an impresario. The labyrinth related to the menagé à trois
 test/longfile.txt:33:fetishist defined by a marzipan and a clodhopper, still amorously
 test/longfile.txt:35:her the lovely fetishist with a cup beyond the pocket, and lazily
-",
-    ];
+"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -441,8 +420,7 @@ test/longfile.txt:35:her the lovely fetishist with a cup beyond the pocket, and 
 fn context_after_1_match() {
     let args = "is test --include long*.txt --after 1";
     let expected_exit_code = 0;
-    let expected_screen_output = [
-        "\
+    let expected_screen_output = ["\
 test/longfile.txt:1:The bodice ripper writes a love letter to a comely dissident. The
 test/longfile.txt:2:Interloper and I took a self-actualized dissident (with the wisely
 test/longfile.txt:3:sprightly necromancer, another dissident, a few mirrors, and the
@@ -465,8 +443,7 @@ test/longfile.txt:33:fetishist defined by a marzipan and a clodhopper, still amo
 test/longfile.txt:34:teaches her from a gonad behind an impresario, bestow great honor upon
 test/longfile.txt:35:her the lovely fetishist with a cup beyond the pocket, and lazily
 test/longfile.txt:36:boogies the dark side of her
-",
-    ];
+"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -475,8 +452,7 @@ test/longfile.txt:36:boogies the dark side of her
 fn context_before_1_match() {
     let args = "is test --include long*.txt --before 1";
     let expected_exit_code = 0;
-    let expected_screen_output = [
-        "\
+    let expected_screen_output = ["\
 test/longfile.txt:1:The bodice ripper writes a love letter to a comely dissident. The
 test/longfile.txt:2:Interloper and I took a self-actualized dissident (with the wisely
 test/longfile.txt:3:sprightly necromancer, another dissident, a few mirrors, and the
@@ -497,8 +473,7 @@ test/longfile.txt:32:(or was it Harpo Marx?). Nicolas, although somewhat soothed
 test/longfile.txt:33:fetishist defined by a marzipan and a clodhopper, still amorously
 test/longfile.txt:34:teaches her from a gonad behind an impresario, bestow great honor upon
 test/longfile.txt:35:her the lovely fetishist with a cup beyond the pocket, and lazily
-",
-    ];
+"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -507,8 +482,7 @@ test/longfile.txt:35:her the lovely fetishist with a cup beyond the pocket, and 
 fn context_1_match() {
     let args = "is test --include long*.txt --context 1";
     let expected_exit_code = 0;
-    let expected_screen_output = [
-        "\
+    let expected_screen_output = ["\
 test/longfile.txt:1:The bodice ripper writes a love letter to a comely dissident. The
 test/longfile.txt:2:Interloper and I took a self-actualized dissident (with the wisely
 test/longfile.txt:3:sprightly necromancer, another dissident, a few mirrors, and the
@@ -536,8 +510,7 @@ test/longfile.txt:33:fetishist defined by a marzipan and a clodhopper, still amo
 test/longfile.txt:34:teaches her from a gonad behind an impresario, bestow great honor upon
 test/longfile.txt:35:her the lovely fetishist with a cup beyond the pocket, and lazily
 test/longfile.txt:36:boogies the dark side of her
-",
-    ];
+"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -546,8 +519,7 @@ test/longfile.txt:36:boogies the dark side of her
 fn context_after_2_match() {
     let args = "is test --include long*.txt --after 2";
     let expected_exit_code = 0;
-    let expected_screen_output = [
-        "\
+    let expected_screen_output = ["\
 test/longfile.txt:1:The bodice ripper writes a love letter to a comely dissident. The
 test/longfile.txt:2:Interloper and I took a self-actualized dissident (with the wisely
 test/longfile.txt:3:sprightly necromancer, another dissident, a few mirrors, and the
@@ -575,8 +547,7 @@ test/longfile.txt:33:fetishist defined by a marzipan and a clodhopper, still amo
 test/longfile.txt:34:teaches her from a gonad behind an impresario, bestow great honor upon
 test/longfile.txt:35:her the lovely fetishist with a cup beyond the pocket, and lazily
 test/longfile.txt:36:boogies the dark side of her
-test/longfile.txt:37:snow.",
-    ];
+test/longfile.txt:37:snow."];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -585,8 +556,7 @@ test/longfile.txt:37:snow.",
 fn context_before_2_match() {
     let args = "is test --include long*.txt --before 2";
     let expected_exit_code = 0;
-    let expected_screen_output = [
-        "\
+    let expected_screen_output = ["\
 test/longfile.txt:1:The bodice ripper writes a love letter to a comely dissident. The
 test/longfile.txt:2:Interloper and I took a self-actualized dissident (with the wisely
 test/longfile.txt:3:sprightly necromancer, another dissident, a few mirrors, and the
@@ -613,8 +583,7 @@ test/longfile.txt:32:(or was it Harpo Marx?). Nicolas, although somewhat soothed
 test/longfile.txt:33:fetishist defined by a marzipan and a clodhopper, still amorously
 test/longfile.txt:34:teaches her from a gonad behind an impresario, bestow great honor upon
 test/longfile.txt:35:her the lovely fetishist with a cup beyond the pocket, and lazily
-",
-    ];
+"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -623,8 +592,7 @@ test/longfile.txt:35:her the lovely fetishist with a cup beyond the pocket, and 
 fn context_2_match() {
     let args = "is test --include long*.txt --context 2";
     let expected_exit_code = 0;
-    let expected_screen_output = [
-        "\
+    let expected_screen_output = ["\
 test/longfile.txt:1:The bodice ripper writes a love letter to a comely dissident. The
 test/longfile.txt:2:Interloper and I took a self-actualized dissident (with the wisely
 test/longfile.txt:3:sprightly necromancer, another dissident, a few mirrors, and the
@@ -659,8 +627,7 @@ test/longfile.txt:34:teaches her from a gonad behind an impresario, bestow great
 test/longfile.txt:35:her the lovely fetishist with a cup beyond the pocket, and lazily
 test/longfile.txt:36:boogies the dark side of her
 test/longfile.txt:37:snow.
-",
-    ];
+"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -669,8 +636,7 @@ test/longfile.txt:37:snow.
 fn context_after_5_match() {
     let args = "is test --include long*.txt --after 5";
     let expected_exit_code = 0;
-    let expected_screen_output = [
-        "\
+    let expected_screen_output = ["\
 test/longfile.txt:1:The bodice ripper writes a love letter to a comely dissident. The
 test/longfile.txt:2:Interloper and I took a self-actualized dissident (with the wisely
 test/longfile.txt:3:sprightly necromancer, another dissident, a few mirrors, and the
@@ -708,8 +674,7 @@ test/longfile.txt:34:teaches her from a gonad behind an impresario, bestow great
 test/longfile.txt:35:her the lovely fetishist with a cup beyond the pocket, and lazily
 test/longfile.txt:36:boogies the dark side of her
 test/longfile.txt:37:snow.
-",
-    ];
+"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -718,8 +683,7 @@ test/longfile.txt:37:snow.
 fn context_before_5_match() {
     let args = "is test --include long*.txt --before 5";
     let expected_exit_code = 0;
-    let expected_screen_output = [
-        "\
+    let expected_screen_output = ["\
 test/longfile.txt:1:The bodice ripper writes a love letter to a comely dissident. The
 test/longfile.txt:2:Interloper and I took a self-actualized dissident (with the wisely
 test/longfile.txt:3:sprightly necromancer, another dissident, a few mirrors, and the
@@ -755,8 +719,7 @@ test/longfile.txt:32:(or was it Harpo Marx?). Nicolas, although somewhat soothed
 test/longfile.txt:33:fetishist defined by a marzipan and a clodhopper, still amorously
 test/longfile.txt:34:teaches her from a gonad behind an impresario, bestow great honor upon
 test/longfile.txt:35:her the lovely fetishist with a cup beyond the pocket, and lazily
-",
-    ];
+"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -765,8 +728,7 @@ test/longfile.txt:35:her the lovely fetishist with a cup beyond the pocket, and 
 fn context_5_match() {
     let args = "is test --include long*.txt --context 5";
     let expected_exit_code = 0;
-    let expected_screen_output = [
-        "\
+    let expected_screen_output = ["\
 test/longfile.txt:1:The bodice ripper writes a love letter to a comely dissident. The
 test/longfile.txt:2:Interloper and I took a self-actualized dissident (with the wisely
 test/longfile.txt:3:sprightly necromancer, another dissident, a few mirrors, and the
@@ -804,8 +766,7 @@ test/longfile.txt:34:teaches her from a gonad behind an impresario, bestow great
 test/longfile.txt:35:her the lovely fetishist with a cup beyond the pocket, and lazily
 test/longfile.txt:36:boogies the dark side of her
 test/longfile.txt:37:snow.
-",
-    ];
+"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }

@@ -14,9 +14,9 @@ mod source;
 #[cfg(test)]
 mod tests;
 
-use ansi_term::Colour::{Purple, Red};
 #[cfg(target_os = "windows")]
 use ansi_term::enable_ansi_support;
+use ansi_term::Colour::{Purple, Red};
 use files::Files;
 use ned_error::{stderr_write_file_err, NedError, NedResult};
 use opts::{make_opts, usage_brief, usage_full, usage_version};
@@ -36,15 +36,14 @@ fn main() {
     // call ned() directly to read the output
     // that would go to stdout.
     let mut output = stdout();
-    let exit_code =
-        match ned(&mut output, &args) {
-            Ok(exit_code) => exit_code,
-            Err(err) => {
-                let _ =
-                    stderr().write(&format!("{}\n\n{}\n", usage_brief(), err.to_string()).into_bytes());
-                1
-            }
-        };
+    let exit_code = match ned(&mut output, &args) {
+        Ok(exit_code) => exit_code,
+        Err(err) => {
+            let _ =
+                stderr().write(&format!("{}\n\n{}\n", usage_brief(), err.to_string()).into_bytes());
+            1
+        }
+    };
     output.flush().unwrap();
     process::exit(exit_code)
 }
@@ -183,10 +182,7 @@ fn process_file(
         if parameters.stdout {
             if !parameters.quiet {
                 try!(write_file_name_and_line_number(
-                    output,
-                    parameters,
-                    file_name,
-                    None
+                    output, parameters, file_name, None
                 ));
                 try!(output.write(&content.into_bytes()));
             }
@@ -214,10 +210,7 @@ fn process_file(
         let found_matches = re.is_match(&content);
         if found_matches ^ parameters.no_match {
             try!(write_file_name_and_line_number(
-                output,
-                parameters,
-                file_name,
-                None
+                output, parameters, file_name, None
             ));
         }
         return Ok(found_matches);
@@ -243,13 +236,7 @@ fn process_file(
             return Ok(found_matches);
         } else {
             let found_matches = try!(process_text(
-                output,
-                parameters,
-                &re,
-                file_name,
-                None,
-                &content,
-                None
+                output, parameters, &re, file_name, None, &content, None
             ));
             return Ok(found_matches);
         }
@@ -431,8 +418,7 @@ fn write_line(
         if !parameters.line_numbers_only && !parameters.quiet {
             try!(output.write(&text.to_string().into_bytes()));
             try!(write_newline_if_replaced_text_ends_with_newline(
-                output,
-                &text
+                output, &text
             ));
         }
     }
@@ -598,7 +584,8 @@ fn color_matches_with_number_skip_backwards(
 
 fn color_matches_all(parameters: &Parameters, re: &Regex, text: &str) -> String {
     if parameters.colors {
-        re.replace_all(&text, Red.bold().paint("$0").to_string().as_str()).into_owned()
+        re.replace_all(&text, Red.bold().paint("$0").to_string().as_str())
+            .into_owned()
     } else {
         text.to_string()
     }
