@@ -5,6 +5,7 @@ use glob::Pattern;
 use libc;
 use ned_error::{NedError, NedResult, StringError};
 use regex::Regex;
+use std::collections::HashMap;
 use std::iter::Iterator;
 use std::str::FromStr;
 
@@ -78,7 +79,7 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
     let matches = try!(opts.parse(args));
 
     let stdout = matches.opt_present("stdout");
-    let replace = matches.opt_str("replace");
+    let replace = convert_escapes(matches.opt_str("replace"));
     // TODO: decide what is the best way to deal with STDOUT_FILENO not
     // being defined in the x86_64-pc-windows-gnu version of libc.
     let isatty = unsafe {
@@ -185,6 +186,48 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
         version: matches.opt_present("version"),
         whole_files: whole_files,
     })
+}
+
+fn convert_escapes(str: Option<String>) -> Option<String> {
+    match str {
+        Some(str) => {
+            let mut escapes = HashMap::new();
+            escapes.insert('\\', '\\');
+            escapes.insert('n', '\n');
+            escapes.insert('r', '\r');
+            escapes.insert('t', '\t');
+
+            let mut result = String::from("");
+            // TODO: Figure out how to do this with Peekable.
+            // Had trouble figuring out how to use peek while iterating
+            // since the for has a mutable borrow of chars while peek is
+            // trying to use it inside the for. It didn't result in less
+            // lines of code anyway, but would be good to get rid of the
+            // collect.
+            let chars = str.chars().collect::<Vec<char>>();
+            let mut i = 0;
+            while i < chars.len() {
+                if i < chars.len() - 1 && chars[i] == '\\' {
+                    let char = escapes.get(&chars[i + 1]);
+                    if char.is_some() {
+                        // Escape sequences converted to the character they represent.
+                        result.push(*char.unwrap());
+                        i += 2;
+                        continue;
+                    }
+                }
+                // Unescaped characters unchanged,
+                // unrecognised escape sequences unchanged,
+                // backslash at end of string unchanged.
+                result.push(chars[i]);
+                i += 1;
+            }
+            Some(result)
+        }
+        None => {
+            None
+        }
+    }
 }
 
 fn add_re_options_to_pattern(matches: &Matches, pattern: &str) -> String {
