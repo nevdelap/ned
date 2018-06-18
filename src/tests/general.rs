@@ -4,7 +4,7 @@ use std;
 
 #[test]
 fn basic_match() {
-    let args = "accidentally test";
+    let args = vec![ "accidentally", "test" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["test/file1.txt:1:The accidentally ghastly hand plans an \
                                    escape from a cream puff the placid widow. A slovenly\n"];
@@ -14,7 +14,7 @@ fn basic_match() {
 
 #[test]
 fn basic_match_stdout() {
-    let args = "--stdout accidentally test";
+    let args = vec![ "--stdout", "accidentally", "test" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["test/file1.txt:1:The accidentally ghastly hand plans an \
                                    escape from a cream puff the placid widow. A slovenly\n"];
@@ -24,7 +24,7 @@ fn basic_match_stdout() {
 
 #[test]
 fn basic_replace() {
-    let args = "--stdout accidentally test --replace outstandingly";
+    let args = vec![ "--stdout", "accidentally", "test", "--replace", "outstandingly" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["test/file1.txt:\nThe outstandingly ghastly hand plans an \
                                    escape from a cream puff the placid widow. A slovenly\n"];
@@ -33,10 +33,50 @@ fn basic_replace() {
 }
 
 #[test]
-fn basic_replace_backref() {
-    let args = "--stdout accidental(ly) test --replace outstanding$1";
+fn basic_replace_embedded_real_newline_carriage_return_tab_backslash() {
+    let args = vec![ "--stdout", "accidentally", "test", "--replace", "outs\nta\tnd\ring\\ly" ];
     let expected_exit_code = 0;
-    let expected_screen_output = ["test/file1.txt:\nThe outstandingly ghastly hand plans an \
+    let expected_screen_output = ["test/file1.txt:\nThe outs\nta\tnd\ring\\ly ghastly hand plans an \
+                                   escape from a cream puff the placid widow. A slovenly\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn basic_replace_escaped_newline_carriage_return_tab_backslash() {
+    let args = vec![ "--stdout", "accidentally", "test", "--replace", r"outs\nta\tnd\ring\\ly" ];
+    let expected_exit_code = 0;
+    let expected_screen_output = ["test/file1.txt:\nThe outs\nta\tnd\ring\\ly ghastly hand plans an \
+                                   escape from a cream puff the placid widow. A slovenly\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn basic_replace_escaped_newline_at_start_and_end() {
+    let args = vec![ "--stdout", "accidentally", "test", "--replace", r"\noutstandingly\n" ];
+    let expected_exit_code = 0;
+    let expected_screen_output = ["test/file1.txt:\nThe \noutstandingly\n ghastly hand plans an \
+                                   escape from a cream puff the placid widow. A slovenly\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn basic_replace_backslash_at_end_unchanged() {
+    let args = vec![ "--stdout", "accidentally", "test", "--replace", r"outstandingly\" ];
+    let expected_exit_code = 0;
+    let expected_screen_output = ["test/file1.txt:\nThe outstandingly\\ ghastly hand plans an \
+                                   escape from a cream puff the placid widow. A slovenly\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn basic_replace_invalid_escapes_unchanged() {
+    let args = vec![ "--stdout", "accidentally", "test", "--replace", r"out\stan\din\gly" ];
+    let expected_exit_code = 0;
+    let expected_screen_output = ["test/file1.txt:\nThe out\\stan\\din\\gly ghastly hand plans an \
                                    escape from a cream puff the placid widow. A slovenly\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
@@ -44,7 +84,7 @@ fn basic_replace_backref() {
 
 #[test]
 fn basic_replace_backref_braces() {
-    let args = "--stdout (accidental)ly test --replace ${1}iest";
+    let args = vec![ "--stdout", "(accidental)ly", "test", "--replace", "${1}iest" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["test/file1.txt:\nThe accidentaliest ghastly hand plans an \
                                    escape from a cream puff the placid widow. A slovenly\n"];
@@ -54,7 +94,7 @@ fn basic_replace_backref_braces() {
 
 #[test]
 fn basic_replace_backref_braces_skip() {
-    let args = "--stdout -ignore-case (th)e\\b test --replace ${1}at --skip 1";
+    let args = vec![ "--stdout", "--ignore-case", "(th)e\\b", "test", "--replace", "${1}at", "--skip", "1" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["test/file1.txt:\nThe accidentally ghastly hand plans an \
                                    escape from a cream puff that placid widow. A slovenly\n"];
@@ -64,7 +104,7 @@ fn basic_replace_backref_braces_skip() {
 
 #[test]
 fn basic_match_whole_files() {
-    let args = "accidentally test --whole-files";
+    let args = vec![ "accidentally", "test", "--whole-files" ];
     let expected_exit_code = 0;
     let expected_screen_output = [
         "test/file1.txt:\nThe accidentally ghastly hand plans an escape from a cream puff the \
@@ -80,7 +120,7 @@ fn basic_match_whole_files() {
 
 #[test]
 fn basic_match_file_names_only() {
-    let args = "accidentally test --filenames-only";
+    let args = vec![ "accidentally", "test", "--filenames-only" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["test/file1.txt\n"];
 
@@ -89,7 +129,7 @@ fn basic_match_file_names_only() {
 
 #[test]
 fn basic_match_file_names_only_whole_files() {
-    let args = "accidentally test --whole-files --filenames-only";
+    let args = vec![ "accidentally", "test", "--whole-files", "--filenames-only" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["test/file1.txt\n"];
 
@@ -98,7 +138,7 @@ fn basic_match_file_names_only_whole_files() {
 
 #[test]
 fn basic_match_line_numbers_only() {
-    let args = "accidentally test --line-numbers-only";
+    let args = vec![ "accidentally", "test", "--line-numbers-only" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["1\n"];
 
@@ -107,7 +147,7 @@ fn basic_match_line_numbers_only() {
 
 #[test]
 fn basic_match_no_file_names() {
-    let args = "accidentally test --no-filenames";
+    let args = vec![ "accidentally", "test", "--no-filenames" ];
     let expected_exit_code = 0;
     let expected_screen_output = [
         "1:The accidentally ghastly hand plans an escape from a cream \
@@ -119,7 +159,7 @@ fn basic_match_no_file_names() {
 
 #[test]
 fn basic_match_no_file_names_whole_files() {
-    let args = "accidentally test --whole-files --no-filenames";
+    let args = vec![ "accidentally", "test", "--whole-files", "--no-filenames" ];
     let expected_exit_code = 0;
     let expected_screen_output = [
         "The accidentally ghastly hand plans an escape from a cream puff the placid widow. A \
@@ -135,7 +175,7 @@ fn basic_match_no_file_names_whole_files() {
 
 #[test]
 fn basic_match_no_line_numbers() {
-    let args = "accidentally test --no-line-numbers";
+    let args = vec![ "accidentally", "test", "--no-line-numbers" ];
     let expected_exit_code = 0;
     let expected_screen_output = [
         "test/file1.txt:The accidentally ghastly hand plans an escape \
@@ -147,7 +187,7 @@ fn basic_match_no_line_numbers() {
 
 #[test]
 fn basic_match_file_names_only_no_match() {
-    let args = "secretly test/dir1 --filenames-only --no-match";
+    let args = vec![ "secretly", "test/dir1", "--filenames-only", "--no-match" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["test/dir1/file2.txt\n"];
 
@@ -156,7 +196,7 @@ fn basic_match_file_names_only_no_match() {
 
 #[test]
 fn basic_match_file_names_only_no_match_whole_files() {
-    let args = "secretly test/dir1 --whole-files --filenames-only --no-match";
+    let args = vec![ "secretly", "test/dir1", "--whole-files", "--filenames-only", "--no-match" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["test/dir1/file2.txt\n"];
 
@@ -165,7 +205,7 @@ fn basic_match_file_names_only_no_match_whole_files() {
 
 #[test]
 fn basic_match_line_numbers_only_no_match() {
-    let args = "secretly test/dir1 --line-numbers-only --no-match";
+    let args = vec![ "secretly", "test/dir1", "--line-numbers-only", "--no-match" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["1\n2\n3\n4\n5\n6\n1\n2\n3\n"];
 
@@ -174,7 +214,7 @@ fn basic_match_line_numbers_only_no_match() {
 
 #[test]
 fn basic_match_no_file_names_no_match() {
-    let args = "secretly test/dir1 --no-filenames --no-match";
+    let args = vec![ "secretly", "test/dir1", "--no-filenames", "--no-match" ];
     let expected_exit_code = 0;
     let expected_screen_output = [
         "1:The omphalos toward a bubble bath is lowly. The unsightly bicep panics, and a \
@@ -195,7 +235,7 @@ fn basic_match_no_file_names_no_match() {
 
 #[test]
 fn basic_match_no_file_names_no_match_whole_files() {
-    let args = "secretly test/dir1 --whole-files --no-filenames --no-match";
+    let args = vec![ "secretly", "test/dir1", "--whole-files", "--no-filenames", "--no-match" ];
     let expected_exit_code = 0;
     let expected_screen_output = [
         "The omphalos toward a bubble bath is lowly. The unsightly bicep panics, and a \
@@ -212,7 +252,7 @@ fn basic_match_no_file_names_no_match_whole_files() {
 
 #[test]
 fn basic_match_no_line_numbers_no_match() {
-    let args = "secretly test/dir1 --no-line-numbers --no-match";
+    let args = vec![ "secretly", "test/dir1", "--no-line-numbers", "--no-match" ];
     let expected_exit_code = 0;
     let expected_screen_output = [
         "test/dir1/file2.txt:The omphalos toward a bubble bath is lowly. The unsightly bicep \
@@ -236,7 +276,7 @@ fn basic_match_no_line_numbers_no_match() {
 
 #[test]
 fn only_matches() {
-    let args = "accidentally.*hand test --matches-only";
+    let args = vec![ "accidentally.*hand", "test", "--matches-only" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["test/file1.txt:1:accidentally ghastly hand\n"];
 
@@ -245,7 +285,7 @@ fn only_matches() {
 
 #[test]
 fn only_matches_whole_files() {
-    let args = "accidentally.*hand test --whole-files --matches-only";
+    let args = vec![ "accidentally.*hand", "test", "--whole-files", "--matches-only" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["test/file1.txt:\naccidentally ghastly hand\n"];
 
@@ -254,7 +294,7 @@ fn only_matches_whole_files() {
 
 #[test]
 fn colored_match() {
-    let args = "accidentally.*hand test --colors";
+    let args = vec![ "accidentally.*hand", "test", "--colors" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["\u{1b}[35mtest/file1.txt:1:\u{1b}[0mThe \
                                    \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans an \
@@ -265,7 +305,7 @@ fn colored_match() {
 
 #[test]
 fn colored_match_whole_files() {
-    let args = "accidentally.*hand test --whole-files --colors";
+    let args = vec![ "accidentally.*hand", "test", "--whole-files", "--colors" ];
     let expected_exit_code = 0;
     let expected_screen_output = [
         "\u{1b}[35mtest/file1.txt:\n\u{1b}[0mThe \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m \
@@ -281,7 +321,7 @@ fn colored_match_whole_files() {
 
 #[test]
 fn colored_match_file_names_only() {
-    let args = "accidentally.*hand test --colors --filenames-only";
+    let args = vec![ "accidentally.*hand", "test", "--colors", "--filenames-only" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["\u{1b}[35mtest/file1.txt\n\u{1b}[0m"];
 
@@ -290,7 +330,7 @@ fn colored_match_file_names_only() {
 
 #[test]
 fn colored_match_file_names_only_whole_files() {
-    let args = "accidentally.*hand test --whole-files --colors --filenames-only";
+    let args = vec![ "accidentally.*hand", "test", "--whole-files", "--colors", "--filenames-only" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["\u{1b}[35mtest/file1.txt\n\u{1b}[0m"];
 
@@ -299,7 +339,7 @@ fn colored_match_file_names_only_whole_files() {
 
 #[test]
 fn colored_match_line_numbers_only() {
-    let args = "rejoices.*hand test --colors --line-numbers-only";
+    let args = vec![ "rejoices.*hand", "test", "--colors", "--line-numbers-only" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["\u{1b}[35m2\n\u{1b}[0m"];
 
@@ -308,7 +348,7 @@ fn colored_match_line_numbers_only() {
 
 #[test]
 fn colored_match_no_file_names_whole_files() {
-    let args = "accidentally.*hand test --whole-files --colors --no-filenames";
+    let args = vec![ "accidentally.*hand", "test", "--whole-files", "--colors", "--no-filenames" ];
     let expected_exit_code = 0;
     let expected_screen_output = [
         "The \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans an escape from a cream puff \
@@ -324,7 +364,7 @@ fn colored_match_no_file_names_whole_files() {
 
 #[test]
 fn colored_match_no_file_names() {
-    let args = "accidentally.*hand test --colors --no-filenames";
+    let args = vec![ "accidentally.*hand", "test", "--colors", "--no-filenames" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["\u{1b}[35m1:\u{1b}[0mThe \u{1b}[1;31maccidentally ghastly \
                                    hand\u{1b}[0m plans an escape from a cream puff the placid \
@@ -335,7 +375,7 @@ fn colored_match_no_file_names() {
 
 #[test]
 fn colored_match_no_line_numbers() {
-    let args = "accidentally.*hand test --colors --no-line-numbers";
+    let args = vec![ "accidentally.*hand", "test", "--colors", "--no-line-numbers" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["\u{1b}[35mtest/file1.txt:\u{1b}[0mThe \
                                    \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans an \
@@ -346,7 +386,7 @@ fn colored_match_no_line_numbers() {
 
 #[test]
 fn colored_match_file_names_only_no_match() {
-    let args = "secretly test/dir1 --colors --filenames-only --no-match";
+    let args = vec![ "secretly", "test/dir1", "--colors", "--filenames-only", "--no-match" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["\u{1b}[35mtest/dir1/file2.txt\n\u{1b}[0m"];
 
@@ -355,7 +395,7 @@ fn colored_match_file_names_only_no_match() {
 
 #[test]
 fn colored_match_file_names_only_no_match_whole_files() {
-    let args = "secretly test/dir1 --whole-files --colors --filenames-only --no-match";
+    let args = vec![ "secretly", "test/dir1", "--whole-files", "--colors", "--filenames-only", "--no-match" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["\u{1b}[35mtest/dir1/file2.txt\n\u{1b}[0m"];
 
@@ -364,7 +404,7 @@ fn colored_match_file_names_only_no_match_whole_files() {
 
 #[test]
 fn colored_match_line_numbers_only_no_match() {
-    let args = "secretly test/dir1 --colors --line-numbers-only --no-match";
+    let args = vec![ "secretly", "test/dir1", "--colors", "--line-numbers-only", "--no-match" ];
     let expected_exit_code = 0;
     let expected_screen_output = [
         "\u{1b}[35m1\n\u{1b}[0m\u{1b}[35m2\n\u{1b}[0m\u{1b}[35m3\n\u{1b}\
@@ -379,7 +419,7 @@ fn colored_match_line_numbers_only_no_match() {
 
 #[test]
 fn duplicate_options() {
-    let args = "accidentally.*hand test --whole-files --colors --colors -c";
+    let args = vec![ "accidentally.*hand", "test", "--whole-files", "--colors", "--colors", "-c" ];
     let expected_exit_code = 0;
     let expected_screen_output = [
         "\u{1b}[35mtest/file1.txt:\n\u{1b}[0mThe \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m \
@@ -395,7 +435,7 @@ fn duplicate_options() {
 
 #[test]
 fn context_0_match() {
-    let args = "is test --include long*.txt";
+    let args = vec![ "is", "test", "--include", "long*.txt" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["\
 test/longfile.txt:1:The bodice ripper writes a love letter to a comely dissident. The
@@ -418,7 +458,7 @@ test/longfile.txt:35:her the lovely fetishist with a cup beyond the pocket, and 
 
 #[test]
 fn context_after_1_match() {
-    let args = "is test --include long*.txt --after 1";
+    let args = vec![ "is", "test", "--include", "long*.txt", "--after", "1" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["\
 test/longfile.txt:1:The bodice ripper writes a love letter to a comely dissident. The
@@ -450,7 +490,7 @@ test/longfile.txt:36:boogies the dark side of her
 
 #[test]
 fn context_before_1_match() {
-    let args = "is test --include long*.txt --before 1";
+    let args = vec![ "is", "test", "--include", "long*.txt", "--before", "1" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["\
 test/longfile.txt:1:The bodice ripper writes a love letter to a comely dissident. The
@@ -480,7 +520,7 @@ test/longfile.txt:35:her the lovely fetishist with a cup beyond the pocket, and 
 
 #[test]
 fn context_1_match() {
-    let args = "is test --include long*.txt --context 1";
+    let args = vec![ "is", "test", "--include", "long*.txt", "--context", "1" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["\
 test/longfile.txt:1:The bodice ripper writes a love letter to a comely dissident. The
@@ -517,7 +557,7 @@ test/longfile.txt:36:boogies the dark side of her
 
 #[test]
 fn context_after_2_match() {
-    let args = "is test --include long*.txt --after 2";
+    let args = vec![ "is", "test", "--include", "long*.txt", "--after", "2" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["\
 test/longfile.txt:1:The bodice ripper writes a love letter to a comely dissident. The
@@ -554,7 +594,7 @@ test/longfile.txt:37:snow."];
 
 #[test]
 fn context_before_2_match() {
-    let args = "is test --include long*.txt --before 2";
+    let args = vec![ "is", "test", "--include", "long*.txt", "--before", "2" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["\
 test/longfile.txt:1:The bodice ripper writes a love letter to a comely dissident. The
@@ -590,7 +630,7 @@ test/longfile.txt:35:her the lovely fetishist with a cup beyond the pocket, and 
 
 #[test]
 fn context_2_match() {
-    let args = "is test --include long*.txt --context 2";
+    let args = vec![ "is", "test", "--include", "long*.txt", "--context", "2" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["\
 test/longfile.txt:1:The bodice ripper writes a love letter to a comely dissident. The
@@ -634,7 +674,7 @@ test/longfile.txt:37:snow.
 
 #[test]
 fn context_after_5_match() {
-    let args = "is test --include long*.txt --after 5";
+    let args = vec![ "is", "test", "--include", "long*.txt", "--after", "5" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["\
 test/longfile.txt:1:The bodice ripper writes a love letter to a comely dissident. The
@@ -681,7 +721,7 @@ test/longfile.txt:37:snow.
 
 #[test]
 fn context_before_5_match() {
-    let args = "is test --include long*.txt --before 5";
+    let args = vec![ "is", "test", "--include", "long*.txt", "--before", "5" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["\
 test/longfile.txt:1:The bodice ripper writes a love letter to a comely dissident. The
@@ -726,7 +766,7 @@ test/longfile.txt:35:her the lovely fetishist with a cup beyond the pocket, and 
 
 #[test]
 fn context_5_match() {
-    let args = "is test --include long*.txt --context 5";
+    let args = vec![ "is", "test", "--include", "long*.txt", "--context", "5" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["\
 test/longfile.txt:1:The bodice ripper writes a love letter to a comely dissident. The
@@ -773,7 +813,7 @@ test/longfile.txt:37:snow.
 
 #[test]
 fn recursive_match() {
-    let args = "her test --recursive";
+    let args = vec![ "her", "test", "--recursive" ];
     let expected_exit_code = 0;
     let expected_screen_output = [
         "test/dir2/file4.txt:1:Harpo Marx and I took another hand for some espadrille (with an \
@@ -813,7 +853,7 @@ fn recursive_match() {
 
 #[test]
 fn recursive_match_whole_files() {
-    let args = "her test --whole-files --recursive";
+    let args = vec![ "her", "test", "--whole-files", "--recursive" ];
     let expected_exit_code = 0;
     let expected_screen_output = [
         "test/dir1/dir4/file6.txt:\nThe shadow conquers the hand related to a mastadon. Jespera \
@@ -853,7 +893,7 @@ fn recursive_match_whole_files() {
 
 #[test]
 fn recursive_match_file_names_only() {
-    let args = "her test --recursive --filenames-only";
+    let args = vec![ "her", "test", "--recursive", "--filenames-only" ];
     let expected_exit_code = 0;
     let expected_screen_output = [
         "test/dir1/dir4/file6.txt\n",
@@ -868,7 +908,7 @@ fn recursive_match_file_names_only() {
 
 #[test]
 fn recursive_match_file_names_only_whole_files() {
-    let args = "her test --whole-files --recursive --filenames-only";
+    let args = vec![ "her", "test", "--whole-files", "--recursive", "--filenames-only" ];
     let expected_exit_code = 0;
     let expected_screen_output = [
         "test/dir1/dir4/dir5/file7.txt\n",
@@ -884,7 +924,7 @@ fn recursive_match_file_names_only_whole_files() {
 
 #[test]
 fn recursive_match_line_numbers_only() {
-    let args = "her test --recursive --line-numbers-only";
+    let args = vec![ "her", "test", "--recursive", "--line-numbers-only" ];
     let expected_exit_code = 0;
     let expected_screen_output = [
         "2\n", // expected results matching results from recursive_match_file_names_only_whole_files.
@@ -900,7 +940,7 @@ fn recursive_match_line_numbers_only() {
 
 #[test]
 fn recursive_match_no_files_names() {
-    let args = "her test --recursive --no-filenames";
+    let args = vec![ "her", "test", "--recursive", "--no-filenames" ];
     let expected_exit_code = 0;
     let expected_screen_output = [
         "1:Harpo Marx and I took another hand for some espadrille (with an irreconcilable tea \
@@ -936,7 +976,7 @@ fn recursive_match_no_files_names() {
 
 #[test]
 fn recursive_match_no_files_names_whole_files() {
-    let args = "her test --whole-files --recursive --no-filenames";
+    let args = vec![ "her", "test", "--whole-files", "--recursive", "--no-filenames" ];
     let expected_exit_code = 0;
     let expected_screen_output = [
         "The shadow conquers the hand related to a mastadon. Jespera and I took a cup around a \
@@ -976,7 +1016,7 @@ fn recursive_match_no_files_names_whole_files() {
 
 #[test]
 fn recursive_match_file_names_only_no_match() {
-    let args = "her test --recursive --filenames-only --no-match";
+    let args = vec![ "her", "test", "--recursive", "--filenames-only", "--no-match" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["test/file1.txt\n", "test/dir1/file3.txt\n"];
 
@@ -985,7 +1025,7 @@ fn recursive_match_file_names_only_no_match() {
 
 #[test]
 fn recursive_match_file_names_only_no_match_whole_files() {
-    let args = "her test --whole-files --recursive --filenames-only --no-match";
+    let args = vec![ "her", "test", "--whole-files", "--recursive", "--filenames-only", "--no-match" ];
     let expected_exit_code = 0;
     let expected_screen_output = ["test/file1.txt\n", "test/dir1/file3.txt\n"];
 
@@ -994,7 +1034,7 @@ fn recursive_match_file_names_only_no_match_whole_files() {
 
 #[test]
 fn recursive_match_line_numbers_only_no_match() {
-    let args = "her test --recursive --line-numbers-only --no-match";
+    let args = vec![ "her", "test", "--recursive", "--line-numbers-only", "--no-match" ];
     let expected_exit_code = 0;
     let expected_screen_output = [
         "1\n2\n3\n4\n5\n",
@@ -1013,12 +1053,12 @@ fn recursive_match_line_numbers_only_no_match() {
 
 // These tests look for each of the file's matches it expects to be in the screen output, which
 // can be in any order, because the order that walkdir walks directories is undefined.
-fn test(args: &str, expected_exit_code: i32, expected_screen_output: &[&str]) {
-    let args = fix_path_for_windows(args);
-    let args: Vec<String> = args.split_whitespace()
-        .map(|arg| arg.to_string())
-        .collect::<Vec<String>>();
-
+fn test(args: &Vec<&str>, expected_exit_code: i32, expected_screen_output: &[&str]) {
+    let args: Vec<String> =
+        args
+            .into_iter()
+            .map(|arg| arg.to_string())
+            .collect::<Vec<String>>();
     assert!(!(expected_screen_output[0].len() == 0 && expected_exit_code == 0));
 
     let mut screen_output: Vec<u8> = vec![];
