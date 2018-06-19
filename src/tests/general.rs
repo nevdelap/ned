@@ -1065,11 +1065,12 @@ fn test(args: &Vec<&str>, expected_exit_code: i32, expected_screen_output: &[&st
 
     let exit_code = ned(&mut screen_output, &args).unwrap();
 
-    let screen_output = String::from_utf8(screen_output).unwrap();
+    let screen_output = fix_output_for_windows(&String::from_utf8(screen_output).unwrap())
+;
 
     assert_eq!(exit_code, expected_exit_code);
     for part in expected_screen_output.into_iter() {
-        let part = fix_path_for_windows(&part);
+        let part = fix_output_for_windows(&part);
         if !screen_output.contains(&part) {
             println!("{:?} not in {:?}", part, screen_output);
             assert!(false);
@@ -1077,9 +1078,10 @@ fn test(args: &Vec<&str>, expected_exit_code: i32, expected_screen_output: &[&st
     }
 }
 
-fn fix_path_for_windows(part: &str) -> String {
+fn fix_output_for_windows(part: &str) -> String {
     // Is sufficient for current requirements as I make tests
     // written on Linux work on Windows. Future tests will
     // be written to work on both platforms .
     part.replace("/", &std::path::MAIN_SEPARATOR.to_string())
+        .replace("\r", "")
 }
