@@ -90,6 +90,13 @@ pub fn make_opts() -> Options {
          --whole-files",
     );
     opts.optflagmulti("x", "extended", "ignore whitespace and # comments");
+    opts.optflagmulti(
+        "",
+        "case-replacements",
+        "enable \\U - uppercase, \\L - \
+         lowercase, \\I - initial uppercase (title case), \\F - first uppercase \
+         (sentence case) replacements. \\E marks the end of a case replacement",
+    );
     opts.optflagmulti("o", "matches-only", "show only matches");
     opts.optopt(
         "g",

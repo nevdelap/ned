@@ -39,7 +39,7 @@ fn basic_replace() {
 }
 
 #[test]
-fn basic_replace_embedded_real_newline_carriage_return_tab_backslash() {
+fn escape_replace_embedded_real_newline_carriage_return_tab_backslash() {
     let args = vec![
         "--stdout",
         "accidentally",
@@ -57,7 +57,7 @@ fn basic_replace_embedded_real_newline_carriage_return_tab_backslash() {
 }
 
 #[test]
-fn basic_replace_escaped_newline_carriage_return_tab_backslash() {
+fn escape_replace_escaped_newline_carriage_return_tab_backslash() {
     let args = vec![
         "--stdout",
         "accidentally",
@@ -75,7 +75,7 @@ fn basic_replace_escaped_newline_carriage_return_tab_backslash() {
 }
 
 #[test]
-fn basic_replace_escaped_newline_at_start_and_end() {
+fn escape_replace_escaped_newline_at_start_and_end() {
     let args = vec![
         "--stdout",
         "accidentally",
@@ -93,7 +93,7 @@ fn basic_replace_escaped_newline_at_start_and_end() {
 }
 
 #[test]
-fn basic_replace_backslash_at_end_unchanged() {
+fn escape_replace_backslash_at_end_unchanged() {
     let args = vec![
         "--stdout",
         "accidentally",
@@ -111,7 +111,7 @@ fn basic_replace_backslash_at_end_unchanged() {
 }
 
 #[test]
-fn basic_replace_invalid_escapes_unchanged() {
+fn escape_replace_invalid_escapes_unchanged() {
     let args = vec![
         "--stdout",
         "accidentally",
@@ -129,7 +129,7 @@ fn basic_replace_invalid_escapes_unchanged() {
 }
 
 #[test]
-fn basic_replace_backref_braces() {
+fn backref_replace_braces() {
     let args = vec![
         "--stdout",
         "(accidental)ly",
@@ -145,7 +145,7 @@ fn basic_replace_backref_braces() {
 }
 
 #[test]
-fn basic_replace_backref_braces_skip() {
+fn backref_replace_braces_skip() {
     let args = vec![
         "--stdout",
         "--ignore-case",
@@ -159,6 +159,127 @@ fn basic_replace_backref_braces_skip() {
     let expected_exit_code = 0;
     let expected_screen_output = ["test/file1.txt:\nThe accidentally ghastly hand plans an \
                                    escape from a cream puff that placid widow. A slovenly\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn case_replace_uppercase() {
+    let args = vec![
+        "--stdout",
+        "acci(dent)ally",
+        "test",
+        "--replace",
+        r"acci\U$1\Eally",
+        "--case-replacements",
+    ];
+    let expected_exit_code = 0;
+    let expected_screen_output = ["test/file1.txt:\nThe acciDENTally ghastly hand plans an \
+                                   escape from a cream puff the placid widow. A slovenly\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn case_replace_lowercase() {
+    let args = vec![
+        "--stdout",
+        "(The)",
+        "test",
+        "--replace",
+        r"\L$1\E",
+        "--case-replacements",
+    ];
+    let expected_exit_code = 0;
+    let expected_screen_output = ["test/file1.txt:\nthe accidentally ghastly hand plans an \
+                                   escape from a cream puff the placid widow. A slovenly\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn case_replace_initial_title_case() {
+    let args = vec![
+        "--stdout",
+        "(accidentally ghastly hand)",
+        "test",
+        "--replace",
+        r"\I$1\E",
+        "--case-replacements",
+    ];
+    let expected_exit_code = 0;
+    let expected_screen_output = ["test/file1.txt:\nThe Accidentally Ghastly Hand plans an \
+                                   escape from a cream puff the placid widow. A slovenly\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn case_replace_first_sentence_case() {
+    let args = vec![
+        "--stdout",
+        "(accidentally ghastly hand)",
+        "test",
+        "--replace",
+        r"\F$1\E",
+        "--case-replacements",
+    ];
+    let expected_exit_code = 0;
+    let expected_screen_output = ["test/file1.txt:\nThe Accidentally ghastly hand plans an \
+                                   escape from a cream puff the placid widow. A slovenly\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn case_replace_all_cases() {
+    let args = vec![
+        "--stdout",
+        "(The) (accidentally) (ghastly hand) plans (an escape from)",
+        "test",
+        "--replace",
+        r"\L$1 \U$2 \I$3\E plans \F$4\E",
+        "--case-replacements",
+    ];
+    let expected_exit_code = 0;
+    let expected_screen_output = ["test/file1.txt:\nthe ACCIDENTALLY Ghastly Hand plans An \
+                                   escape from a cream puff the placid widow. A slovenly\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn case_replace_various_whitespace() {
+    let args = vec![
+        "--stdout",
+        "(The) (accidentally) (ghastly hand) plans (an escape from)",
+        "test",
+        "--replace",
+        r"\L$1  \U$2  \I$3    plans \F $4\E",
+        "--case-replacements",
+    ];
+    let expected_exit_code = 0;
+    let expected_screen_output = [
+        "test/file1.txt:\nthe  ACCIDENTALLY  Ghastly Hand    Plans  An \
+         escape from a cream puff the placid widow. A slovenly\n",
+    ];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn case_replace_no_end() {
+    let args = vec![
+        "--stdout",
+        "(The) (accidentally) (ghastly hand) plans (an escape from)",
+        "test",
+        "--replace",
+        r"\L$1 \U$2 $3 plans $4",
+        "--case-replacements",
+    ];
+    let expected_exit_code = 0;
+    let expected_screen_output = ["test/file1.txt:\nthe ACCIDENTALLY GHASTLY HAND PLANS AN \
+                                   ESCAPE FROM A CREAM PUFF THE PLACID WIDOW. A SLOVENLY\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
