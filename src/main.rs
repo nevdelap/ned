@@ -67,7 +67,7 @@ fn get_args() -> Vec<String> {
 
 fn ned(output: &mut Write, args: &[String]) -> NedResult<i32> {
     let opts = make_opts();
-    let parameters = try!(get_parameters(&opts, args));
+    let parameters = get_parameters(&opts, args)?;
 
     if parameters.version {
         let _ = output.write(&format!("\n{}\n", usage_version()).into_bytes());
@@ -97,7 +97,7 @@ fn ned(output: &mut Write, args: &[String]) -> NedResult<i32> {
         }
     }
 
-    let found_matches = try!(process_files(output, &parameters));
+    let found_matches = process_files(output, &parameters)?;
     Ok(if found_matches { 0 } else { 1 })
 }
 
@@ -105,7 +105,7 @@ fn process_files(output: &mut Write, parameters: &Parameters) -> NedResult<bool>
     let mut found_matches = false;
     if parameters.stdin {
         let mut source = Source::Stdin(Box::new(stdin()));
-        found_matches = try!(process_file(output, parameters, &None, &mut source));
+        found_matches = process_file(output, parameters, &None, &mut source)?;
     } else {
         for glob in &parameters.globs {
             for path_buf in &mut Files::new(parameters, &glob) {
@@ -132,8 +132,8 @@ fn process_files(output: &mut Write, parameters: &Parameters) -> NedResult<bool>
             if parameters.quiet && found_matches {
                 break;
             }
-            try!(output.flush());
-            try!(stderr().flush());
+            output.flush()?;
+            stderr().flush()?;
         }
     }
     Ok(found_matches)
@@ -154,7 +154,7 @@ fn process_file(
             &mut Source::Cursor(ref mut cursor) => cursor,
         };
         let mut buffer = Vec::new();
-        let _ = try!(read.read_to_end(&mut buffer));
+        let _ = read.read_to_end(&mut buffer)?;
         match String::from_utf8(buffer) {
             Ok(ref parsed) => {
                 content = parsed.to_string();
@@ -181,26 +181,24 @@ fn process_file(
         let (content, found_matches) = replace(parameters, &re, &content, &replacement);
         if parameters.stdout {
             if !parameters.quiet {
-                try!(write_file_name_and_line_number(
-                    output, parameters, file_name, None
-                ));
-                try!(output.write(&content.into_bytes()));
+                write_file_name_and_line_number(output, parameters, file_name, None)?;
+                output.write(&content.into_bytes())?;
             }
         } else {
             match source {
                 // A better way???
                 &mut Source::File(ref mut file) => {
                     if found_matches {
-                        try!(file.seek(SeekFrom::Start(0)));
+                        file.seek(SeekFrom::Start(0))?;
                         let bytes = &content.into_bytes();
-                        try!(file.write(bytes));
-                        try!(file.set_len(bytes.len() as u64));
+                        file.write(bytes)?;
+                        file.set_len(bytes.len() as u64)?;
                     }
                 }
                 #[cfg(test)]
                 &mut Source::Cursor(ref mut cursor) => {
-                    try!(cursor.seek(SeekFrom::Start(0)));
-                    try!(cursor.write(&content.into_bytes()));
+                    cursor.seek(SeekFrom::Start(0))?;
+                    cursor.write(&content.into_bytes())?;
                 }
                 _ => {}
             }
@@ -209,35 +207,32 @@ fn process_file(
     } else if parameters.file_names_only {
         let found_matches = re.is_match(&content);
         if found_matches ^ parameters.no_match {
-            try!(write_file_name_and_line_number(
-                output, parameters, file_name, None
-            ));
+            write_file_name_and_line_number(output, parameters, file_name, None)?;
         }
         return Ok(found_matches);
     } else {
         if !parameters.whole_files {
             let mut found_matches = false;
-            let context_map = try!(make_context_map(&parameters, &re, &content));
+            let context_map = make_context_map(&parameters, &re, &content)?;
             for (index, line) in content.lines().enumerate() {
                 let line_number = index + 1;
-                found_matches |= try!(process_text(
+                found_matches |= process_text(
                     output,
                     parameters,
                     &re,
                     file_name,
                     Some(line_number),
                     line,
-                    Some(&context_map)
-                ));
+                    Some(&context_map),
+                )?;
                 if parameters.quiet && found_matches {
                     break;
                 }
             }
             return Ok(found_matches);
         } else {
-            let found_matches = try!(process_text(
-                output, parameters, &re, file_name, None, &content, None
-            ));
+            let found_matches =
+                process_text(output, parameters, &re, file_name, None, &content, None)?;
             return Ok(found_matches);
         }
     }
@@ -300,37 +295,24 @@ fn process_text(
     }
     if let Some(ref group) = parameters.group {
         // TODO 2: make it respect -n, -k, -b TO TEST
-        return Ok(try!(write_groups(
+        return Ok(write_groups(
             output,
             parameters,
             &re,
             file_name,
             line_number,
             text,
-            group
-        )));
+            group,
+        )?);
     } else if parameters.no_match {
         let found_matches = re.is_match(&text);
         if !found_matches {
-            try!(write_line(
-                output,
-                parameters,
-                file_name,
-                line_number,
-                &text
-            ));
+            write_line(output, parameters, file_name, line_number, &text)?;
         }
         return Ok(found_matches);
     } else if re.is_match(text) {
         if parameters.matches_only {
-            if try!(write_matches(
-                output,
-                parameters,
-                &re,
-                file_name,
-                line_number,
-                text
-            )) {
+            if write_matches(output, parameters, &re, file_name, line_number, text)? {
                 return Ok(true);
             }
         } else {
@@ -339,13 +321,7 @@ fn process_text(
             let (text, found_matches) =
                 color_matches_with_number_skip_backwards(parameters, re, text);
             if found_matches {
-                try!(write_line(
-                    output,
-                    parameters,
-                    file_name,
-                    line_number,
-                    &text
-                ));
+                write_line(output, parameters, file_name, line_number, &text)?;
                 return Ok(true);
             }
         }
@@ -355,13 +331,7 @@ fn process_text(
         if let Some(context_map) = context_map {
             if context_map.len() > 0 {
                 if context_map[line_number - 1] {
-                    try!(write_line(
-                        output,
-                        parameters,
-                        file_name,
-                        Some(line_number),
-                        text
-                    ));
+                    write_line(output, parameters, file_name, Some(line_number), text)?;
                 }
             }
         }
@@ -409,17 +379,10 @@ fn write_line(
     text: &str,
 ) -> NedResult<()> {
     if !parameters.quiet {
-        try!(write_file_name_and_line_number(
-            output,
-            parameters,
-            file_name,
-            line_number
-        ));
+        write_file_name_and_line_number(output, parameters, file_name, line_number)?;
         if !parameters.line_numbers_only && !parameters.quiet {
-            try!(output.write(&text.to_string().into_bytes()));
-            try!(write_newline_if_replaced_text_ends_with_newline(
-                output, &text
-            ));
+            output.write(&text.to_string().into_bytes())?;
+            write_newline_if_replaced_text_ends_with_newline(output, &text)?;
         }
     }
     Ok(())
@@ -448,15 +411,15 @@ fn write_groups(
                 if !parameters.quiet {
                     let text = color_matches_all(parameters, re, _match.as_str());
                     if !wrote_file_name {
-                        try!(write_file_name_and_line_number(
+                        write_file_name_and_line_number(
                             output,
                             parameters,
                             file_name,
-                            line_number
-                        ));
+                            line_number,
+                        )?;
                         wrote_file_name = true;
                     }
-                    try!(output.write(&text.to_string().into_bytes()));
+                    output.write(&text.to_string().into_bytes())?;
                 } else {
                     break;
                 }
@@ -464,7 +427,7 @@ fn write_groups(
         }
     }
     if !parameters.quiet && found_matches {
-        try!(output.write(&"\n".to_string().into_bytes()));
+        output.write(&"\n".to_string().into_bytes())?;
     }
     Ok(found_matches)
 }
@@ -487,24 +450,19 @@ fn write_matches(
         if parameters.include_match(index, count) {
             found_matches = true;
             if !file_name_written {
-                try!(write_file_name_and_line_number(
-                    output,
-                    parameters,
-                    file_name,
-                    line_number
-                ));
+                write_file_name_and_line_number(output, parameters, file_name, line_number)?;
                 file_name_written = true;
             }
             let text = color(parameters, &text[_match.start().._match.end()]);
             if !parameters.quiet {
-                try!(output.write(&text.to_string().into_bytes()));
+                output.write(&text.to_string().into_bytes())?;
             } else {
                 return Ok(found_matches);
             }
         }
     }
     if file_name_written {
-        try!(output.write(&"\n".to_string().into_bytes()));
+        output.write(&"\n".to_string().into_bytes())?;
     }
     Ok(found_matches)
 }
@@ -546,7 +504,7 @@ fn write_file_name_and_line_number(
             if parameters.colors {
                 location = Purple.paint(location).to_string();
             }
-            try!(output.write(&location.into_bytes()));
+            output.write(&location.into_bytes())?;
         }
     }
     Ok(())
@@ -557,7 +515,7 @@ fn write_newline_if_replaced_text_ends_with_newline(
     text: &str,
 ) -> NedResult<()> {
     if !text.ends_with("\n") {
-        try!(output.write(&"\n".to_string().into_bytes()));
+        output.write(&"\n".to_string().into_bytes())?;
     }
     Ok(())
 }

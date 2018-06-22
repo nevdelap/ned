@@ -76,7 +76,7 @@ impl Parameters {
 }
 
 pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> {
-    let matches = try!(opts.parse(args));
+    let matches = opts.parse(args)?;
 
     let stdout = matches.opt_present("stdout");
     let replace = convert_escapes(matches.opt_str("replace"));
@@ -87,30 +87,30 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
     } != 0;
 
     // -C --context takes precedence over -B --before and -A --after.
-    let mut context_before = try!(parse_opt_str(&matches, "context", 0));
+    let mut context_before = parse_opt_str(&matches, "context", 0)?;
     let context_after;
     if context_before != 0 {
         context_after = context_before;
     } else {
-        context_before = try!(parse_opt_str(&matches, "before", 0));
-        context_after = try!(parse_opt_str(&matches, "after", 0));
+        context_before = parse_opt_str(&matches, "before", 0)?;
+        context_after = parse_opt_str(&matches, "after", 0)?;
     }
 
     let mut exclude_dirs = Vec::<Pattern>::new();
     for exclude in matches.opt_strs("exclude-dir") {
-        let pattern = try!(Pattern::new(&exclude));
+        let pattern = Pattern::new(&exclude)?;
         exclude_dirs.push(pattern);
     }
 
     let mut excludes = Vec::<Pattern>::new();
     for exclude in matches.opt_strs("exclude") {
-        let pattern = try!(Pattern::new(&exclude));
+        let pattern = Pattern::new(&exclude)?;
         excludes.push(pattern);
     }
 
     let mut includes = Vec::<Pattern>::new();
     for include in matches.opt_strs("include") {
-        let pattern = try!(Pattern::new(&include));
+        let pattern = Pattern::new(&include)?;
         includes.push(pattern);
     }
 
@@ -139,10 +139,10 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
                  is present.",
             ),
         );
-        regex = Some(try!(Regex::new(&pattern)));
+        regex = Some(Regex::new(&pattern)?);
     } else if matches.free.len() > 0 {
         let pattern = add_re_options_to_pattern(&matches, &matches.free[0]);
-        regex = Some(try!(Regex::new(&pattern)));
+        regex = Some(Regex::new(&pattern)?);
         glob_iter = Box::new(glob_iter.skip(1));
     } else {
         regex = None;
@@ -150,8 +150,8 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
 
     let globs = glob_iter.map(|glob| glob.clone()).collect::<Vec<String>>();
 
-    let number = try!(parse_optional_opt_str(&matches, "number"));
-    let skip = try!(parse_opt_str(&matches, "skip", 0));
+    let number = parse_optional_opt_str(&matches, "number")?;
+    let skip = parse_opt_str(&matches, "skip", 0)?;
 
     let stdin = globs.len() == 0;
 
@@ -224,9 +224,7 @@ fn convert_escapes(str: Option<String>) -> Option<String> {
             }
             Some(result)
         }
-        None => {
-            None
-        }
+        None => None,
     }
 }
 
