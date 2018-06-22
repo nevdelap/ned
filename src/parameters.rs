@@ -13,6 +13,7 @@ use std::str::FromStr;
 pub struct Parameters {
     pub all: bool,
     pub backwards: bool,
+    pub case_replacements: bool,
     pub colors: bool,
     pub context_after: usize,
     pub context_before: usize,
@@ -158,6 +159,7 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
     Ok(Parameters {
         all: matches.opt_present("all"),
         backwards: matches.opt_present("backwards"),
+        case_replacements: matches.opt_present("case-replacements"),
         colors: matches.opt_present("colors") && (stdout || replace.is_none()) && isatty,
         context_after: context_after,
         context_before: context_before,
@@ -197,30 +199,31 @@ fn convert_escapes(str: Option<String>) -> Option<String> {
             escapes.insert('r', '\r');
             escapes.insert('t', '\t');
 
-            let mut result = String::from("");
-            // TODO: Figure out how to do this with Peekable.
-            // Had trouble figuring out how to use peek while iterating
-            // since the for has a mutable borrow of chars while peek is
-            // trying to use it inside the for. It didn't result in less
-            // lines of code anyway, but would be good to get rid of the
-            // collect.
-            let chars = str.chars().collect::<Vec<char>>();
-            let mut i = 0;
-            while i < chars.len() {
-                if i < chars.len() - 1 && chars[i] == '\\' {
-                    let char = escapes.get(&chars[i + 1]);
-                    if char.is_some() {
-                        // Escape sequences converted to the character they represent.
-                        result.push(*char.unwrap());
-                        i += 2;
-                        continue;
+            let mut result = String::new();
+            let mut chars = str.chars().peekable().into_iter();
+            // I don't know how I feel about this code. Either it
+            // is using peek() without mutable borrow issues,
+            // which it is, or it is horrendous. Thinking maybe
+            // it is both.
+            while let Some(char) = chars.next() {
+                if char == '\\' && {
+                    let next = chars.peek(); // This has to be out of scope...
+                    next.is_some() && {
+                        let escape = escapes.get(&next.unwrap());
+                        escape.is_some() && {
+                            // Escape sequences converted to the character they represent.
+                            result.push(*escape.unwrap());
+                            true
+                        }
                     }
+                } {
+                    chars.next(); // ...before we do this.
+                } else {
+                    // Unescaped characters unchanged,
+                    // unrecognised escape sequences unchanged,
+                    // backslash at end of string unchanged.
+                    result.push(char);
                 }
-                // Unescaped characters unchanged,
-                // unrecognised escape sequences unchanged,
-                // backslash at end of string unchanged.
-                result.push(chars[i]);
-                i += 1;
             }
             Some(result)
         }

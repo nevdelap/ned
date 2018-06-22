@@ -72,6 +72,7 @@ fn test_include_match(
     let mut parameters = Parameters {
         all: false,
         backwards: false,
+        case_replacements: false,
         colors: false,
         context_after: 0,
         context_before: 0,

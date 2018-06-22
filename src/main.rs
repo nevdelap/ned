@@ -23,6 +23,7 @@ use opts::{make_opts, usage_brief, usage_full, usage_version};
 use parameters::{get_parameters, Parameters};
 use regex::{Captures, Match, Regex};
 use source::Source;
+use std::collections::HashMap;
 use std::fs::OpenOptions;
 use std::io::{stderr, stdin, stdout, Read, Seek, SeekFrom, Write};
 use std::iter::Iterator;
@@ -179,6 +180,11 @@ fn process_file(
             replacement = Red.bold().paint(replacement.as_str()).to_string();
         }
         let (content, found_matches) = replace(parameters, &re, &content, &replacement);
+        let content = if parameters.case_replacements {
+            replace_case(&content)
+        } else {
+            content
+        };
         if parameters.stdout {
             if !parameters.quiet {
                 write_file_name_and_line_number(output, parameters, file_name, None)?;
@@ -369,6 +375,79 @@ fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> (S
         }
     };
     return (new_text, found_matches);
+}
+
+enum Escape {
+    Upper,
+    Lower,
+    Initial,
+    First,
+    Nothing,
+}
+
+fn replace_case(str: &str) -> String {
+    let mut escapes = HashMap::new();
+    escapes.insert('U', Escape::Upper);
+    escapes.insert('L', Escape::Lower);
+    escapes.insert('I', Escape::Initial);
+    escapes.insert('F', Escape::First);
+    escapes.insert('E', Escape::Nothing);
+
+    let mut result = String::new();
+    let mut piece = String::new();
+    let mut last_escape = &Escape::Nothing;
+    let mut chars = str.chars().peekable().into_iter();
+    while let Some(char) = chars.next() {
+        if char == '\\' && {
+            let next = chars.peek();
+            next.is_some() && {
+                let escape = escapes.get(&next.unwrap());
+                escape.is_some() && {
+                    piece = apply_last_escape(last_escape, &piece);
+                    result.push_str(&piece);
+                    piece = String::new();
+                    last_escape = escape.unwrap();
+                    true
+                }
+            }
+        } {
+            chars.next();
+        } else {
+            piece.push(char);
+        }
+    }
+    piece = apply_last_escape(last_escape, &piece);
+    result.push_str(&piece);
+    result
+}
+
+fn apply_last_escape(last_escape: &Escape, piece: &str) -> String {
+    match last_escape {
+        Escape::Upper => piece.to_uppercase(),
+        Escape::Lower => piece.to_lowercase(),
+        Escape::Initial => piece
+            .split(' ')
+            .map(|x| uppercase_first_nonspace_character(&x))
+            .collect::<Vec<String>>()
+            .join(" "),
+        Escape::First => uppercase_first_nonspace_character(&piece),
+        Escape::Nothing => piece.to_string(),
+    }
+}
+
+fn uppercase_first_nonspace_character(str: &str) -> String {
+    let mut result = String::new();
+    let mut chars = str.chars();
+    while let Some(char) = chars.next() {
+        if char.is_whitespace() {
+            result.push(char);
+        } else {
+            result.push_str(&char.to_string().to_uppercase());
+            break;
+        }
+    }
+    result.push_str(chars.as_str());
+    result
 }
 
 fn write_line(
