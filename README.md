@@ -34,6 +34,11 @@ Options:
     -m, --multiline     multiline, ^ and $ match beginning and end of each
                         line. use with --whole-files
     -x, --extended      ignore whitespace and # comments
+        --case-replacements
+                        enable \U - uppercase, \L - lowercase, \I - initial
+                        uppercase (title case), \F - first uppercase (sentence
+                        case) replacements. \E marks the end of a case
+                        replacement
     -o, --matches-only  show only matches
     -g, --group GROUP   show the match group, specified by number or name
     -v, --no-match      show only non-matching
@@ -88,13 +93,14 @@ Quiet:
     as many files as needed to find a match. Even without this shortcutting
     behaviour quiet matches are more performant than non-quiet matches.
 
-ned 1.1.0 Copyright (C) 2016-2018 Nev Delap - https://github.com/nevdelap/ned
+ned 1.2.0-beta Copyright (C) 2016-2018 Nev Delap - https://github.com/nevdelap/ned
 
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 
-Built 2018-06-18.
+Built 2018-06-24.
+
 
 ```
 

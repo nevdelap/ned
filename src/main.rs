@@ -23,6 +23,7 @@ use opts::{make_opts, usage_brief, usage_full, usage_version};
 use parameters::{get_parameters, Parameters};
 use regex::{Captures, Match, Regex};
 use source::Source;
+use std::collections::HashMap;
 use std::fs::OpenOptions;
 use std::io::{stderr, stdin, stdout, Read, Seek, SeekFrom, Write};
 use std::iter::Iterator;
@@ -179,6 +180,11 @@ fn process_file(
             replacement = Red.bold().paint(replacement.as_str()).to_string();
         }
         let (content, found_matches) = replace(parameters, &re, &content, &replacement);
+        let content = if parameters.case_replacements {
+            replace_case(&content)
+        } else {
+            content
+        };
         if parameters.stdout {
             if !parameters.quiet {
                 write_file_name_and_line_number(output, parameters, file_name, None)?;
@@ -247,10 +253,9 @@ fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> NedRe
         .map(|s| s.to_string())
         .collect::<Vec<String>>();
     let mut match_map = Vec::<bool>::with_capacity(lines.len());
-    lines
-        .iter()
-        .map(|line| match_map.push(is_match_with_number_skip_backwards(parameters, re, line)))
-        .collect::<Vec<_>>();
+    for line in lines {
+        match_map.push(is_match_with_number_skip_backwards(parameters, re, &line));
+    }
     let mut context_map = match_map.clone();
     for line in 0..context_map.len() {
         if match_map[line] {
@@ -369,6 +374,86 @@ fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> (S
         }
     };
     return (new_text, found_matches);
+}
+
+enum CaseEscape {
+    Upper,
+    Lower,
+    Initial,
+    First,
+    End,
+}
+
+fn replace_case(str: &str) -> String {
+    let mut escapes = HashMap::new();
+    escapes.insert('U', CaseEscape::Upper);
+    escapes.insert('L', CaseEscape::Lower);
+    escapes.insert('I', CaseEscape::Initial);
+    escapes.insert('F', CaseEscape::First);
+    escapes.insert('E', CaseEscape::End);
+    let escapes = escapes;
+
+    let mut result = String::new();
+    let mut piece = String::new();
+    let mut last_case_escape = &CaseEscape::End;
+    let mut chars = str.chars().peekable().into_iter();
+    while let Some(char) = chars.next() {
+        if char == '\\' && {
+            let next = chars.peek();
+            next.is_some() && {
+                let case_escape = escapes.get(&next.unwrap());
+                case_escape.is_some() && {
+                    // Apply the last escape to the current piece,
+                    // append it to the result, clear the current
+                    // piece, and remember the escape we just found.
+                    piece = apply_case_escape(last_case_escape, &piece);
+                    result.push_str(&piece);
+                    piece = String::new();
+                    last_case_escape = case_escape.unwrap();
+                    true
+                }
+            }
+        } {
+            chars.next();
+        } else {
+            // Build a string until we get to the next escape.
+            piece.push(char);
+        }
+    }
+    // Apply the last escape to the remaining piece
+    // when we've hit the end of the string.
+    piece = apply_case_escape(last_case_escape, &piece);
+    result.push_str(&piece);
+    result
+}
+
+fn apply_case_escape(case_escape: &CaseEscape, piece: &str) -> String {
+    match case_escape {
+        CaseEscape::Upper => piece.to_uppercase(),
+        CaseEscape::Lower => piece.to_lowercase(),
+        CaseEscape::Initial => piece
+            .split(' ')
+            .map(|x| uppercase_first_nonspace_character(&x))
+            .collect::<Vec<String>>()
+            .join(" "),
+        CaseEscape::First => uppercase_first_nonspace_character(&piece),
+        CaseEscape::End => piece.to_string(),
+    }
+}
+
+fn uppercase_first_nonspace_character(str: &str) -> String {
+    let mut result = String::new();
+    let mut chars = str.chars();
+    while let Some(char) = chars.next() {
+        if char.is_whitespace() {
+            result.push(char);
+        } else {
+            result.push_str(&char.to_string().to_uppercase());
+            break;
+        }
+    }
+    result.push_str(chars.as_str());
+    result
 }
 
 fn write_line(
