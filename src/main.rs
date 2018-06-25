@@ -23,6 +23,7 @@ use opts::{make_opts, usage_brief, usage_full, usage_version};
 use parameters::{get_parameters, Parameters};
 use regex::{Captures, Match, Regex};
 use source::Source;
+use std::collections::HashMap;
 use std::fs::OpenOptions;
 use std::io::{stderr, stdin, stdout, Read, Seek, SeekFrom, Write};
 use std::iter::Iterator;
@@ -67,7 +68,7 @@ fn get_args() -> Vec<String> {
 
 fn ned(output: &mut Write, args: &[String]) -> NedResult<i32> {
     let opts = make_opts();
-    let parameters = try!(get_parameters(&opts, args));
+    let parameters = get_parameters(&opts, args)?;
 
     if parameters.version {
         let _ = output.write(&format!("\n{}\n", usage_version()).into_bytes());
@@ -97,7 +98,7 @@ fn ned(output: &mut Write, args: &[String]) -> NedResult<i32> {
         }
     }
 
-    let found_matches = try!(process_files(output, &parameters));
+    let found_matches = process_files(output, &parameters)?;
     Ok(if found_matches { 0 } else { 1 })
 }
 
@@ -105,7 +106,7 @@ fn process_files(output: &mut Write, parameters: &Parameters) -> NedResult<bool>
     let mut found_matches = false;
     if parameters.stdin {
         let mut source = Source::Stdin(Box::new(stdin()));
-        found_matches = try!(process_file(output, parameters, &None, &mut source));
+        found_matches = process_file(output, parameters, &None, &mut source)?;
     } else {
         for glob in &parameters.globs {
             for path_buf in &mut Files::new(parameters, &glob) {
@@ -132,8 +133,8 @@ fn process_files(output: &mut Write, parameters: &Parameters) -> NedResult<bool>
             if parameters.quiet && found_matches {
                 break;
             }
-            try!(output.flush());
-            try!(stderr().flush());
+            output.flush()?;
+            stderr().flush()?;
         }
     }
     Ok(found_matches)
@@ -154,7 +155,7 @@ fn process_file(
             &mut Source::Cursor(ref mut cursor) => cursor,
         };
         let mut buffer = Vec::new();
-        let _ = try!(read.read_to_end(&mut buffer));
+        let _ = read.read_to_end(&mut buffer)?;
         match String::from_utf8(buffer) {
             Ok(ref parsed) => {
                 content = parsed.to_string();
@@ -179,28 +180,31 @@ fn process_file(
             replacement = Red.bold().paint(replacement.as_str()).to_string();
         }
         let (content, found_matches) = replace(parameters, &re, &content, &replacement);
+        let content = if parameters.case_replacements {
+            replace_case(&content)
+        } else {
+            content
+        };
         if parameters.stdout {
             if !parameters.quiet {
-                try!(write_file_name_and_line_number(
-                    output, parameters, file_name, None
-                ));
-                try!(output.write(&content.into_bytes()));
+                write_file_name_and_line_number(output, parameters, file_name, None)?;
+                output.write(&content.into_bytes())?;
             }
         } else {
             match source {
                 // A better way???
                 &mut Source::File(ref mut file) => {
                     if found_matches {
-                        try!(file.seek(SeekFrom::Start(0)));
+                        file.seek(SeekFrom::Start(0))?;
                         let bytes = &content.into_bytes();
-                        try!(file.write(bytes));
-                        try!(file.set_len(bytes.len() as u64));
+                        file.write(bytes)?;
+                        file.set_len(bytes.len() as u64)?;
                     }
                 }
                 #[cfg(test)]
                 &mut Source::Cursor(ref mut cursor) => {
-                    try!(cursor.seek(SeekFrom::Start(0)));
-                    try!(cursor.write(&content.into_bytes()));
+                    cursor.seek(SeekFrom::Start(0))?;
+                    cursor.write(&content.into_bytes())?;
                 }
                 _ => {}
             }
@@ -209,35 +213,32 @@ fn process_file(
     } else if parameters.file_names_only {
         let found_matches = re.is_match(&content);
         if found_matches ^ parameters.no_match {
-            try!(write_file_name_and_line_number(
-                output, parameters, file_name, None
-            ));
+            write_file_name_and_line_number(output, parameters, file_name, None)?;
         }
         return Ok(found_matches);
     } else {
         if !parameters.whole_files {
             let mut found_matches = false;
-            let context_map = try!(make_context_map(&parameters, &re, &content));
+            let context_map = make_context_map(&parameters, &re, &content)?;
             for (index, line) in content.lines().enumerate() {
                 let line_number = index + 1;
-                found_matches |= try!(process_text(
+                found_matches |= process_text(
                     output,
                     parameters,
                     &re,
                     file_name,
                     Some(line_number),
                     line,
-                    Some(&context_map)
-                ));
+                    Some(&context_map),
+                )?;
                 if parameters.quiet && found_matches {
                     break;
                 }
             }
             return Ok(found_matches);
         } else {
-            let found_matches = try!(process_text(
-                output, parameters, &re, file_name, None, &content, None
-            ));
+            let found_matches =
+                process_text(output, parameters, &re, file_name, None, &content, None)?;
             return Ok(found_matches);
         }
     }
@@ -252,10 +253,9 @@ fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> NedRe
         .map(|s| s.to_string())
         .collect::<Vec<String>>();
     let mut match_map = Vec::<bool>::with_capacity(lines.len());
-    lines
-        .iter()
-        .map(|line| match_map.push(is_match_with_number_skip_backwards(parameters, re, line)))
-        .collect::<Vec<_>>();
+    for line in lines {
+        match_map.push(is_match_with_number_skip_backwards(parameters, re, &line));
+    }
     let mut context_map = match_map.clone();
     for line in 0..context_map.len() {
         if match_map[line] {
@@ -300,37 +300,24 @@ fn process_text(
     }
     if let Some(ref group) = parameters.group {
         // TODO 2: make it respect -n, -k, -b TO TEST
-        return Ok(try!(write_groups(
+        return Ok(write_groups(
             output,
             parameters,
             &re,
             file_name,
             line_number,
             text,
-            group
-        )));
+            group,
+        )?);
     } else if parameters.no_match {
         let found_matches = re.is_match(&text);
         if !found_matches {
-            try!(write_line(
-                output,
-                parameters,
-                file_name,
-                line_number,
-                &text
-            ));
+            write_line(output, parameters, file_name, line_number, &text)?;
         }
         return Ok(found_matches);
     } else if re.is_match(text) {
         if parameters.matches_only {
-            if try!(write_matches(
-                output,
-                parameters,
-                &re,
-                file_name,
-                line_number,
-                text
-            )) {
+            if write_matches(output, parameters, &re, file_name, line_number, text)? {
                 return Ok(true);
             }
         } else {
@@ -339,13 +326,7 @@ fn process_text(
             let (text, found_matches) =
                 color_matches_with_number_skip_backwards(parameters, re, text);
             if found_matches {
-                try!(write_line(
-                    output,
-                    parameters,
-                    file_name,
-                    line_number,
-                    &text
-                ));
+                write_line(output, parameters, file_name, line_number, &text)?;
                 return Ok(true);
             }
         }
@@ -355,13 +336,7 @@ fn process_text(
         if let Some(context_map) = context_map {
             if context_map.len() > 0 {
                 if context_map[line_number - 1] {
-                    try!(write_line(
-                        output,
-                        parameters,
-                        file_name,
-                        Some(line_number),
-                        text
-                    ));
+                    write_line(output, parameters, file_name, Some(line_number), text)?;
                 }
             }
         }
@@ -401,6 +376,87 @@ fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> (S
     return (new_text, found_matches);
 }
 
+enum CaseEscape {
+    Upper,
+    Lower,
+    Initial,
+    First,
+    End,
+}
+
+fn replace_case(str: &str) -> String {
+    let mut escapes = HashMap::new();
+    escapes.insert('U', CaseEscape::Upper);
+    escapes.insert('L', CaseEscape::Lower);
+    escapes.insert('I', CaseEscape::Initial);
+    escapes.insert('F', CaseEscape::First);
+    escapes.insert('E', CaseEscape::End);
+    let escapes = escapes;
+
+    let mut result = String::new();
+    let mut piece = String::new();
+    let mut last_case_escape = &CaseEscape::End;
+    let mut chars = str.chars().peekable().into_iter();
+    while let Some(char) = chars.next() {
+        if char == '\\' && {
+            let next = chars.peek();
+            next.is_some() && {
+                let case_escape = escapes.get(&next.unwrap());
+                case_escape.is_some() && {
+                    // Apply the last escape to the current piece,
+                    // append it to the result, clear the current
+                    // piece, and remember the escape we just found.
+                    piece = apply_case_escape(last_case_escape, &piece);
+                    result.push_str(&piece);
+                    piece = String::new();
+                    last_case_escape = case_escape.unwrap();
+                    true
+                }
+            }
+        } {
+            chars.next();
+        } else {
+            // Build a string until we get to the next escape.
+            piece.push(char);
+        }
+    }
+    // Apply the last escape to the remaining piece
+    // when we've hit the end of the string.
+    piece = apply_case_escape(last_case_escape, &piece);
+    result.push_str(&piece);
+    result
+}
+
+fn apply_case_escape(case_escape: &CaseEscape, piece: &str) -> String {
+    match case_escape {
+        CaseEscape::Upper => piece.to_uppercase(),
+        CaseEscape::Lower => piece.to_lowercase(),
+        CaseEscape::Initial => piece
+            .split(' ')
+            .map(|x| title_case(&x))
+            .collect::<Vec<String>>()
+            .join(" "),
+        CaseEscape::First => title_case(&piece),
+        CaseEscape::End => piece.to_string(),
+    }
+}
+
+fn title_case(str: &str) -> String {
+    let mut result = String::new();
+    let str = str.to_lowercase();
+    let mut chars = str.chars();
+    while let Some(char) = chars.next() {
+        if char.is_whitespace() {
+            result.push(char);
+        } else {
+            result.push_str(&char.to_string().to_uppercase());
+            break;
+        }
+    }
+    result.push_str(chars.as_str());
+    result
+}
+
 fn write_line(
     output: &mut Write,
     parameters: &Parameters,
@@ -409,17 +465,10 @@ fn write_line(
     text: &str,
 ) -> NedResult<()> {
     if !parameters.quiet {
-        try!(write_file_name_and_line_number(
-            output,
-            parameters,
-            file_name,
-            line_number
-        ));
+        write_file_name_and_line_number(output, parameters, file_name, line_number)?;
         if !parameters.line_numbers_only && !parameters.quiet {
-            try!(output.write(&text.to_string().into_bytes()));
-            try!(write_newline_if_replaced_text_ends_with_newline(
-                output, &text
-            ));
+            output.write(&text.to_string().into_bytes())?;
+            write_newline_if_replaced_text_ends_with_newline(output, &text)?;
         }
     }
     Ok(())
@@ -448,15 +497,15 @@ fn write_groups(
                 if !parameters.quiet {
                     let text = color_matches_all(parameters, re, _match.as_str());
                     if !wrote_file_name {
-                        try!(write_file_name_and_line_number(
+                        write_file_name_and_line_number(
                             output,
                             parameters,
                             file_name,
-                            line_number
-                        ));
+                            line_number,
+                        )?;
                         wrote_file_name = true;
                     }
-                    try!(output.write(&text.to_string().into_bytes()));
+                    output.write(&text.to_string().into_bytes())?;
                 } else {
                     break;
                 }
@@ -464,7 +513,7 @@ fn write_groups(
         }
     }
     if !parameters.quiet && found_matches {
-        try!(output.write(&"\n".to_string().into_bytes()));
+        output.write(&"\n".to_string().into_bytes())?;
     }
     Ok(found_matches)
 }
@@ -487,24 +536,19 @@ fn write_matches(
         if parameters.include_match(index, count) {
             found_matches = true;
             if !file_name_written {
-                try!(write_file_name_and_line_number(
-                    output,
-                    parameters,
-                    file_name,
-                    line_number
-                ));
+                write_file_name_and_line_number(output, parameters, file_name, line_number)?;
                 file_name_written = true;
             }
             let text = color(parameters, &text[_match.start().._match.end()]);
             if !parameters.quiet {
-                try!(output.write(&text.to_string().into_bytes()));
+                output.write(&text.to_string().into_bytes())?;
             } else {
                 return Ok(found_matches);
             }
         }
     }
     if file_name_written {
-        try!(output.write(&"\n".to_string().into_bytes()));
+        output.write(&"\n".to_string().into_bytes())?;
     }
     Ok(found_matches)
 }
@@ -546,7 +590,7 @@ fn write_file_name_and_line_number(
             if parameters.colors {
                 location = Purple.paint(location).to_string();
             }
-            try!(output.write(&location.into_bytes()));
+            output.write(&location.into_bytes())?;
         }
     }
     Ok(())
@@ -557,7 +601,7 @@ fn write_newline_if_replaced_text_ends_with_newline(
     text: &str,
 ) -> NedResult<()> {
     if !text.ends_with("\n") {
-        try!(output.write(&"\n".to_string().into_bytes()));
+        output.write(&"\n".to_string().into_bytes())?;
     }
     Ok(())
 }
