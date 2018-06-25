@@ -6,8 +6,8 @@ use std;
 fn basic_match() {
     let args = vec!["accidentally", "test"];
     let expected_exit_code = 0;
-    let expected_screen_output = ["test/file1.txt:1:The accidentally ghastly hand plans an \
-                                   escape from a cream puff the placid widow. A slovenly\n"];
+    let expected_screen_output = ["test/file1.txt:1:The accidentally ghastly hand plans AN \
+                                   ESCAPE from a cream puff the placid widow. A slovenly\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -16,8 +16,8 @@ fn basic_match() {
 fn basic_match_stdout() {
     let args = vec!["--stdout", "accidentally", "test"];
     let expected_exit_code = 0;
-    let expected_screen_output = ["test/file1.txt:1:The accidentally ghastly hand plans an \
-                                   escape from a cream puff the placid widow. A slovenly\n"];
+    let expected_screen_output = ["test/file1.txt:1:The accidentally ghastly hand plans AN \
+                                   ESCAPE from a cream puff the placid widow. A slovenly\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -32,8 +32,8 @@ fn basic_replace() {
         "outstandingly",
     ];
     let expected_exit_code = 0;
-    let expected_screen_output = ["test/file1.txt:\nThe outstandingly ghastly hand plans an \
-                                   escape from a cream puff the placid widow. A slovenly\n"];
+    let expected_screen_output = ["test/file1.txt:\nThe outstandingly ghastly hand plans AN \
+                                   ESCAPE from a cream puff the placid widow. A slovenly\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -49,8 +49,8 @@ fn escape_replace_embedded_real_newline_carriage_return_tab_backslash() {
     ];
     let expected_exit_code = 0;
     let expected_screen_output = [
-        "test/file1.txt:\nThe outs\nta\tnd\ring\\ly ghastly hand plans an \
-         escape from a cream puff the placid widow. A slovenly\n",
+        "test/file1.txt:\nThe outs\nta\tnd\ring\\ly ghastly hand plans AN \
+         ESCAPE from a cream puff the placid widow. A slovenly\n",
     ];
 
     test(&args, expected_exit_code, &expected_screen_output);
@@ -67,8 +67,8 @@ fn escape_replace_escaped_newline_carriage_return_tab_backslash() {
     ];
     let expected_exit_code = 0;
     let expected_screen_output = [
-        "test/file1.txt:\nThe outs\nta\tnd\ring\\ly ghastly hand plans an \
-         escape from a cream puff the placid widow. A slovenly\n",
+        "test/file1.txt:\nThe outs\nta\tnd\ring\\ly ghastly hand plans AN \
+         ESCAPE from a cream puff the placid widow. A slovenly\n",
     ];
 
     test(&args, expected_exit_code, &expected_screen_output);
@@ -85,8 +85,8 @@ fn escape_replace_escaped_newline_at_start_and_end() {
     ];
     let expected_exit_code = 0;
     let expected_screen_output = [
-        "test/file1.txt:\nThe \noutstandingly\n ghastly hand plans an \
-         escape from a cream puff the placid widow. A slovenly\n",
+        "test/file1.txt:\nThe \noutstandingly\n ghastly hand plans AN \
+         ESCAPE from a cream puff the placid widow. A slovenly\n",
     ];
 
     test(&args, expected_exit_code, &expected_screen_output);
@@ -103,8 +103,8 @@ fn escape_replace_backslash_at_end_unchanged() {
     ];
     let expected_exit_code = 0;
     let expected_screen_output = [
-        "test/file1.txt:\nThe outstandingly\\ ghastly hand plans an \
-         escape from a cream puff the placid widow. A slovenly\n",
+        "test/file1.txt:\nThe outstandingly\\ ghastly hand plans AN \
+         ESCAPE from a cream puff the placid widow. A slovenly\n",
     ];
 
     test(&args, expected_exit_code, &expected_screen_output);
@@ -121,8 +121,8 @@ fn escape_replace_invalid_escapes_unchanged() {
     ];
     let expected_exit_code = 0;
     let expected_screen_output = [
-        "test/file1.txt:\nThe out\\stan\\din\\gly ghastly hand plans an \
-         escape from a cream puff the placid widow. A slovenly\n",
+        "test/file1.txt:\nThe out\\stan\\din\\gly ghastly hand plans AN \
+         ESCAPE from a cream puff the placid widow. A slovenly\n",
     ];
 
     test(&args, expected_exit_code, &expected_screen_output);
@@ -138,8 +138,8 @@ fn backref_replace_braces() {
         "${1}iest",
     ];
     let expected_exit_code = 0;
-    let expected_screen_output = ["test/file1.txt:\nThe accidentaliest ghastly hand plans an \
-                                   escape from a cream puff the placid widow. A slovenly\n"];
+    let expected_screen_output = ["test/file1.txt:\nThe accidentaliest ghastly hand plans AN \
+                                   ESCAPE from a cream puff the placid widow. A slovenly\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -157,8 +157,8 @@ fn backref_replace_braces_skip() {
         "1",
     ];
     let expected_exit_code = 0;
-    let expected_screen_output = ["test/file1.txt:\nThe accidentally ghastly hand plans an \
-                                   escape from a cream puff that placid widow. A slovenly\n"];
+    let expected_screen_output = ["test/file1.txt:\nThe accidentally ghastly hand plans AN \
+                                   ESCAPE from a cream puff that placid widow. A slovenly\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -174,8 +174,8 @@ fn case_replace_uppercase() {
         "--case-replacements",
     ];
     let expected_exit_code = 0;
-    let expected_screen_output = ["test/file1.txt:\nThe acciDENTally ghastly hand plans an \
-                                   escape from a cream puff the placid widow. A slovenly\n"];
+    let expected_screen_output = ["test/file1.txt:\nThe acciDENTally ghastly hand plans AN \
+                                   ESCAPE from a cream puff the placid widow. A slovenly\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -191,8 +191,8 @@ fn case_replace_lowercase() {
         "--case-replacements",
     ];
     let expected_exit_code = 0;
-    let expected_screen_output = ["test/file1.txt:\nthe accidentally ghastly hand plans an \
-                                   escape from a cream puff the placid widow. A slovenly\n"];
+    let expected_screen_output = ["test/file1.txt:\nthe accidentally ghastly hand plans AN \
+                                   ESCAPE from a cream puff the placid widow. A slovenly\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -201,15 +201,15 @@ fn case_replace_lowercase() {
 fn case_replace_initial_title_case() {
     let args = vec![
         "--stdout",
-        "(accidentally ghastly hand)",
+        "(accidentally .*? ESCAPE)",
         "test",
         "--replace",
         r"\I$1\E",
         "--case-replacements",
     ];
     let expected_exit_code = 0;
-    let expected_screen_output = ["test/file1.txt:\nThe Accidentally Ghastly Hand plans an \
-                                   escape from a cream puff the placid widow. A slovenly\n"];
+    let expected_screen_output = ["test/file1.txt:\nThe Accidentally Ghastly Hand Plans An \
+                                   Escape from a cream puff the placid widow. A slovenly\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -218,7 +218,7 @@ fn case_replace_initial_title_case() {
 fn case_replace_first_sentence_case() {
     let args = vec![
         "--stdout",
-        "(accidentally ghastly hand)",
+        "(accidentally .*? ESCAPE)",
         "test",
         "--replace",
         r"\F$1\E",
@@ -235,7 +235,7 @@ fn case_replace_first_sentence_case() {
 fn case_replace_all_cases() {
     let args = vec![
         "--stdout",
-        "(The) (accidentally) (ghastly hand) plans (an escape from)",
+        "(The) (accidentally) (ghastly hand).*?(AN ESCAPE from)",
         "test",
         "--replace",
         r"\L$1 \U$2 \I$3\E plans \F$4\E",
@@ -252,7 +252,7 @@ fn case_replace_all_cases() {
 fn case_replace_various_whitespace() {
     let args = vec![
         "--stdout",
-        "(The) (accidentally) (ghastly hand) plans (an escape from)",
+        "(The) (accidentally) (ghastly hand).*?(AN ESCAPE from)",
         "test",
         "--replace",
         r"\L$1  \U$2  \I$3    plans \F $4\E",
@@ -271,7 +271,7 @@ fn case_replace_various_whitespace() {
 fn case_replace_no_end() {
     let args = vec![
         "--stdout",
-        "(The) (accidentally) (ghastly hand) plans (an escape from)",
+        "(The) (accidentally) (ghastly hand).*?(AN ESCAPE from)",
         "test",
         "--replace",
         r"\L$1 \U$2 $3 plans $4",
@@ -289,7 +289,7 @@ fn basic_match_whole_files() {
     let args = vec!["accidentally", "test", "--whole-files"];
     let expected_exit_code = 0;
     let expected_screen_output = [
-        "test/file1.txt:\nThe accidentally ghastly hand plans an escape from a cream puff the \
+        "test/file1.txt:\nThe accidentally ghastly hand plans AN ESCAPE from a cream puff the \
          placid widow. A slovenly\nonlooker rejoices, because some single-handledly sheepish \
          stalactite knowingly avoids contact with a\nwisely rhetorical ballerina. Sometimes the \
          waif about a swamp rejoices, but a ruffian always barely\nbefriends an unseemly \
@@ -332,7 +332,7 @@ fn basic_match_no_file_names() {
     let args = vec!["accidentally", "test", "--no-filenames"];
     let expected_exit_code = 0;
     let expected_screen_output = [
-        "1:The accidentally ghastly hand plans an escape from a cream \
+        "1:The accidentally ghastly hand plans AN ESCAPE from a cream \
          puff the placid widow. A slovenly\n",
     ];
 
@@ -344,7 +344,7 @@ fn basic_match_no_file_names_whole_files() {
     let args = vec!["accidentally", "test", "--whole-files", "--no-filenames"];
     let expected_exit_code = 0;
     let expected_screen_output = [
-        "The accidentally ghastly hand plans an escape from a cream puff the placid widow. A \
+        "The accidentally ghastly hand plans AN ESCAPE from a cream puff the placid widow. A \
          slovenly\nonlooker rejoices, because some single-handledly sheepish stalactite \
          knowingly avoids contact with a\nwisely rhetorical ballerina. Sometimes the waif about \
          a swamp rejoices, but a ruffian always barely\nbefriends an unseemly dilettante! \
@@ -360,7 +360,7 @@ fn basic_match_no_line_numbers() {
     let args = vec!["accidentally", "test", "--no-line-numbers"];
     let expected_exit_code = 0;
     let expected_screen_output = [
-        "test/file1.txt:The accidentally ghastly hand plans an escape \
+        "test/file1.txt:The accidentally ghastly hand plans AN ESCAPE \
          from a cream puff the placid widow. A slovenly",
     ];
 
@@ -496,8 +496,8 @@ fn colored_match() {
     let args = vec!["accidentally.*hand", "test", "--colors"];
     let expected_exit_code = 0;
     let expected_screen_output = ["\u{1b}[35mtest/file1.txt:1:\u{1b}[0mThe \
-                                   \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans an \
-                                   escape from a cream puff the placid widow. A slovenly\n"];
+                                   \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans AN \
+                                   ESCAPE from a cream puff the placid widow. A slovenly\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -508,7 +508,7 @@ fn colored_match_whole_files() {
     let expected_exit_code = 0;
     let expected_screen_output = [
         "\u{1b}[35mtest/file1.txt:\n\u{1b}[0mThe \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m \
-         plans an escape from a cream puff the placid widow. A slovenly\nonlooker rejoices, \
+         plans AN ESCAPE from a cream puff the placid widow. A slovenly\nonlooker rejoices, \
          because some single-handledly sheepish stalactite knowingly avoids contact with \
          a\nwisely rhetorical ballerina. Sometimes the waif about a swamp rejoices, but a \
          ruffian always barely\nbefriends an unseemly dilettante! Unlike so many mastadons who \
@@ -562,7 +562,7 @@ fn colored_match_no_file_names_whole_files() {
     ];
     let expected_exit_code = 0;
     let expected_screen_output = [
-        "The \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans an escape from a cream puff \
+        "The \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans AN ESCAPE from a cream puff \
          the placid widow. A slovenly\nonlooker rejoices, because some single-handledly \
          sheepish stalactite knowingly avoids contact with a\nwisely rhetorical ballerina. \
          Sometimes the waif about a swamp rejoices, but a ruffian always barely\nbefriends an \
@@ -578,7 +578,7 @@ fn colored_match_no_file_names() {
     let args = vec!["accidentally.*hand", "test", "--colors", "--no-filenames"];
     let expected_exit_code = 0;
     let expected_screen_output = ["\u{1b}[35m1:\u{1b}[0mThe \u{1b}[1;31maccidentally ghastly \
-                                   hand\u{1b}[0m plans an escape from a cream puff the placid \
+                                   hand\u{1b}[0m plans AN ESCAPE from a cream puff the placid \
                                    widow. A slovenly\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
@@ -594,8 +594,8 @@ fn colored_match_no_line_numbers() {
     ];
     let expected_exit_code = 0;
     let expected_screen_output = ["\u{1b}[35mtest/file1.txt:\u{1b}[0mThe \
-                                   \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans an \
-                                   escape from a cream puff the placid widow. A slovenly\n"];
+                                   \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans AN \
+                                   ESCAPE from a cream puff the placid widow. A slovenly\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
 }
@@ -665,7 +665,7 @@ fn duplicate_options() {
     let expected_exit_code = 0;
     let expected_screen_output = [
         "\u{1b}[35mtest/file1.txt:\n\u{1b}[0mThe \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m \
-         plans an escape from a cream puff the placid widow. A slovenly\nonlooker rejoices, \
+         plans AN ESCAPE from a cream puff the placid widow. A slovenly\nonlooker rejoices, \
          because some single-handledly sheepish stalactite knowingly avoids contact with \
          a\nwisely rhetorical ballerina. Sometimes the waif about a swamp rejoices, but a \
          ruffian always barely\nbefriends an unseemly dilettante! Unlike so many mastadons who \
