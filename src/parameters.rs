@@ -203,17 +203,17 @@ fn convert_escapes(str: Option<String>) -> Option<String> {
             let mut result = String::new();
             let mut chars = str.chars().peekable().into_iter();
             while let Some(char) = chars.next() {
-                if char == '\\' && {
-                    let next = chars.peek();
-                    next.is_some() && {
-                        let escape = escapes.get(&next.unwrap());
-                        escape.is_some() && {
+                let mut found_escape = false;
+                if char == '\\' {
+                    if let Some(next) = chars.peek() {
+                        if let Some(escape) = escapes.get(&next) {
                             // Escape sequences converted to the character they represent.
-                            result.push(*escape.unwrap());
-                            true
+                            result.push(*escape);
+                            found_escape = true;
                         }
                     }
-                } {
+                }
+                if found_escape {
                     chars.next();
                 } else {
                     // Unescaped characters unchanged,
