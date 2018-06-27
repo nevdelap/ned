@@ -398,22 +398,22 @@ fn replace_case(str: &str) -> String {
     let mut last_case_escape = &CaseEscape::End;
     let mut chars = str.chars().peekable().into_iter();
     while let Some(char) = chars.next() {
-        if char == '\\' && {
-            let next = chars.peek();
-            next.is_some() && {
-                let case_escape = escapes.get(&next.unwrap());
-                case_escape.is_some() && {
+        let mut found_escape = false;
+        if char == '\\' {
+            if let Some(next) = chars.peek() {
+                if let Some(case_escape) = escapes.get(next) {
                     // Apply the last escape to the current piece,
                     // append it to the result, clear the current
                     // piece, and remember the escape we just found.
                     piece = apply_case_escape(last_case_escape, &piece);
                     result.push_str(&piece);
                     piece = String::new();
-                    last_case_escape = case_escape.unwrap();
-                    true
+                    last_case_escape = case_escape;
+                    found_escape = true;
                 }
             }
-        } {
+        }
+        if found_escape {
             chars.next();
         } else {
             // Build a string until we get to the next escape.
