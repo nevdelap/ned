@@ -88,13 +88,13 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
     } != 0;
 
     // -C --context takes precedence over -B --before and -A --after.
-    let mut context_before = parse_opt_str(&matches, "context", 0)?;
+    let mut context_before = parse_opt_str(&matches, "context", Some(0))?.expect("The default is a Some.");
     let context_after;
     if context_before != 0 {
         context_after = context_before;
     } else {
-        context_before = parse_opt_str(&matches, "before", 0)?;
-        context_after = parse_opt_str(&matches, "after", 0)?;
+        context_before = parse_opt_str(&matches, "before", Some(0))?.expect("The default is a Some.");
+        context_after = parse_opt_str(&matches, "after", Some(0))?.expect("The default is a Some.");
     }
 
     let mut exclude_dirs = Vec::<Pattern>::new();
@@ -151,8 +151,8 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
 
     let globs = glob_iter.map(|glob| glob.clone()).collect::<Vec<String>>();
 
-    let number = parse_optional_opt_str(&matches, "number")?;
-    let skip = parse_opt_str(&matches, "skip", 0)?;
+    let number = parse_opt_str(&matches, "number", None)?;
+    let skip = parse_opt_str(&matches, "skip", Some(0))?.expect("The default is a Some.");
 
     let stdin = globs.len() == 0;
 
@@ -242,30 +242,11 @@ fn add_re_options_to_pattern(matches: &Matches, pattern: &str) -> String {
     }
 }
 
-// TODO: Figure out how to refactor parse_optional_opt_str() and parse_opt_str() to get rid of the
-// duplication. Change it to compose rather than if/match.
-
-fn parse_optional_opt_str<T: FromStr>(matches: &Matches, option: &str) -> NedResult<Option<T>> {
+fn parse_opt_str<T: FromStr>(matches: &Matches, option: &str, default: Option<T>) -> NedResult<Option<T>> {
     if let Some(value) = matches.opt_str(option) {
         match value.trim().parse::<T>() {
             Ok(value) => {
                 return Ok(Some(value));
-            }
-            Err(_) => {
-                return Err(NedError::ParameterError(StringError {
-                    err: format!("invalid value for --{} option", option),
-                }));
-            }
-        };
-    }
-    Ok(None)
-}
-
-fn parse_opt_str<T: FromStr>(matches: &Matches, option: &str, default: T) -> NedResult<T> {
-    if let Some(value) = matches.opt_str(option) {
-        match value.trim().parse::<T>() {
-            Ok(value) => {
-                return Ok(value);
             }
             Err(_) => {
                 return Err(NedError::ParameterError(StringError {

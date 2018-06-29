@@ -175,7 +175,7 @@ pub fn usage_version() -> String {
     format!(
         "{} {} {}\n\n{}",
         PROGRAM,
-        version.unwrap(),
+        version.expect("We know CARGO_PKG_VERSION will exist."),
         COPYRIGHT,
         LICENSE
     )
@@ -196,7 +196,7 @@ pub fn usage_full(opts: &Options) -> String {
         opts.usage(&usage_brief()),
         POST_DESCRIPTION,
         PROGRAM,
-        version.unwrap(),
+        version.expect("We know CARGO_PKG_VERSION will exist."),
         COPYRIGHT,
         LICENSE,
         1900 + now.tm_year,
