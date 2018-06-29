@@ -59,7 +59,7 @@ fn get_args() -> Vec<String> {
         let original_args = args;
         args = default_args
             .split_whitespace()
-            .map(|s| s.to_string())
+            .map(str::to_string)
             .collect::<Vec<String>>();
         args.extend(original_args);
     }
@@ -250,7 +250,7 @@ fn process_file(
 fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> NedResult<Vec<bool>> {
     let lines = content
         .lines()
-        .map(|s| s.to_string())
+        .map(str::to_string)
         .collect::<Vec<String>>();
     let mut match_map = Vec::<bool>::with_capacity(lines.len());
     for line in lines {
@@ -433,7 +433,7 @@ fn apply_case_escape(case_escape: &CaseEscape, piece: &str) -> String {
         CaseEscape::Lower => piece.to_lowercase(),
         CaseEscape::Initial => piece
             .split(' ')
-            .map(|x| title_case(&x))
+            .map(title_case)
             .collect::<Vec<String>>()
             .join(" "),
         CaseEscape::First => title_case(&piece),
