@@ -93,7 +93,7 @@ Quiet:
     as many files as needed to find a match. Even without this shortcutting
     behaviour quiet matches are more performant than non-quiet matches.
 
-ned 1.2.0-beta Copyright (C) 2016-2018 Nev Delap - https://github.com/nevdelap/ned
+ned 1.2.0 Copyright (C) 2016-2018 Nev Delap - https://github.com/nevdelap/ned
 
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it.
@@ -104,7 +104,7 @@ Built 2018-06-24.
 
 ```
 
-# FAQ
+# I.A.Q. (Infrequently Asked Questions)
 
 ***Why isn't \U working? (or \L, \I, \F)***
 
@@ -145,7 +145,7 @@ will be good.
 
 ### To build for the current platform.
 
-Last tested on Ubuntu 18.04 and on Windows 10.0.16299.192 with Rust 1.26.2. For Windows using the x64 Native Tools Command Prompt for VS2017.
+Last tested on Ubuntu 18.04, and on Windows 10.0.16299.192, using the x64 Native Tools Command Prompt for VS2017, and on OS X High Sierra, with Rust 1.26.2.
 
 ```
 cd ned
