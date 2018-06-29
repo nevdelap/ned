@@ -88,12 +88,14 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
     } != 0;
 
     // -C --context takes precedence over -B --before and -A --after.
-    let mut context_before = parse_opt_str(&matches, "context", Some(0))?.expect("The default is a Some.");
+    let mut context_before =
+        parse_opt_str(&matches, "context", Some(0))?.expect("The default is a Some.");
     let context_after;
     if context_before != 0 {
         context_after = context_before;
     } else {
-        context_before = parse_opt_str(&matches, "before", Some(0))?.expect("The default is a Some.");
+        context_before =
+            parse_opt_str(&matches, "before", Some(0))?.expect("The default is a Some.");
         context_after = parse_opt_str(&matches, "after", Some(0))?.expect("The default is a Some.");
     }
 
@@ -242,7 +244,11 @@ fn add_re_options_to_pattern(matches: &Matches, pattern: &str) -> String {
     }
 }
 
-fn parse_opt_str<T: FromStr>(matches: &Matches, option: &str, default: Option<T>) -> NedResult<Option<T>> {
+fn parse_opt_str<T: FromStr>(
+    matches: &Matches,
+    option: &str,
+    default: Option<T>,
+) -> NedResult<Option<T>> {
     if let Some(value) = matches.opt_str(option) {
         match value.trim().parse::<T>() {
             Ok(value) => {
