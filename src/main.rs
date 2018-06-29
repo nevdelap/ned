@@ -45,7 +45,7 @@ fn main() {
             1
         }
     };
-    output.flush().unwrap();
+    let _ = output.flush();
     process::exit(exit_code)
 }
 
@@ -248,10 +248,7 @@ fn process_file(
 /// value is a boolean that indicates whether or not that line should be shown given
 /// the -C --context, -B --before, and -A --after options specified in the parameters.
 fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> NedResult<Vec<bool>> {
-    let lines = content
-        .lines()
-        .map(str::to_string)
-        .collect::<Vec<String>>();
+    let lines = content.lines().map(str::to_string).collect::<Vec<String>>();
     let mut match_map = Vec::<bool>::with_capacity(lines.len());
     for line in lines {
         match_map.push(is_match_with_number_skip_backwards(parameters, re, &line));
