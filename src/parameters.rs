@@ -151,7 +151,7 @@ pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> 
         regex = None;
     }
 
-    let globs = glob_iter.map(|glob| glob.clone()).collect::<Vec<String>>();
+    let globs = glob_iter.cloned().collect::<Vec<String>>();
 
     let number = parse_opt_str(&matches, "number", None)?;
     let skip = parse_opt_str(&matches, "skip", Some(0))?.expect("The default is a Some.");

@@ -1,6 +1,5 @@
 use getopts::{Options, ParsingStyle};
 use std::string::String;
-use time;
 
 pub static PROGRAM: &'static str = "ned";
 static OPTS_AND_ARGS: &'static str = "[OPTION]... [-p] <PATTERN> [FILE]...";
@@ -190,17 +189,13 @@ pub fn usage_brief() -> String {
 
 pub fn usage_full(opts: &Options) -> String {
     let version = option_env!("CARGO_PKG_VERSION");
-    let now = time::now();
     format!(
-        "{}\n{}\n\n{} {} {}\n\n{}\n\nBuilt {}-{:02}-{:02}.",
+        "{}\n{}\n\n{} {} {}\n\n{}\n",
         opts.usage(&usage_brief()),
         POST_DESCRIPTION,
         PROGRAM,
         version.expect("We know CARGO_PKG_VERSION will exist."),
         COPYRIGHT,
-        LICENSE,
-        1900 + now.tm_year,
-        now.tm_mon + 1,
-        now.tm_mday
+        LICENSE
     )
 }
