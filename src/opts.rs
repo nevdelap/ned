@@ -172,7 +172,7 @@ pub fn make_opts() -> Options {
 pub fn usage_version() -> String {
     let version = option_env!("CARGO_PKG_VERSION");
     format!(
-        "{} {} {}\n\n{}",
+        "{} {} {}\n\n{}\n",
         PROGRAM,
         version.expect("We know CARGO_PKG_VERSION will exist."),
         COPYRIGHT,
@@ -182,7 +182,7 @@ pub fn usage_version() -> String {
 
 pub fn usage_brief() -> String {
     format!(
-        "Usage: {} {}\n\n{}",
+        "Usage: {} {}\n\n{}\n",
         PROGRAM, &OPTS_AND_ARGS, &PRE_DESCRIPTION
     )
 }

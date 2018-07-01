@@ -41,7 +41,7 @@ fn main() {
         Ok(exit_code) => exit_code,
         Err(err) => {
             let _ =
-                stderr().write(&format!("{}\n\n{}\n", usage_brief(), err.to_string()).into_bytes());
+                stderr().write(&format!("{}\n{}\n\n", usage_brief(), err.to_string()).into_bytes());
             1
         }
     };
