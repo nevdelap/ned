@@ -6,8 +6,10 @@ extern crate regex;
 extern crate time;
 extern crate walkdir;
 
+mod colors;
 mod files;
 mod ned_error;
+mod options_with_defaults;
 mod opts;
 mod parameters;
 mod source;
@@ -19,6 +21,7 @@ use ansi_term::enable_ansi_support;
 use ansi_term::Colour::{Purple, Red};
 use files::Files;
 use ned_error::{stderr_write_file_err, NedError, NedResult};
+use options_with_defaults::OptionsWithDefaults;
 use opts::{make_opts, usage_brief, usage_full, usage_version};
 use parameters::{get_parameters, Parameters};
 use regex::{Captures, Match, Regex};
@@ -31,13 +34,11 @@ use std::string::String;
 use std::{env, process};
 
 fn main() {
-    let args = get_args();
-
     // Output is passed here so that tests can
     // call ned() directly to read the output
     // that would go to stdout.
     let mut output = stdout();
-    let exit_code = match ned(&mut output, &args) {
+    let exit_code = match ned(&mut output, &env::args().skip(1).collect::<Vec<String>>()) {
         Ok(exit_code) => exit_code,
         Err(err) => {
             let _ =
@@ -49,26 +50,9 @@ fn main() {
     process::exit(exit_code)
 }
 
-fn get_args() -> Vec<String> {
-    let mut args = env::args().skip(1).collect();
-    if let Ok(mut default_args) = env::var("NED_DEFAULTS") {
-        // This replace of ASCII RS character (what the?) is special - it is for
-        // if when using fish shell someone has done "set NED_DEFAULTS -u -c" rather
-        // than this "set NED_DEFAULTS '-u -c'" they don't get a cryptic complaint.
-        default_args = default_args.replace("\u{1e}", " ");
-        let original_args = args;
-        args = default_args
-            .split_whitespace()
-            .map(str::to_string)
-            .collect::<Vec<String>>();
-        args.extend(original_args);
-    }
-    args
-}
-
 fn ned(output: &mut Write, args: &[String]) -> NedResult<i32> {
-    let opts = make_opts();
-    let parameters = get_parameters(&opts, args)?;
+    let options_with_defaults = OptionsWithDefaults::new(make_opts(), args)?;
+    let parameters = get_parameters(&options_with_defaults)?;
 
     if parameters.version {
         let _ = output.write(&format!("\n{}\n", usage_version()).into_bytes());
@@ -76,12 +60,13 @@ fn ned(output: &mut Write, args: &[String]) -> NedResult<i32> {
     }
 
     if parameters.help {
-        let _ = output.write(&format!("\n{}\n", usage_full(&opts)).into_bytes());
+        let _ = output
+            .write(&format!("\n{}\n", usage_full(&options_with_defaults.get_opts())).into_bytes());
         process::exit(0);
     }
 
     if parameters.regex.is_none() {
-        let _ = stderr().write(&format!("\n{}\n", usage_brief()).into_bytes());
+        let _ = stderr().write(&format!("\n{}\n\n", usage_brief()).into_bytes());
         process::exit(1);
     }
 

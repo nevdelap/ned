@@ -1,7 +1,9 @@
 /// Test file related functionality - recursion, inclusion, exclusion, symlinks, etc.
 use files::Files;
+use options_with_defaults::OptionsWithDefaults;
 use opts::make_opts;
 use parameters::get_parameters;
+use std::env;
 
 #[test]
 fn no_recursion() {
@@ -163,11 +165,12 @@ fn exclude_directory() {
 }
 
 fn test(args: &str, expected_file_names: &[&str]) {
-    let opts = make_opts();
     let args = args.split_whitespace()
         .map(|arg| arg.to_string())
         .collect::<Vec<String>>();
-    let parameters = get_parameters(&opts, &args).unwrap();
+    env::set_var("NED_DEFAULTS", "");
+    let options_with_defaults = OptionsWithDefaults::new(make_opts(), &args).unwrap();
+    let parameters = get_parameters(&options_with_defaults).unwrap();
     let paths = Files::new(&parameters, &parameters.globs[0]);
     let mut file_names = paths
         .map(|path| path.file_name().unwrap().to_str().unwrap().to_string())

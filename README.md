@@ -70,7 +70,9 @@ Options:
                         (or ASCII). because this requires reading the file the
                         --exclude option should be preferred
     -a, --all           do not ignore entries starting with .
-    -c, --colors        show filenames and matches in color when a real stdout
+    -c, --colors [WHEN] show filenames and matches in color when a real
+                        stdout. defaults to auto, can be set to always to show
+                        color even when not a real stdout, or never
         --stdout        output to stdout
     -q, --quiet         suppress all normal output
     -V, --version       output version information and exit
@@ -93,13 +95,11 @@ Quiet:
     as many files as needed to find a match. Even without this shortcutting
     behaviour quiet matches are more performant than non-quiet matches.
 
-ned 1.2.0 Copyright (C) 2016-2018 Nev Delap - https://github.com/nevdelap/ned
+ned 1.2.2 Copyright (C) 2016-2018 Nev Delap - https://github.com/nevdelap/ned
 
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
-
-Built 2018-06-24.
 
 
 ```
@@ -133,8 +133,8 @@ ignore non-ASCII, non-UTF-8 files you can put this in NED_DEFAULTS. See the help
 
 ***Why don't the tests pass in Git Bash?***
 
-See below where it says **NOTE/Windows**. It's not ned's fault, run the tests in cmd and all
-will be good.
+Git Bash does not support colored output using ansi_term.
+
 
 # Machine Setup To Build Ned
 
@@ -145,7 +145,7 @@ will be good.
 
 ### To build for the current platform.
 
-Last tested on Ubuntu 18.04, and on Windows 10.0.16299.192, using the x64 Native Tools Command Prompt for VS2017, and on OS X High Sierra, with Rust 1.26.2.
+Last tested on Ubuntu 18.04, and on Windows 10.0.16299.192, using the x64 Native Tools Command Prompt for VS2017, and on OS X High Sierra, with Rust 1.27.2.
 
 ```
 cd ned
@@ -156,11 +156,9 @@ test result: ok. 128 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 ```
 
-**NOTE/Windows**: The --colors option is ignored and all the color tests fail when run in mintty (Git Bash) because its terminal is not detected as being a tty. This is not a rust nor ned problem. It affects all terminal applications that try to output ansi terminal sequences to terminals but not to pipes - the correct behaviour.
-
 ### To build for 64bit musl.
 
-Last tested on Ubuntu 18.04 with Rust 1.26.2.x
+Last tested on Ubuntu 18.04 with Rust 1.27.2.
 
 ```
 cd ned
