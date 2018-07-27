@@ -1,9 +1,10 @@
 extern crate regex;
 
-use getopts::{Matches, Options};
+use colors::Colors;
 use glob::Pattern;
 use libc;
 use ned_error::{NedError, NedResult, StringError};
+use options_with_defaults::OptionsWithDefaults;
 use regex::Regex;
 use std::collections::HashMap;
 use std::iter::Iterator;
@@ -76,118 +77,123 @@ impl Parameters {
     }
 }
 
-pub fn get_parameters(opts: &Options, args: &[String]) -> NedResult<Parameters> {
-    let matches = opts.parse(args)?;
-
-    let stdout = matches.opt_present("stdout");
-    let replace = convert_escapes(matches.opt_str("replace"));
+pub fn get_parameters(options_with_defaults: &OptionsWithDefaults) -> NedResult<Parameters> {
+    let stdout = options_with_defaults.opt_present("stdout");
+    let replace = convert_escapes(options_with_defaults.opt_str("replace"));
     // TODO: decide what is the best way to deal with STDOUT_FILENO not
     // being defined in the x86_64-pc-windows-gnu version of libc.
     let isatty = unsafe {
         libc::isatty(/*libc::STDOUT_FILENO as i32*/ 1)
     } != 0;
 
+    let colors = parse_opt_str(&options_with_defaults, "colors", Some(Colors::Off))?
+        .expect("The default is a Some.");
+    let colors = (colors == Colors::Always
+        || colors != Colors::Off && (stdout || replace.is_none()) && isatty)
+        && colors != Colors::Never;
+
     // -C --context takes precedence over -B --before and -A --after.
     let mut context_before =
-        parse_opt_str(&matches, "context", Some(0))?.expect("The default is a Some.");
+        parse_opt_str(&options_with_defaults, "context", Some(0))?.expect("The default is a Some.");
     let context_after;
     if context_before != 0 {
         context_after = context_before;
     } else {
-        context_before =
-            parse_opt_str(&matches, "before", Some(0))?.expect("The default is a Some.");
-        context_after = parse_opt_str(&matches, "after", Some(0))?.expect("The default is a Some.");
+        context_before = parse_opt_str(&options_with_defaults, "before", Some(0))?
+            .expect("The default is a Some.");
+        context_after = parse_opt_str(&options_with_defaults, "after", Some(0))?
+            .expect("The default is a Some.");
     }
 
     let mut exclude_dirs = Vec::<Pattern>::new();
-    for exclude in matches.opt_strs("exclude-dir") {
+    for exclude in options_with_defaults.opt_strs("exclude-dir") {
         let pattern = Pattern::new(&exclude)?;
         exclude_dirs.push(pattern);
     }
 
     let mut excludes = Vec::<Pattern>::new();
-    for exclude in matches.opt_strs("exclude") {
+    for exclude in options_with_defaults.opt_strs("exclude") {
         let pattern = Pattern::new(&exclude)?;
         excludes.push(pattern);
     }
 
     let mut includes = Vec::<Pattern>::new();
-    for include in matches.opt_strs("include") {
+    for include in options_with_defaults.opt_strs("include") {
         let pattern = Pattern::new(&include)?;
         includes.push(pattern);
     }
 
-    let whole_files = matches.opt_present("whole-files");
+    let whole_files = options_with_defaults.opt_present("whole-files");
 
     // TODO: Test combinations of file name and line number options.
 
     // file_names_only takes precedence over line_numbers_only.
-    let file_names_only = matches.opt_present("filenames-only");
+    let file_names_only = options_with_defaults.opt_present("filenames-only");
     let line_numbers_only =
-        !whole_files && !file_names_only && matches.opt_present("line-numbers-only");
+        !whole_files && !file_names_only && options_with_defaults.opt_present("line-numbers-only");
 
     // file_names_only takes precedence over no_file_names.
-    let no_file_names = !file_names_only && matches.opt_present("no-filenames");
+    let no_file_names = !file_names_only && options_with_defaults.opt_present("no-filenames");
     let no_line_numbers = !line_numbers_only
-        && (file_names_only || !whole_files && matches.opt_present("no-line-numbers"));
+        && (file_names_only
+            || !whole_files && options_with_defaults.opt_present("no-line-numbers"));
 
     let regex;
-    let mut glob_iter: Box<Iterator<Item = _>> = Box::new(matches.free.iter());
+    let mut globs = options_with_defaults.free();
 
-    if matches.opt_present("pattern") {
-        let pattern = add_re_options_to_pattern(
-            &matches,
-            &matches.opt_str("pattern").expect(
+    if options_with_defaults.opt_present("pattern") {
+        let pattern = add_regex_flags_to_pattern(
+            &options_with_defaults,
+            &options_with_defaults.opt_str("pattern").expect(
                 "Bug, already checked that pattern \
                  is present.",
             ),
         );
         regex = Some(Regex::new(&pattern)?);
-    } else if matches.free.len() > 0 {
-        let pattern = add_re_options_to_pattern(&matches, &matches.free[0]);
+    } else if options_with_defaults.free().len() > 0 {
+        let pattern = globs.remove(0);
+        let pattern = add_regex_flags_to_pattern(&options_with_defaults, &pattern);
         regex = Some(Regex::new(&pattern)?);
-        glob_iter = Box::new(glob_iter.skip(1));
     } else {
         regex = None;
     }
 
-    let globs = glob_iter.cloned().collect::<Vec<String>>();
-
-    let number = parse_opt_str(&matches, "number", None)?;
-    let skip = parse_opt_str(&matches, "skip", Some(0))?.expect("The default is a Some.");
+    let number = parse_opt_str(&options_with_defaults, "number", None)?;
+    let skip =
+        parse_opt_str(&options_with_defaults, "skip", Some(0))?.expect("The default is a Some.");
 
     let stdin = globs.len() == 0;
 
     Ok(Parameters {
-        all: matches.opt_present("all"),
-        backwards: matches.opt_present("backwards"),
-        case_replacements: matches.opt_present("case-replacements"),
-        colors: matches.opt_present("colors") && (stdout || replace.is_none()) && isatty,
+        all: options_with_defaults.opt_present("all"),
+        backwards: options_with_defaults.opt_present("backwards"),
+        case_replacements: options_with_defaults.opt_present("case-replacements"),
+        colors: colors,
         context_after: context_after,
         context_before: context_before,
         exclude_dirs: exclude_dirs,
         excludes: excludes,
         file_names_only: file_names_only,
-        follow: matches.opt_present("follow"),
+        follow: options_with_defaults.opt_present("follow"),
         globs: globs,
-        group: matches.opt_str("group"),
-        help: matches.opt_present("help"),
-        ignore_non_utf8: matches.opt_present("ignore-non-utf8"),
+        group: options_with_defaults.opt_str("group"),
+        help: options_with_defaults.opt_present("help"),
+        ignore_non_utf8: options_with_defaults.opt_present("ignore-non-utf8"),
         includes: includes,
         line_numbers_only: line_numbers_only,
-        matches_only: matches.opt_present("matches-only"),
+        matches_only: options_with_defaults.opt_present("matches-only"),
         no_file_names: no_file_names,
         no_line_numbers: no_line_numbers,
-        no_match: matches.opt_present("no-match"),
+        no_match: options_with_defaults.opt_present("no-match"),
         number: number,
-        quiet: matches.opt_present("quiet"),
-        recursive: matches.opt_present("recursive"),
+        quiet: options_with_defaults.opt_present("quiet"),
+        recursive: options_with_defaults.opt_present("recursive"),
         regex: regex,
         replace: replace,
         skip: skip,
         stdin: stdin,
         stdout: stdout,
-        version: matches.opt_present("version"),
+        version: options_with_defaults.opt_present("version"),
         whole_files: whole_files,
     })
 }
@@ -230,36 +236,47 @@ fn convert_escapes(str: Option<String>) -> Option<String> {
     }
 }
 
-fn add_re_options_to_pattern(matches: &Matches, pattern: &str) -> String {
-    let mut options: String = "".to_string();
+fn add_regex_flags_to_pattern(
+    options_with_defaults: &OptionsWithDefaults,
+    pattern: &str,
+) -> String {
+    let mut regex_flags = "".to_string();
     for option in vec!["i", "s", "m", "x"] {
-        if matches.opt_present(&option) {
-            options.push_str(&option);
+        if options_with_defaults.opt_present(&option) {
+            regex_flags.push_str(&option);
         }
     }
-    if options != "" {
-        format!("(?{}){}", &options, &pattern)
+    if regex_flags != "" {
+        format!("(?{}){}", &regex_flags, &pattern)
     } else {
         pattern.to_string()
     }
 }
 
 fn parse_opt_str<T: FromStr>(
-    matches: &Matches,
+    options_with_defaults: &OptionsWithDefaults,
     option: &str,
     default: Option<T>,
 ) -> NedResult<Option<T>> {
-    if let Some(value) = matches.opt_str(option) {
-        match value.trim().parse::<T>() {
-            Ok(value) => {
-                return Ok(Some(value));
-            }
-            Err(_) => {
-                return Err(NedError::ParameterError(StringError {
-                    err: format!("invalid value for --{} option", option),
-                }));
-            }
-        };
+    let value;
+    // If the string exists with a value...
+    if let Some(v) = options_with_defaults.opt_str(option) {
+        value = v;
+    // ...or it exists without a value, in which case we assume it is empty string...
+    } else if options_with_defaults.opt_present(option) {
+        value = "".to_string();
+    } else {
+        return Ok(default);
     }
-    Ok(default)
+    // ..then parse it.
+    match value.trim().parse::<T>() {
+        Ok(value) => {
+            return Ok(Some(value));
+        }
+        Err(_) => {
+            return Err(NedError::ParameterError(StringError {
+                err: format!("invalid value for --{} option", option),
+            }));
+        }
+    }
 }

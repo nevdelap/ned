@@ -1,9 +1,11 @@
 /// Test match related functionality - different types of matches, matches with color, quiet, etc.
 /// The use of re, not re itself.
+use options_with_defaults::OptionsWithDefaults;
 use opts::make_opts;
 use parameters::get_parameters;
 use process_file;
 use source::Source;
+use std::env;
 use std::io::{Cursor, Read, Seek, SeekFrom, Write};
 
 #[test]
@@ -1071,7 +1073,7 @@ This is a test.
 This is a test.
 ";
     let pattern = "is";
-    let args = "--colors";
+    let args = "--colors=always";
     let expected_found_matches = true;
     let expected_screen_output = "\
 \u{1b}[35mbogus_file.txt:1:\u{1b}[0mTh\u{1b}[1;31mis\u{1b}[0m \u{1b}[1;31mis\u{1b}[0m a test.
@@ -1104,7 +1106,7 @@ This is a test.
 This is a test.
 ";
     let pattern = "is";
-    let args = "--whole-files --colors";
+    let args = "--whole-files --colors=always";
     let expected_found_matches = true;
     let expected_screen_output = "\
 \u{1b}[35mbogus_file.txt:
@@ -1658,12 +1660,13 @@ fn really_test(
     expected_screen_output: &str,
     expected_file_content: &str,
 ) {
-    let opts = make_opts();
     let mut args = args.split_whitespace()
         .map(|arg| arg.to_string())
         .collect::<Vec<String>>();
     args.insert(0, pattern.to_string());
-    let parameters = get_parameters(&opts, &args).unwrap();
+    env::set_var("NED_DEFAULTS", "");
+    let options_with_defaults = OptionsWithDefaults::new(make_opts(), &args).unwrap();
+    let parameters = get_parameters(&options_with_defaults).unwrap();
 
     let mut cursor = Cursor::<Vec<u8>>::new(vec![]);
     cursor.write(&input.to_string().into_bytes()).unwrap();

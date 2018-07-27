@@ -58,7 +58,7 @@ pub fn make_opts() -> Options {
          files",
         "REPLACEMENT",
     );
-    opts.optflagmulti(
+    opts.optflag(
         "w",
         "whole-files",
         "operate on whole files. otherwise matches are line oriented",
@@ -70,55 +70,55 @@ pub fn make_opts() -> Options {
         "skip N occurrences before matching/replacing",
         "N",
     );
-    opts.optflagmulti(
+    opts.optflag(
         "b",
         "backwards",
         "-n --number and -k --skip options count backwards",
     );
-    opts.optflagmulti("i", "ignore-case", "ignore case");
-    opts.optflagmulti(
+    opts.optflag("i", "ignore-case", "ignore case");
+    opts.optflag(
         "s",
         "single",
         ". matches newlines, ^ and $ match beginning and end of each file. use \
          with --whole-files",
     );
-    opts.optflagmulti(
+    opts.optflag(
         "m",
         "multiline",
         "multiline, ^ and $ match beginning and end of each line. use with \
          --whole-files",
     );
-    opts.optflagmulti("x", "extended", "ignore whitespace and # comments");
-    opts.optflagmulti(
+    opts.optflag("x", "extended", "ignore whitespace and # comments");
+    opts.optflag(
         "",
         "case-replacements",
         "enable \\U - uppercase, \\L - \
          lowercase, \\I - initial uppercase (title case), \\F - first uppercase \
          (sentence case) replacements. \\E marks the end of a case replacement",
     );
-    opts.optflagmulti("o", "matches-only", "show only matches");
+    opts.optflag("o", "matches-only", "show only matches");
     opts.optopt(
         "g",
         "group",
         "show the match group, specified by number or name",
         "GROUP",
     );
-    opts.optflagmulti("v", "no-match", "show only non-matching");
-    opts.optflagmulti(
+    opts.optflag("v", "no-match", "show only non-matching");
+    opts.optflag(
         "f",
         "filenames-only",
         "show only filenames containing matches. use with -v \
          --no-match to show filenames without matches",
     );
-    opts.optflagmulti("F", "no-filenames", "don't show filesnames");
-    opts.optflagmulti(
+    opts.optflag("F", "no-filenames", "don't show filesnames");
+    opts.optflag(
         "l",
         "line-numbers-only",
         "show only line numbers containing matches. use with -v \
          --no-match to show line numbers without matches. use without -w \
          --whole-files",
     );
-    opts.optflagmulti(
+    opts.optflag(
         "L",
         "no-line-numbers",
         "don't show line numbers, use without -w --whole-files",
@@ -145,27 +145,28 @@ pub fn make_opts() -> Options {
          --whole-files",
         "LINES",
     );
-    opts.optflagmulti("R", "recursive", "recurse");
-    opts.optflagmulti("l", "follow", "follow symlinks (Ignored on Windows.)");
+    opts.optflag("R", "recursive", "recurse");
+    opts.optflag("l", "follow", "follow symlinks (Ignored on Windows.)");
     opts.optmulti("", "include", "match only files that match GLOB", "GLOB");
     opts.optmulti("", "exclude", "skip files matching GLOB", "GLOB");
     opts.optmulti("", "exclude-dir", "skip directories matching GLOB", "GLOB");
-    opts.optflagmulti(
+    opts.optflag(
         "u",
         "ignore-non-utf8",
         "quietly ignore files that cannot be parsed as UTF-8 (or ASCII). because \
          this requires reading the file the --exclude option should be preferred",
     );
-    opts.optflagmulti("a", "all", "do not ignore entries starting with .");
-    opts.optflagmulti(
+    opts.optflag("a", "all", "do not ignore entries starting with .");
+    opts.optflagopt(
         "c",
         "colors",
-        "show filenames and matches in color when a real stdout",
+        "show filenames and matches in color when a real stdout. defaults to auto, can be set to always to show color even when not a real stdout, or never",
+        "WHEN",
     );
-    opts.optflagmulti("", "stdout", "output to stdout");
-    opts.optflagmulti("q", "quiet", "suppress all normal output");
-    opts.optflagmulti("V", "version", "output version information and exit");
-    opts.optflagmulti("h", "help", "print this help and exit");
+    opts.optflag("", "stdout", "output to stdout");
+    opts.optflag("q", "quiet", "suppress all normal output");
+    opts.optflag("V", "version", "output version information and exit");
+    opts.optflag("h", "help", "print this help and exit");
     opts
 }
 
@@ -182,7 +183,7 @@ pub fn usage_version() -> String {
 
 pub fn usage_brief() -> String {
     format!(
-        "Usage: {} {}\n\n{}\n",
+        "Usage: {} {}\n\n{}",
         PROGRAM, &OPTS_AND_ARGS, &PRE_DESCRIPTION
     )
 }
