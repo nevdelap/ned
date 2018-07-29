@@ -152,7 +152,7 @@ cd ned
 cargo build --release
 cargo test
 ...
-test result: ok. 128 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+test result: ok. 134 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 ```
 
@@ -166,6 +166,6 @@ rustup target add x86_64-unknown-linux-musl
 cargo build --release --target x86_64-unknown-linux-musl
 cargo test --target x86_64-unknown-linux-musl
 ...
-test result: ok. 128 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+test result: ok. 134 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 ```
