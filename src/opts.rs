@@ -15,7 +15,7 @@ FILEs are ASCII or UTF-8 text files. For regex syntax see:
   https://docs.rs/regex/1.0.0/regex/#syntax";
 
 static POST_DESCRIPTION: &'static str = "Environment:
-    NED_DEFAULTS        ned options prepended to the program's arguments. is
+    NED_DEFAULTS        ned options added to the program's arguments. is
                         a space delimited list of options and is not first
                         interpreted by a shell, so quotes are not required.
                         for example...
