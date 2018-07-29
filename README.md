@@ -79,7 +79,7 @@ Options:
     -h, --help          print this help and exit
 
 Environment:
-    NED_DEFAULTS        ned options prepended to the program's arguments. is
+    NED_DEFAULTS        ned options added to the program's arguments. is
                         a space delimited list of options and is not first
                         interpreted by a shell, so quotes are not required.
                         for example...
