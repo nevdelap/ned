@@ -14,8 +14,8 @@ impl OptionsWithDefaults {
             arg_matches: opts.parse(args)?,
             default_matches: opts.parse(if let Ok(mut default_args) = env::var("NED_DEFAULTS") {
                 // This replace of ASCII RS character (what the?) is special - it is for
-                // if when using fish shell someone has done "set NED_DEFAULTS -u -c" rather
-                // than this "set NED_DEFAULTS '-u -c'" they don't get a cryptic complaint.
+                // if when using fish shell someone has done "set NED_DEFAULTS -u -R" rather
+                // than this "set NED_DEFAULTS '-u -R'" they don't get a cryptic complaint.
                 default_args = default_args.replace("\u{1e}", " ");
                 default_args
                     .split_whitespace()
