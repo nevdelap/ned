@@ -84,7 +84,7 @@ Environment:
                         interpreted by a shell, so quotes are not required.
                         for example...
 
-                        NED_DEFAULTS="-u -c --exclude *.bk --exclude-dir .git"
+                        NED_DEFAULTS="-u -R --exclude *.bk --exclude-dir .git"
 Exit codes:
     0                   matches found/replaced
     1                   no matches
