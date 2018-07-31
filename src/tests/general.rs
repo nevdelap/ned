@@ -504,7 +504,12 @@ fn colored_match() {
 
 #[test]
 fn colored_match_whole_files() {
-    let args = vec!["accidentally.*hand", "test", "--whole-files", "--colors=always"];
+    let args = vec![
+        "accidentally.*hand",
+        "test",
+        "--whole-files",
+        "--colors=always",
+    ];
     let expected_exit_code = 0;
     let expected_screen_output = [
         "\u{1b}[35mtest/file1.txt:\n\u{1b}[0mThe \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m \
@@ -520,7 +525,12 @@ fn colored_match_whole_files() {
 
 #[test]
 fn colored_match_file_names_only() {
-    let args = vec!["accidentally.*hand", "test", "--colors=always", "--filenames-only"];
+    let args = vec![
+        "accidentally.*hand",
+        "test",
+        "--colors=always",
+        "--filenames-only",
+    ];
     let expected_exit_code = 0;
     let expected_screen_output = ["\u{1b}[35mtest/file1.txt\n\u{1b}[0m"];
 
@@ -544,7 +554,12 @@ fn colored_match_file_names_only_whole_files() {
 
 #[test]
 fn colored_match_line_numbers_only() {
-    let args = vec!["rejoices.*hand", "test", "--colors=always", "--line-numbers-only"];
+    let args = vec![
+        "rejoices.*hand",
+        "test",
+        "--colors=always",
+        "--line-numbers-only",
+    ];
     let expected_exit_code = 0;
     let expected_screen_output = ["\u{1b}[35m2\n\u{1b}[0m"];
 
@@ -575,7 +590,12 @@ fn colored_match_no_file_names_whole_files() {
 
 #[test]
 fn colored_match_no_file_names() {
-    let args = vec!["accidentally.*hand", "test", "--colors=always", "--no-filenames"];
+    let args = vec![
+        "accidentally.*hand",
+        "test",
+        "--colors=always",
+        "--no-filenames",
+    ];
     let expected_exit_code = 0;
     let expected_screen_output = ["\u{1b}[35m1:\u{1b}[0mThe \u{1b}[1;31maccidentally ghastly \
                                    hand\u{1b}[0m plans AN ESCAPE from a cream puff the placid \

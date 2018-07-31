@@ -88,8 +88,8 @@ pub fn get_parameters(options_with_defaults: &OptionsWithDefaults) -> NedResult<
 
     let colors = parse_opt_str(&options_with_defaults, "colors", Some(Colors::Off))?
         .expect("The default is a Some.");
-    let colors = (colors == Colors::Always
-        || colors != Colors::Off && (stdout || replace.is_none()) && isatty)
+    let colors = (colors == Colors::Always && (replace.is_none() || replace.is_some() && stdout)
+        || colors == Colors::Auto && (replace.is_none() || stdout) && isatty)
         && colors != Colors::Never;
 
     // -C --context takes precedence over -B --before and -A --after.
