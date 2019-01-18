@@ -132,7 +132,7 @@ ignore non-ASCII, non-UTF-8 files you can put this in NED_DEFAULTS. See the help
 
 ***Why don't the tests pass in Git Bash?***
 
-Git Bash does not support colored output using ansi_term.
+Git Bash does not support colored output using ansi_term. Run the tests in cmd.exe.
 
 
 # Machine Setup To Build Ned
@@ -144,7 +144,7 @@ Git Bash does not support colored output using ansi_term.
 
 ### To build for the current platform.
 
-Last tested on Ubuntu 18.04, and on Windows 10.0.16299.192, using the x64 Native Tools Command Prompt for VS2017, and on OS X High Sierra, with Rust 1.27.2.
+Last tested on Manjaro up-to-date, and on Windows 10.0.17134.523, and on OS X High Sierra 13.1.6, with Rust 1.32.0.
 
 ```
 cd ned
