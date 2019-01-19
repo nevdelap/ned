@@ -32,7 +32,7 @@ Quiet:
 
 static COPYRIGHT: &'static str =
     "\
-     Copyright (C) 2016-2018 Nev Delap - https://github.com/nevdelap/ned";
+     Copyright (C) 2016-2019 Nev Delap - https://github.com/nevdelap/ned";
 
 static LICENSE: &'static str = "\
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.

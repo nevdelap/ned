@@ -99,7 +99,7 @@ Quiet:
     as many files as needed to find a match. Even without this shortcutting
     behaviour quiet matches are more performant than non-quiet matches.
 
-ned 1.2.5 Copyright (C) 2016-2018 Nev Delap - https://github.com/nevdelap/ned
+ned 1.2.5 Copyright (C) 2016-2019 Nev Delap - https://github.com/nevdelap/ned
 
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it.
@@ -316,7 +316,7 @@ ned 'the ([a-z]+) dog and the ([a-z]+) cat' -r 'the $2 dog and the $1 cat'
 #### Replace changing case
 'big dog' and 'smelly dog' replaced with 'BIG! dog' and 'SMELLY! dog'.
 
-Available case replacements: \U - uppercase, \L - lowercase, \I - initial uppercase (title case), \F - first uppercase (sentence case). **Note:** Case replacements are affected by [issue #56](https://github.com/nevdelap/ned/issues/56) in the latest version.
+Available case replacements: \U - uppercase, \L - lowercase, \I - initial uppercase (title case), \F - first uppercase (sentence case).
 ```
 ned ' ([a-z]+) dog' --case-replacements -r '\U$1\E! dog' --stdout .
 ```
