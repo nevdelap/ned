@@ -1324,7 +1324,8 @@ fn recursive_match_line_numbers_only_no_match() {
 // These tests look for each of the file's matches it expects to be in the screen output, which
 // can be in any order, because the order that walkdir walks directories is undefined.
 fn test(args: &Vec<&str>, expected_exit_code: i32, expected_screen_output: &[&str]) {
-    let args: Vec<String> = args.into_iter()
+    let args: Vec<String> = args
+        .into_iter()
         .map(|arg| arg.to_string())
         .collect::<Vec<String>>();
     assert!(!(expected_screen_output[0].len() == 0 && expected_exit_code == 0));

@@ -75,9 +75,11 @@ fn ned(output: &mut Write, args: &[String]) -> NedResult<i32> {
         match enable_ansi_support() {
             Ok(_) => {}
             Err(_) => {
-                let _ = stderr().write(&"colors are not supported in this terminal"
-                    .to_string()
-                    .into_bytes());
+                let _ = stderr().write(
+                    &"colors are not supported in this terminal"
+                        .to_string()
+                        .into_bytes(),
+                );
                 process::exit(1);
             }
         }

@@ -1660,7 +1660,8 @@ fn really_test(
     expected_screen_output: &str,
     expected_file_content: &str,
 ) {
-    let mut args = args.split_whitespace()
+    let mut args = args
+        .split_whitespace()
         .map(|arg| arg.to_string())
         .collect::<Vec<String>>();
     args.insert(0, pattern.to_string());
@@ -1679,7 +1680,8 @@ fn really_test(
         &parameters,
         &Some("bogus_file.txt".to_string()),
         &mut file,
-    ).unwrap();
+    )
+    .unwrap();
 
     let screen_output = String::from_utf8(screen_output).unwrap();
 

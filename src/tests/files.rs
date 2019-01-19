@@ -165,7 +165,8 @@ fn exclude_directory() {
 }
 
 fn test(args: &str, expected_file_names: &[&str]) {
-    let args = args.split_whitespace()
+    let args = args
+        .split_whitespace()
         .map(|arg| arg.to_string())
         .collect::<Vec<String>>();
     env::set_var("NED_DEFAULTS", "");
