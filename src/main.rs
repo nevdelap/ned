@@ -350,9 +350,9 @@ fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> (S
                     "{}{}{}",
                     // find_iter guarantees that start and end
                     // are at a Unicode code point boundary.
-                    unsafe { &new_text.slice_unchecked(0, _match.start()) },
+                    unsafe { &new_text.get_unchecked(0.._match.start()) },
                     this_replace,
-                    unsafe { &new_text.slice_unchecked(_match.end(), new_text.len()) }
+                    unsafe { &new_text.get_unchecked(_match.end()..new_text.len()) }
                 );
             }
         }
