@@ -1,6 +1,6 @@
 [package]
 name = "ned"
-version = "1.2.4"
+version = "1.2.5"
 authors = ["Nev Delap <nevdelap@gmail.com>"]
 
 [dependencies]
@@ -8,9 +8,9 @@ ansi_term = "0.11.*"
 getopts = "0.2.*"
 glob = "0.2.*"
 libc = "0.2.*"
-regex = "1.0.*"
+regex = "1.1.*"
 time = "0.1.*"
-walkdir = "2.1.*"
+walkdir = "2.2.*"
 
 [profile.release]
 lto = true

@@ -75,9 +75,11 @@ fn ned(output: &mut Write, args: &[String]) -> NedResult<i32> {
         match enable_ansi_support() {
             Ok(_) => {}
             Err(_) => {
-                let _ = stderr().write(&"colors are not supported in this terminal"
-                    .to_string()
-                    .into_bytes());
+                let _ = stderr().write(
+                    &"Sadly, colors are not supported in this terminal. ansi_term colors are not supported in Git Bash or Cygwin Terminal. Colors are supported in cmd.exe, PowerShell, the OS X terminal, and all Linux terminals.\n\n"
+                        .to_string()
+                        .into_bytes(),
+                );
                 process::exit(1);
             }
         }
@@ -164,9 +166,12 @@ fn process_file(
         if parameters.colors {
             replacement = Red.bold().paint(replacement.as_str()).to_string();
         }
+        if parameters.case_replacements {
+            replacement = replace_case_escape_sequences_with_special_strings(&replacement);
+        }
         let (content, found_matches) = replace(parameters, &re, &content, &replacement);
         let content = if parameters.case_replacements {
-            replace_case(&content)
+            replace_case_with_special_strings(&content)
         } else {
             content
         };
@@ -348,9 +353,9 @@ fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> (S
                     "{}{}{}",
                     // find_iter guarantees that start and end
                     // are at a Unicode code point boundary.
-                    unsafe { &new_text.slice_unchecked(0, _match.start()) },
+                    unsafe { &new_text.get_unchecked(0.._match.start()) },
                     this_replace,
-                    unsafe { &new_text.slice_unchecked(_match.end(), new_text.len()) }
+                    unsafe { &new_text.get_unchecked(_match.end()..new_text.len()) }
                 );
             }
         }
@@ -366,45 +371,46 @@ enum CaseEscape {
     End,
 }
 
-fn replace_case(str: &str) -> String {
+fn replace_case_escape_sequences_with_special_strings(str: &str) -> String {
+    // Convert \U etc. into --nedUned--- etc. so that they should
+    // never clash with something in a real file, you'd think!
+    Regex::new(r"\\(U|L|I|F|E)")
+        .unwrap()
+        .replace_all(str, "--ned${1}ned--")
+        .into_owned()
+}
+
+fn replace_case_with_special_strings(str: &str) -> String {
     let mut escapes = HashMap::new();
-    escapes.insert('U', CaseEscape::Upper);
-    escapes.insert('L', CaseEscape::Lower);
-    escapes.insert('I', CaseEscape::Initial);
-    escapes.insert('F', CaseEscape::First);
-    escapes.insert('E', CaseEscape::End);
+    escapes.insert("U", CaseEscape::Upper);
+    escapes.insert("L", CaseEscape::Lower);
+    escapes.insert("I", CaseEscape::Initial);
+    escapes.insert("F", CaseEscape::First);
+    escapes.insert("E", CaseEscape::End);
     let escapes = escapes;
 
     let mut result = String::new();
-    let mut piece = String::new();
+    let mut last_end = 0;
     let mut last_case_escape = &CaseEscape::End;
-    let mut chars = str.chars().peekable().into_iter();
-    while let Some(char) = chars.next() {
-        let mut found_escape = false;
-        if char == '\\' {
-            if let Some(next) = chars.peek() {
-                if let Some(case_escape) = escapes.get(next) {
-                    // Apply the last escape to the current piece,
-                    // append it to the result, clear the current
-                    // piece, and remember the escape we just found.
-                    piece = apply_case_escape(last_case_escape, &piece);
-                    result.push_str(&piece);
-                    piece = String::new();
-                    last_case_escape = case_escape;
-                    found_escape = true;
-                }
-            }
-        }
-        if found_escape {
-            chars.next();
-        } else {
-            // Build a string until we get to the next escape.
-            piece.push(char);
-        }
+
+    for _match in Regex::new(r"--ned(U|L|I|F|E)ned--").unwrap().find_iter(str) {
+        let (start, end) = (_match.start(), _match.end());
+        let piece = &str[last_end..start];
+        let case_escape = &str[start + 5..end - 5];
+        // It must be there because the definition of escapes matches the regex, so unwrap.
+        let case_escape = escapes.get(case_escape).unwrap();
+        // Apply the last escape to the current piece,
+        // append it to the result, clear the current
+        // piece, and remember the escape we just found.
+        let piece = apply_case_escape(last_case_escape, &piece);
+        result.push_str(&piece);
+        last_end = end;
+        last_case_escape = case_escape;
     }
     // Apply the last escape to the remaining piece
     // when we've hit the end of the string.
-    piece = apply_case_escape(last_case_escape, &piece);
+    let piece = &str[last_end..];
+    let piece = apply_case_escape(last_case_escape, &piece);
     result.push_str(&piece);
     result
 }

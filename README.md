@@ -1,19 +1,23 @@
 ![ned Screenshot](https://github.com/nevdelap/ned/blob/master/img/nedScreenshot.png)
 
-# Ned Usage
+# `ned` Usage
+
+The program's help gives a comprehensive description of its available
+options, the [wiki](https://github.com/nevdelap/ned/wiki) gives
+further details, and the [TL;DR](#tldr) section below has a list of
+quick and easy example usages.
 
 ```text
 
 Usage: ned [OPTION]... [-p] <PATTERN> [FILE]...
 
-ned is a bit like grep and a bit like sed. But unlike grep you don't have to
-choose which grep to use depending the regex features you want, and unlike
-sed it can operate on whole files, so you're not restricted in how you can
-edit files.
+For regular expression power users, ned is like grep, but with
+powerful replace capabilities, and more powerful than sed, as it
+isn't restricted to line oriented editing.
 
 FILEs are ASCII or UTF-8 text files. For regex syntax see:
 
-  https://docs.rs/regex/1.0.0/regex/#syntax
+  https://docs.rs/regex/1.1.0/regex/#syntax
 
 Options:
     -p, --pattern PATTERN
@@ -95,7 +99,7 @@ Quiet:
     as many files as needed to find a match. Even without this shortcutting
     behaviour quiet matches are more performant than non-quiet matches.
 
-ned 1.2.4 Copyright (C) 2016-2018 Nev Delap - https://github.com/nevdelap/ned
+ned 1.2.5 Copyright (C) 2016-2018 Nev Delap - https://github.com/nevdelap/ned
 
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it.
@@ -103,7 +107,7 @@ There is NO WARRANTY, to the extent permitted by law.
 
 ```
 
-# I.A.Q. (Infrequently Asked Questions)
+## I.A.Q. (Infrequently Asked Questions)
 
 ***Why isn't \U working? (or \L, \I, \F)***
 
@@ -135,29 +139,29 @@ ignore non-ASCII, non-UTF-8 files you can put this in NED_DEFAULTS. See the help
 Git Bash does not support colored output using ansi_term. Run the tests in cmd.exe.
 
 
-# Machine Setup To Build Ned
+## Machine Setup To Build `ned`
 
 * Install rust as per: https://www.rust-lang.org/en-US/install.html
 * (Windows) Install Visual Studio Build Tools 2017 as per: https://www.visualstudio.com/downloads/
 
-# Build Ned
+# Building `ned`
 
 ### To build for the current platform.
 
-Last tested on Manjaro up-to-date, and on Windows 10.0.17134.523, and on OS X High Sierra 13.1.6, with Rust 1.32.0.
+Last tested on Manjaro 18.0.2 up-to-date, on Windows 10.0.17134.523, and on OS X High Sierra 13.1.6, with Rust 1.32.0.
 
 ```
 cd ned
 cargo build --release
 cargo test
 ...
-test result: ok. 134 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+test result: ok. 136 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 ```
 
 ### To build for 64bit musl.
 
-Last tested on Ubuntu 18.04 with Rust 1.27.2.
+Last tested on Manjaro 18.0.2 up-to-date, with Rust 1.32.0.
 
 ```
 cd ned
@@ -165,6 +169,162 @@ rustup target add x86_64-unknown-linux-musl
 cargo build --release --target x86_64-unknown-linux-musl
 cargo test --target x86_64-unknown-linux-musl
 ...
-test result: ok. 134 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+test result: ok. 136 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
+```
+
+## TL;DR
+
+**NOTE:** This section is new, so far I've just typed these in off the top of my head, some are not there yet, and I have not tested any of them, so there will be typos.
+
+These examples use short options and search for 'dog' and replace with 'cat' wherever the example doesn't need a regular expression to demonstrate what it is doing.
+
+#### Search non-hidden files in the current directory.
+```
+ned dog .
+```
+#### Search txt files in the current directory.
+```
+ned dog *.txt
+```
+#### Search including hidden files.
+```
+ned -a dog .
+```
+#### Search recursively.
+```
+ned -R dog .
+```
+#### Search case insensitively.
+```
+ned -i dog .
+```
+#### Search always showing colored output.
+```
+ned -c dog .
+ned --colors=always dog .
+```
+#### Search never showing colored output.
+```
+ned --colors=never dog .
+```
+#### Search showing colored output when outputting to a terminal.
+```
+ned --colors=never dog .
+```
+#### Set default arguments in your terminal environment.
+```
+export NED_DEFAULTS=’-i --colors=always’
+```
+#### Search showing colored output and having it work when paging with less.
+```
+ned --colors=always dog . | less -R
+```
+#### Search showing no output, to just use the exit code in a script if something is found or not found.
+Is also more efficient.
+```
+ned -q dog .
+```
+#### Search specifying the pattern at the end of the command.
+```
+ned -q . -p dog
+```
+#### Search not showing line numbers.
+```
+ned -L dog .
+```
+#### Search not showing file names
+```
+ned -F dog .
+```
+#### Search showing only matches.
+```
+ned -o dog .
+```
+#### Search really showing only matches.
+```
+ned -oFL dog .
+```
+#### Search matching 3 occurences.
+```
+ned -n 3 dog .
+```
+#### Search skipping 3 occurrences and finding 2 occurences. (Most useful for replaces.)
+```
+ned -s 3 -n 2 dog .
+```
+#### Search backwards from the end of the file. (Most useful for replaces.)
+You can also skip backwards, and match n occurrences backwards.
+```
+ned -b dog .
+```
+#### Search recursively only including certain files.
+```
+ned -R --include ‘*.txt’ dog .
+```
+#### Search ignoring files.
+```
+ned --exclude ‘*.htm’ dog .
+```
+#### Search ignoring all non-utf8 files.
+Quietly ignore files that cannot be parsed as UTF-8 (or ASCII). Because this requires reading the file the --exclude option should be preferred. E.g. --exclude '*.png'
+```
+ned -u dog .
+```
+#### Search ignoring directories.
+```
+ned --exclude-dir ‘.git’ dog .
+```
+#### Search showing context of 5 lines around each match.
+```
+ned -C 5 dog .
+```
+#### Search showing context of 5 lines before each match.
+```
+ned -B 5 dog .
+```
+#### Search showing context of 5 lines after match.
+```
+ned -A 5 dog .
+```
+#### Search matching the beginning or end of lines.
+```
+```
+#### Search matching the beginning or end of files.
+```
+```
+#### Search spanning lines.
+```
+```
+#### Replace.
+```
+ned dog -r cat .
+```
+#### Replace using numbered group references.
+```
+ned 'the ([a-z]+) dog and the ([a-z]+) cat' -r 'the $2 dog and the $1 cat'
+```
+#### Replace using named group references.
+```
+```
+#### Replace spanning lines.
+```
+```
+#### Replace spanning lines but matching beginnings and endings of lines.
+```
+```
+#### Replace changing case
+'big dog' and 'smelly dog' replaced with 'BIG! dog' and 'SMELLY! dog'.
+
+Available case replacements: \U - uppercase, \L - lowercase, \I - initial uppercase (title case), \F - first uppercase (sentence case). **Note:** Case replacements are affected by [issue #56](https://github.com/nevdelap/ned/issues/56) in the latest version.
+```
+ned ' ([a-z]+) dog' --case-replacements -r '\U$1\E! dog' --stdout .
+```
+#### Replace and see the results without updating the target files.
+```
+ned dog -r cat --stdout .
+```
+#### Unident tables and lists in MadCap Flare XHTML topic and snippet files.
+```
+ned -R --include '*.htm' --include '*.flsnp' --exclude-dir .git '    (</?(table|col|tbody|tr|th|td|ol|ul|li)[^>]*>)' -r '$1'
 ```

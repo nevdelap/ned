@@ -69,11 +69,12 @@ impl Parameters {
                 (0, Some(count - self.skip))
             }
         };
-        index >= skip && if let Some(number) = number {
-            index - skip < number
-        } else {
-            true
-        }
+        index >= skip
+            && if let Some(number) = number {
+                index - skip < number
+            } else {
+                true
+            }
     }
 }
 

@@ -36,7 +36,8 @@ impl Iterator for Files {
                             if let Some(file_name) = file_name.to_str() {
                                 let file_type = entry.file_type();
                                 let excluded_dir = file_type.is_dir()
-                                    && self.parameters
+                                    && self
+                                        .parameters
                                         .exclude_dirs
                                         .iter()
                                         .any(|pattern| pattern.matches(file_name));
@@ -45,12 +46,14 @@ impl Iterator for Files {
                                 }
                                 let included_file = file_type.is_file()
                                     && (self.parameters.includes.len() == 0
-                                        || self.parameters
+                                        || self
+                                            .parameters
                                             .includes
                                             .iter()
                                             .any(|pattern| pattern.matches(file_name)));
                                 let excluded_file = file_type.is_file()
-                                    && self.parameters
+                                    && self
+                                        .parameters
                                         .excludes
                                         .iter()
                                         .any(|pattern| pattern.matches(file_name));

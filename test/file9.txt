@@ -1,0 +1,6 @@
+This is a file that has the case change escape sequences in it, and they
+shouldn't be interpreted as case change escape sequences when doing replaces
+on this file. A likely reason for them to exist in the file is in Windows
+paths, so here's a contrived example.
+
+C:\A file path\WITH\Upper\Lower\First\and\Initial\escape sequences in it.txt
