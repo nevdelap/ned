@@ -76,7 +76,7 @@ fn ned(output: &mut Write, args: &[String]) -> NedResult<i32> {
             Ok(_) => {}
             Err(_) => {
                 let _ = stderr().write(
-                    &"colors are not supported in this terminal"
+                    &"Sadly, colors are not supported in this terminal. ansi_term colors are not supported in Git Bash or Cygwin Terminal. Colors are supported in cmd.exe, PowerShell, the OS X terminal, and all Linux terminals.\n\n"
                         .to_string()
                         .into_bytes(),
                 );
