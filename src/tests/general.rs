@@ -249,6 +249,23 @@ fn case_replace_all_cases() {
 }
 
 #[test]
+fn case_replace_cases_when_target_file_contains_case_escapes_already() {
+    let args = vec![
+        "--stdout",
+        r"A (file) (path)\\(WITH)",
+        "test",
+        "--replace",
+        r"A \U$1\E \I$2\E\\\L$3\E",
+        "--case-replacements",
+    ];
+    let expected_exit_code = 0;
+    let expected_screen_output =
+        [r"C:\A FILE Path\with\Upper\Lower\First\and\Initial\escape sequences in it.txt"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
 fn case_replace_various_whitespace() {
     let args = vec![
         "--stdout",
@@ -279,6 +296,23 @@ fn case_replace_no_end() {
     ];
     let expected_exit_code = 0;
     let expected_screen_output = ["test/file1.txt:\nthe ACCIDENTALLY GHASTLY HAND PLANS AN \
+                                   ESCAPE FROM A CREAM PUFF THE PLACID WIDOW. A SLOVENLY\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn case_replace_end_at_beginning() {
+    let args = vec![
+        "--stdout",
+        "(The) (accidentally) (ghastly hand).*?(AN ESCAPE from)",
+        "test",
+        "--replace",
+        r"\E$1 \U$2 $3 plans $4",
+        "--case-replacements",
+    ];
+    let expected_exit_code = 0;
+    let expected_screen_output = ["test/file1.txt:\nThe ACCIDENTALLY GHASTLY HAND PLANS AN \
                                    ESCAPE FROM A CREAM PUFF THE PLACID WIDOW. A SLOVENLY\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
@@ -1336,7 +1370,6 @@ fn test(args: &Vec<&str>, expected_exit_code: i32, expected_screen_output: &[&st
 
     let screen_output = fix_output_for_windows(&String::from_utf8(screen_output).unwrap());
 
-    assert_eq!(exit_code, expected_exit_code);
     for part in expected_screen_output.into_iter() {
         let part = fix_output_for_windows(&part);
         if !screen_output.contains(&part) {
@@ -1344,6 +1377,7 @@ fn test(args: &Vec<&str>, expected_exit_code: i32, expected_screen_output: &[&st
             assert!(false);
         }
     }
+    assert_eq!(exit_code, expected_exit_code);
 }
 
 fn fix_output_for_windows(part: &str) -> String {

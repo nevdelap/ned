@@ -1,21 +1,23 @@
 ![ned Screenshot](https://github.com/nevdelap/ned/blob/master/img/nedScreenshot.png)
 
-# Ned Usage
+# `ned` Usage
 
-Or see the TL;DR further down the page.
+The program's help gives a comprehensive description of its available
+options, the [wiki](https://github.com/nevdelap/ned/wiki) gives
+further details, and the [TL;DR](#tldr) section below has a list of
+quick and easy example usages.
 
 ```text
 
 Usage: ned [OPTION]... [-p] <PATTERN> [FILE]...
 
-ned is a bit like grep and a bit like sed. But unlike grep you don't have to
-choose which grep to use depending the regex features you want, and unlike
-sed it can operate on whole files, so you're not restricted in how you can
-edit files.
+For regular expression power users, ned is like grep, but with
+powerful replace capabilities, and more powerful than sed, as it
+isn't restricted to line oriented editing.
 
 FILEs are ASCII or UTF-8 text files. For regex syntax see:
 
-  https://docs.rs/regex/1.0.0/regex/#syntax
+  https://docs.rs/regex/1.1.0/regex/#syntax
 
 Options:
     -p, --pattern PATTERN
@@ -137,29 +139,29 @@ ignore non-ASCII, non-UTF-8 files you can put this in NED_DEFAULTS. See the help
 Git Bash does not support colored output using ansi_term. Run the tests in cmd.exe.
 
 
-## Machine Setup To Build Ned
+## Machine Setup To Build `ned`
 
 * Install rust as per: https://www.rust-lang.org/en-US/install.html
 * (Windows) Install Visual Studio Build Tools 2017 as per: https://www.visualstudio.com/downloads/
 
-# Build Ned
+# Building `ned`
 
 ### To build for the current platform.
 
-Last tested on Manjaro up-to-date, and on Windows 10.0.17134.523, and on OS X High Sierra 13.1.6, with Rust 1.32.0.
+Last tested on Manjaro 18.0.2 up-to-date, on Windows 10.0.17134.523, and on OS X High Sierra 13.1.6, with Rust 1.32.0.
 
 ```
 cd ned
 cargo build --release
 cargo test
 ...
-test result: ok. 134 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+test result: ok. 136 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 ```
 
 ### To build for 64bit musl.
 
-Last tested on Ubuntu 18.04 with Rust 1.27.2.
+Last tested on Manjaro 18.0.2 up-to-date, with Rust 1.32.0.
 
 ```
 cd ned
@@ -167,7 +169,7 @@ rustup target add x86_64-unknown-linux-musl
 cargo build --release --target x86_64-unknown-linux-musl
 cargo test --target x86_64-unknown-linux-musl
 ...
-test result: ok. 134 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+test result: ok. 136 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 ```
 

@@ -5,14 +5,13 @@ pub static PROGRAM: &'static str = "ned";
 static OPTS_AND_ARGS: &'static str = "[OPTION]... [-p] <PATTERN> [FILE]...";
 
 static PRE_DESCRIPTION: &'static str = "\
-ned is a bit like grep and a bit like sed. But unlike grep you don't have to
-choose which grep to use depending the regex features you want, and unlike
-sed it can operate on whole files, so you're not restricted in how you can
-edit files.
+For regular expression power users, ned is like grep, but with
+powerful replace capabilities, and more powerful than sed, as it
+isn't restricted to line oriented editing.
 
 FILEs are ASCII or UTF-8 text files. For regex syntax see:
 
-  https://docs.rs/regex/1.0.0/regex/#syntax";
+  https://docs.rs/regex/1.1.0/regex/#syntax";
 
 static POST_DESCRIPTION: &'static str = "Environment:
     NED_DEFAULTS        ned options added to the program's arguments. is

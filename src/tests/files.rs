@@ -8,7 +8,7 @@ use std::env;
 #[test]
 fn no_recursion() {
     let args = "pattern test";
-    let mut expected_file_names = vec!["file1.txt", "longfile.txt"];
+    let mut expected_file_names = vec!["file1.txt", "file9.txt", "longfile.txt"];
     if cfg!(windows) {
         // Windows presents the symlink as a regular file.
         expected_file_names.insert(1, "file8.txt");
@@ -20,7 +20,7 @@ fn no_recursion() {
 #[test]
 fn no_recursion_all() {
     let args = "pattern --all test";
-    let mut expected_file_names = vec![".hidden_file1", "file1.txt", "longfile.txt"];
+    let mut expected_file_names = vec![".hidden_file1", "file1.txt", "file9.txt", "longfile.txt"];
     if cfg!(windows) {
         // Windows presents the symlink as a regular file.
         expected_file_names.insert(2, "file8.txt");
@@ -32,7 +32,7 @@ fn no_recursion_all() {
 #[test]
 fn no_recursion_follow() {
     let args = "pattern --follow test";
-    let expected_file_names = ["file1.txt", "file8.txt", "longfile.txt"];
+    let expected_file_names = ["file1.txt", "file8.txt", "file9.txt", "longfile.txt"];
 
     test(&args, &expected_file_names);
 }
@@ -40,7 +40,13 @@ fn no_recursion_follow() {
 #[test]
 fn no_recursion_follow_all() {
     let args = "pattern --follow --all test";
-    let expected_file_names = [".hidden_file1", "file1.txt", "file8.txt", "longfile.txt"];
+    let expected_file_names = [
+        ".hidden_file1",
+        "file1.txt",
+        "file8.txt",
+        "file9.txt",
+        "longfile.txt",
+    ];
 
     test(&args, &expected_file_names);
 }
@@ -56,6 +62,7 @@ fn recursion() {
         "file5.txt",
         "file6.txt",
         "file7.txt",
+        "file9.txt",
         "longfile.txt",
     ];
     if cfg!(windows) {
@@ -79,6 +86,7 @@ fn recursion_all() {
         "file5.txt",
         "file6.txt",
         "file7.txt",
+        "file9.txt",
         "longfile.txt",
     ];
     if cfg!(windows) {
@@ -92,7 +100,7 @@ fn recursion_all() {
 #[test]
 fn recursion_follow() {
     let args = "pattern --follow test";
-    let expected_file_names = ["file1.txt", "file8.txt", "longfile.txt"];
+    let expected_file_names = ["file1.txt", "file8.txt", "file9.txt", "longfile.txt"];
 
     test(&args, &expected_file_names);
 }
@@ -111,6 +119,7 @@ fn recursion_follow_all() {
         "file6.txt",
         "file7.txt",
         "file8.txt",
+        "file9.txt",
         "longfile.txt",
     ];
 
@@ -135,6 +144,7 @@ fn exclude_files() {
         "file4.txt",
         "file5.txt",
         "file6.txt",
+        "file9.txt",
         "longfile.txt",
     ];
     if cfg!(windows) {
@@ -154,6 +164,7 @@ fn exclude_directory() {
         "file3.txt",
         "file4.txt",
         "file5.txt",
+        "file9.txt",
         "longfile.txt",
     ];
     if cfg!(windows) {
