@@ -210,11 +210,11 @@ ned --colors=never dog .
 ```
 #### Search showing colored output when outputting to a terminal.
 ```
-ned --colors=never dog .
+ned --colors=auto dog .
 ```
 #### Set default arguments in your terminal environment.
 ```
-export NED_DEFAULTS=’-i --colors=always’
+export NED_DEFAULTS='-i --colors=always'
 ```
 #### Search showing colored output and having it work when paging with less.
 ```
@@ -225,17 +225,25 @@ Is also more efficient.
 ```
 ned -q dog .
 ```
-#### Search specifying the pattern at the end of the command.
+#### Search specifying the pattern at the end of the command, for convenience of editing.
 ```
-ned -q . -p dog
+ned . -p dog
 ```
 #### Search not showing line numbers.
 ```
 ned -L dog .
 ```
+#### Search only showing numbers of matched lines.
+```
+ned -l dog .
+```
 #### Search not showing file names
 ```
 ned -F dog .
+```
+#### Search only showing file names of matched files.
+```
+ned -f dog .
 ```
 #### Search showing only matches.
 ```
@@ -260,11 +268,11 @@ ned -b dog .
 ```
 #### Search recursively only including certain files.
 ```
-ned -R --include ‘*.txt’ dog .
+ned -R --include '*.txt' dog .
 ```
 #### Search ignoring files.
 ```
-ned --exclude ‘*.htm’ dog .
+ned -R--exclude '*.htm' dog .
 ```
 #### Search ignoring all non-utf8 files.
 Quietly ignore files that cannot be parsed as UTF-8 (or ASCII). Because this requires reading the file the --exclude option should be preferred. E.g. --exclude '*.png'
@@ -273,7 +281,7 @@ ned -u dog .
 ```
 #### Search ignoring directories.
 ```
-ned --exclude-dir ‘.git’ dog .
+ned -R --exclude-dir '.git' dog .
 ```
 #### Search showing context of 5 lines around each match.
 ```
@@ -293,9 +301,6 @@ ned -A 5 dog .
 #### Search matching the beginning or end of files.
 ```
 ```
-#### Search spanning lines.
-```
-```
 #### Replace.
 ```
 ned dog -r cat .
@@ -307,10 +312,14 @@ ned 'the ([a-z]+) dog and the ([a-z]+) cat' -r 'the $2 dog and the $1 cat'
 #### Replace using named group references.
 ```
 ```
+#### Replace matching beginnings and endings of lines.
+```
+```
 #### Replace spanning lines.
 ```
 ```
-#### Replace spanning lines but matching beginnings and endings of lines.
+#### Replace spanning lines and still matching beginnings and endings of lines.
+As opposed to matching the beginnings and endings of the file.
 ```
 ```
 #### Replace changing case
