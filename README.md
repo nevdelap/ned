@@ -159,6 +159,8 @@ test result: ok. 136 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 ```
 
+# Installing `ned`
+
 ### To build for 64bit musl.
 
 Last tested on Manjaro 18.0.2 up-to-date, with Rust 1.32.0.
@@ -173,11 +175,22 @@ test result: ok. 136 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 ```
 
-## TL;DR
+### To Install in Arch and Manjaro and other Arch based distros.
+```
+yum -S ned
+```
+
+### To Install in Debian, Ubuntu and other Debian  based distros.
+
+Download the 64-bit or 32-bit deb file from the latest release: https://github.com/nevdelap/ned/releases. They package a single musl binary of `ned` with no dependencies.
+
+# TL;DR
 
 **NOTE:** This section is new, so far I've just typed these in off the top of my head, some are not there yet, and I have not tested any of them, so there will be typos.
 
 These examples use short options and search for 'dog' and replace with 'cat' wherever the example doesn't need a regular expression to demonstrate what it is doing.
+
+**IMPORTANT NOTE:** The search capabilities of `ned` are not interesting, you can do them all with `grep`. It is the replace that is its super power. Examples of searching are shown here first, before examples of replacing.
 
 #### Search non-hidden files in the current directory.
 ```
@@ -322,7 +335,7 @@ ned 'the ([a-z]+) dog and the ([a-z]+) cat' -r 'the $2 dog and the $1 cat'
 As opposed to matching the beginnings and endings of the file.
 ```
 ```
-#### Replace changing case
+#### Replace changing case.
 'big dog' and 'smelly dog' replaced with 'BIG! dog' and 'SMELLY! dog'.
 
 Available case replacements: \U - uppercase, \L - lowercase, \I - initial uppercase (title case), \F - first uppercase (sentence case).
