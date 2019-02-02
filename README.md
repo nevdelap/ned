@@ -74,9 +74,12 @@ Options:
                         (or ASCII). because this requires reading the file the
                         --exclude option should be preferred
     -a, --all           do not ignore entries starting with .
-    -c, --colors [WHEN] show filenames and matches in color when a real
-                        stdout. defaults to auto, can be set to always to show
-                        color even when not a real stdout, or never
+    -c                  show filenames, line numbers, and matches in color. is
+                        the same as --colors=always
+        --colors [WHEN] 'auto' shows filenames, line numbers, and matches in
+                        color when stdout is a terminal, not when it is a
+                        pipe, 'always' shows color even when stdout is a pipe,
+                        and 'never' never shows colors
         --stdout        output to stdout
     -q, --quiet         suppress all normal output
     -V, --version       output version information and exit
@@ -94,12 +97,12 @@ Exit codes:
     1                   no matches
 
 Quiet:
-    When -q --quiet is specified ned tests for matches and returns an exit
+    When -q (--quiet) is specified, ned tests for matches and returns an exit
     code of 0 if a match is found in ANY file. Quiet matches will only read
     as many files as needed to find a match. Even without this shortcutting
-    behaviour quiet matches are more performant than non-quiet matches.
+    behaviour, quiet matches are more performant than non-quiet matches.
 
-ned 1.2.6 Copyright (C) 2016-2019 Nev Delap - https://github.com/nevdelap/ned
+ned 1.2.7 Copyright (C) 2016-2019 Nev Delap - https://github.com/nevdelap/ned
 
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it.
@@ -219,7 +222,7 @@ ned --colors=always dog .
 ```
 ned --colors=never dog .
 ```
-#### Search showing colored output when outputting to a terminal.
+#### Search showing colored output when outputting to a terminal, but don't send colored output if piped.
 ```
 ned --colors=auto dog .
 ```
@@ -227,19 +230,19 @@ ned --colors=auto dog .
 ```
 export NED_DEFAULTS='-i --colors=always'
 ```
-#### Search showing colored output and having it work when paging with less.
+#### Search showing colored output through less.
 ```
-ned --colors=always dog . | less -R
+ned -c dog . | less -R
 ```
 #### Search showing no output, to just use the exit code in a script if something is found or not found.
-Is also more efficient.
+This is more efficient when you don't need the output since it shortcuts when it finds the first match.
 ```
 ned -q dog .; echo $?
 0 # Found.
 ned -q dinosaur .; echo $?
 1 # Not found.
 ```
-#### Search specifying the pattern at the end of the command, for convenience of editing.
+#### Search specifying the pattern at the end of the command - for convenience of editing when you have a lot of options.
 ```
 ned . -p dog
 ```
@@ -296,7 +299,7 @@ ned -b -k 3 -n 2 dog .
 ```
 ned -R --include '*.txt' dog .
 ```
-#### Search ignoring files.
+#### Search ignoring certain files.
 ```
 ned -R --exclude '*.htm' dog .
 ```
@@ -305,7 +308,7 @@ Quietly ignore files that cannot be parsed as UTF-8 (or ASCII). Because this req
 ```
 ned -u dog .
 ```
-#### Search ignoring directories.
+#### Search ignoring certain directories.
 ```
 ned -R --exclude-dir '.git' dog .
 ```
@@ -337,8 +340,8 @@ ned -w '^dog' .
 ```
 ned -w 'dog$' .
 ```
-#### search spanning lines.
-The three consecutive lines containing the word dog.
+#### Search spanning lines.
+Search for any and all three consecutive lines containing the word dog.
 ```
 ned -w 'dog.*\n.*dog.*\n.*dog' .
 ```
@@ -357,7 +360,7 @@ ned 'the ([a-z]+) dog and the ([a-z]+) dog' -r 'the $2 dog and the $1 dog' .
 ned 'the (?P<first>[a-z]+) dog and the (?P<second>[a-z]+) dog' -r 'the $second dog and the $first dog' .
 ```
 #### Replace spanning lines.
-Delete three consecutive lines containing the word dog.
+Delete any and all three consecutive lines containing the word dog.
 ```
 ned '\n.*dog.*\n.*dog.*\n.*dog.*\n' -r '\n'
 ```
@@ -379,7 +382,7 @@ ned -w '(\s*\n)+' -r '\n' .
 ```
 ned -w '(\s*\n?)*$' -r '' .
 ```
-#### Unident tables and lists in MadCap Flare XHTML topic and snippet files.
+#### Unident tables and lists in XHTML files, ignoring the .git directory.
 ```
-ned -R --include '*.htm' --include '*.flsnp' --exclude-dir .git '    (</?(table|col|tbody|tr|th|td|ol|ul|li)[^>]*>)' -r '$1'
+ned -R --include '*.htm' --exclude-dir '.git '    (</?(table|col|tbody|tr|th|td|ol|ul|li)[^>]*>)' -r '$1'
 ```

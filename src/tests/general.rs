@@ -557,6 +557,17 @@ fn colored_match() {
 }
 
 #[test]
+fn colored_match_short_option_not_last_argument() {
+    let args = vec!["accidentally.*hand", "-c", "test"];
+    let expected_exit_code = 0;
+    let expected_screen_output = ["\u{1b}[35mtest/file1.txt:1:\u{1b}[0mThe \
+                                   \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans AN \
+                                   ESCAPE from a cream puff the placid widow. A slovenly\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
 fn colored_match_whole_files() {
     let args = vec![
         "accidentally.*hand",
