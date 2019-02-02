@@ -9,10 +9,13 @@ quick and easy example usages.
 
 ```text
 
-Usage: ned [OPTION]... [-p] <PATTERN> [FILE]...
+> ned --help
+
+Usage: ned [OPTION...] [-p] PATTERN [FILE...]
+       ned [OPTION...] [FILE...] -p PATTERN
 
 For regular expression power users, ned is like grep, but with
-powerful replace capabilities, and more powerful than sed, as it
+powerful replace capabilities, and unlike sed, as it
 isn't restricted to line oriented editing.
 
 FILEs are ASCII or UTF-8 text files. For regex syntax see:
@@ -21,75 +24,78 @@ FILEs are ASCII or UTF-8 text files. For regex syntax see:
 
 Options:
     -p, --pattern PATTERN
-                        specify pattern. if the option isn't used the pattern
-                        must precede the files. the option allows the pattern
-                        to be put after the files for more convenient editing
+                        Specify a pattern. If the option isn't used the
+                        pattern must precede the files. The option allows the
+                        pattern to be put after the files for more convenient
+                        editing.
     -r, --replace REPLACEMENT
-                        replace matches, may include named groups. replaces
-                        always operate on whole files
-    -w, --whole-files   operate on whole files. otherwise matches are line
-                        oriented
-    -n, --number N      match/replace N occurrences
-    -k, --skip N        skip N occurrences before matching/replacing
-    -b, --backwards     -n --number and -k --skip options count backwards
-    -i, --ignore-case   ignore case
-    -s, --single        . matches newlines, ^ and $ match beginning and end of
-                        each file. use with --whole-files
-    -m, --multiline     multiline, ^ and $ match beginning and end of each
-                        line. use with --whole-files
-    -x, --extended      ignore whitespace and # comments
+                        Replace matches. Replacements may include numbered and
+                        named groups. Replaces always operate on whole files.
+    -w, --whole-files   Operate on whole files. Otherwise matches are line
+                        oriented.
+    -n, --number N      Match/replace N occurrences.
+    -k, --skip N        Skip N occurrences before matching/replacing.
+    -b, --backwards     Make -n/--number and -k/--skip options count
+                        backwards.
+    -i, --ignore-case   Ignore case.
+    -s, --single        '.' matches newlines, ^ and $ match the beginning and
+                        end of each file. Use with --whole-files.
+    -m, --multiline     Multiline, ^ and $ match the beginning and end of each
+                        line. Use with --whole-files.
+    -x, --extended      Ignore whitespace and # comments.
         --case-replacements
-                        enable \U - uppercase, \L - lowercase, \I - initial
+                        Enable \U - uppercase, \L - lowercase, \I - initial
                         uppercase (title case), \F - first uppercase (sentence
                         case) replacements. \E marks the end of a case
-                        replacement
-    -o, --matches-only  show only matches
-    -g, --group GROUP   show the match group, specified by number or name
-    -v, --no-match      show only non-matching
+                        replacement.
+    -o, --matches-only  Show only matches.
+    -g, --group GROUP   Show the match group, specified by number or name.
+    -v, --no-match      Show only non-matching.
     -f, --filenames-only
-                        show only filenames containing matches. use with -v
-                        --no-match to show filenames without matches
-    -F, --no-filenames  don't show filesnames
+                        Show only filenames containing matches. Use with
+                        -v/--no-match to show filenames without matches.
+    -F, --no-filenames  Don't show filenames.
     -l, --line-numbers-only
-                        show only line numbers containing matches. use with -v
-                        --no-match to show line numbers without matches. use
-                        without -w --whole-files
+                        Show only line numbers containing matches. Use with
+                        -v/--no-match to show line numbers without matches.
+                        Use without -w/--whole-files.
     -L, --no-line-numbers
-                        don't show line numbers, use without -w --whole-files
-    -C, --context LINES show LINES lines around each matching line. is the
-                        same as specifying both -B --before and -A --after
-                        with the same LINES. use without -w --whole-files
-    -B, --before LINES  show LINES lines before each matching line. use
-                        without -w --whole-files
-    -A, --after LINES   show LINES lines after each matching line. use without
-                        -w --whole-files
-    -R, --recursive     recurse
-    -l, --follow        follow symlinks (Ignored on Windows.)
-        --include GLOB  match only files that match GLOB
-        --exclude GLOB  skip files matching GLOB
+                        Don't show line numbers. Use without -w/--whole-files.
+    -C, --context LINES Show LINES lines around each matching line. Is the
+                        same as specifying both -B/--before and -A/--after
+                        with the same LINES. Use without -w/--whole-files.
+    -B, --before LINES  Show LINES lines before each matching line. Use
+                        without -w/--whole-files.
+    -A, --after LINES   Show LINES lines after each matching line. Use without
+                        -w/--whole-files.
+    -R, --recursive     Recurse.
+    -l, --follow        Follow symlinks. (Ignored on Windows.)
+        --include GLOB  Match only files that match GLOB.
+        --exclude GLOB  Skip files matching GLOB.
         --exclude-dir GLOB
-                        skip directories matching GLOB
+                        Skip directories matching GLOB.
     -u, --ignore-non-utf8
-                        quietly ignore files that cannot be parsed as UTF-8
-                        (or ASCII). because this requires reading the file the
-                        --exclude option should be preferred
-    -a, --all           do not ignore entries starting with .
-    -c                  show filenames, line numbers, and matches in color. is
-                        the same as --colors=always
+                        Quietly ignore files that cannot be parsed as UTF-8
+                        (or ASCII). Because this requires reading the file,
+                        the --exclude option should be preferred.
+    -a, --all           Do not ignore files and directories starting with '.'.
+    -c                  Show filenames, line numbers, and matches in color. Is
+                        the same as --colors=always.
         --colors [WHEN] 'auto' shows filenames, line numbers, and matches in
                         color when stdout is a terminal, not when it is a
                         pipe, 'always' shows color even when stdout is a pipe,
-                        and 'never' never shows colors
-        --stdout        output to stdout
-    -q, --quiet         suppress all normal output
-    -V, --version       output version information and exit
-    -h, --help          print this help and exit
+                        and 'never' never shows colors.
+        --stdout        Output to stdout.
+    -q, --quiet         Suppress all normal output. When matching terminate as
+                        soon as a match is found.
+    -V, --version       Output version information and exit.
+    -h, --help          Print this help and exit.
 
 Environment:
-    NED_DEFAULTS        ned options added to the program's arguments. is
+    NED_DEFAULTS        ned options added to the program's arguments. Is
                         a space delimited list of options and is not first
-                        interpreted by a shell, so quotes are not required.
-                        for example...
+                        interpreted by a shell, so quotes are not required
+                        around arguments. For example:
 
                         NED_DEFAULTS="-u -R --exclude *.bk --exclude-dir .git"
 Exit codes:
@@ -97,12 +103,12 @@ Exit codes:
     1                   no matches
 
 Quiet:
-    When -q (--quiet) is specified, ned tests for matches and returns an exit
+    When -q/--quiet is specified, ned tests for matches and returns an exit
     code of 0 if a match is found in ANY file. Quiet matches will only read
     as many files as needed to find a match. Even without this shortcutting
     behaviour, quiet matches are more performant than non-quiet matches.
 
-ned 1.2.7 Copyright (C) 2016-2019 Nev Delap - https://github.com/nevdelap/ned
+ned 1.2.8 Copyright (C) 2016-2019 Nev Delap - https://github.com/nevdelap/ned
 
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it.
@@ -110,7 +116,7 @@ There is NO WARRANTY, to the extent permitted by law.
 
 ```
 
-## I.A.Q. (Infrequently Asked Questions)
+# I.A.Q. (Infrequently Asked Questions)
 
 ***Why isn't \U working? (or \L, \I, \F)***
 
@@ -142,12 +148,12 @@ ignore non-ASCII, non-UTF-8 files you can put this in NED_DEFAULTS. See the help
 Git Bash does not support colored output using ansi_term. Run the tests in cmd.exe.
 
 
-## Machine Setup To Build `ned`
+# Building `ned`
+
+### Machine Setup To Build `ned`
 
 * Install rust as per: https://www.rust-lang.org/en-US/install.html
 * (Windows) Install Visual Studio Build Tools 2017 as per: https://www.visualstudio.com/downloads/
-
-# Building `ned`
 
 ### To build for the current platform.
 
@@ -158,11 +164,9 @@ cd ned
 cargo build --release
 cargo test
 ...
-test result: ok. 136 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+test result: ok. 137 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 ```
-
-# Installing `ned`
 
 ### To build for 64bit musl.
 
@@ -174,9 +178,11 @@ rustup target add x86_64-unknown-linux-musl
 cargo build --release --target x86_64-unknown-linux-musl
 cargo test --target x86_64-unknown-linux-musl
 ...
-test result: ok. 136 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+test result: ok. 137 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 ```
+
+# Installing `ned`
 
 ### To Install in Arch and Manjaro and other Arch based distros.
 ```
@@ -185,7 +191,7 @@ yum -S ned
 
 ### To Install in Debian, Ubuntu and other Debian  based distros.
 
-Download the 64-bit or 32-bit deb file from the latest release: https://github.com/nevdelap/ned/releases. They package a single musl binary of `ned` with no dependencies.
+Download the 64-bit or 32-bit deb file from the latest release: https://github.com/nevdelap/ned/releases. They package a single musl binary of `ned` and its man page with no dependencies.
 
 # TL;DR
 
