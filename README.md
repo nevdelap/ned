@@ -74,9 +74,12 @@ Options:
                         (or ASCII). because this requires reading the file the
                         --exclude option should be preferred
     -a, --all           do not ignore entries starting with .
-    -c, --colors [WHEN] show filenames and matches in color when a real
-                        stdout. defaults to auto, can be set to always to show
-                        color even when not a real stdout, or never
+    -c                  show filenames, line numbers, and matches in color. is
+                        the same as --colors=always
+        --colors [WHEN] 'auto' shows filenames, line numbers, and matches in
+                        color when stdout is a terminal, not when it is a
+                        pipe, 'always' shows color even when stdout is a pipe,
+                        and 'never' never shows colors
         --stdout        output to stdout
     -q, --quiet         suppress all normal output
     -V, --version       output version information and exit
@@ -94,12 +97,12 @@ Exit codes:
     1                   no matches
 
 Quiet:
-    When -q --quiet is specified ned tests for matches and returns an exit
+    When -q (--quiet) is specified, ned tests for matches and returns an exit
     code of 0 if a match is found in ANY file. Quiet matches will only read
     as many files as needed to find a match. Even without this shortcutting
-    behaviour quiet matches are more performant than non-quiet matches.
+    behaviour, quiet matches are more performant than non-quiet matches.
 
-ned 1.2.6 Copyright (C) 2016-2019 Nev Delap - https://github.com/nevdelap/ned
+ned 1.2.7 Copyright (C) 2016-2019 Nev Delap - https://github.com/nevdelap/ned
 
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it.
@@ -186,11 +189,9 @@ Download the 64-bit or 32-bit deb file from the latest release: https://github.c
 
 # TL;DR
 
-**NOTE:** This section is new, so far I've just typed these in off the top of my head, some are not there yet, and I have not tested any of them, so there will be typos.
+**IMPORTANT NOTE:** The search capabilities of `ned` are not so interesting, you can do them all with `grep`. It is the replace that is interesting. Examples of searching are shown first, followed by examples of replacing. Replacing with `ned` is a very powerful way of doing bulk editing from the terminal.
 
 These examples use short options and search for 'dog' and replace with 'cat' wherever the example doesn't need a regular expression to demonstrate what it is doing.
-
-**IMPORTANT NOTE:** The search capabilities of `ned` are not interesting, you can do them all with `grep`. It is the replace that is its super power. Examples of searching are shown here first, before examples of replacing.
 
 #### Search non-hidden files in the current directory.
 ```
@@ -221,7 +222,7 @@ ned --colors=always dog .
 ```
 ned --colors=never dog .
 ```
-#### Search showing colored output when outputting to a terminal.
+#### Search showing colored output when outputting to a terminal, but don't send colored output if piped.
 ```
 ned --colors=auto dog .
 ```
@@ -229,16 +230,19 @@ ned --colors=auto dog .
 ```
 export NED_DEFAULTS='-i --colors=always'
 ```
-#### Search showing colored output and having it work when paging with less.
+#### Search showing colored output through less.
 ```
-ned --colors=always dog . | less -R
+ned -c dog . | less -R
 ```
 #### Search showing no output, to just use the exit code in a script if something is found or not found.
-Is also more efficient.
+This is more efficient when you don't need the output since it shortcuts when it finds the first match.
 ```
-ned -q dog .
+ned -q dog .; echo $?
+0 # Found.
+ned -q dinosaur .; echo $?
+1 # Not found.
 ```
-#### Search specifying the pattern at the end of the command, for convenience of editing.
+#### Search specifying the pattern at the end of the command - for convenience of editing when you have a lot of options.
 ```
 ned . -p dog
 ```
@@ -266,33 +270,45 @@ ned -o dog .
 ```
 ned -oFL dog .
 ```
-#### Search matching 3 occurences.
+#### Search matching first 3 occurences per line.
 ```
 ned -n 3 dog .
 ```
-#### Search skipping 3 occurrences and finding 2 occurences. (Most useful for replaces.)
+#### Search matching first 3 occurences per file.
 ```
-ned -s 3 -n 2 dog .
+ned -w -n 3 dog .
 ```
-#### Search backwards from the end of the file. (Most useful for replaces.)
-You can also skip backwards, and match n occurrences backwards.
+#### Search backwards, matching first 3 occurences per line.
 ```
-ned -b dog .
+ned -b -n 3 dog .
+```
+#### Search backwards, matching first 3 occurences per file.
+```
+ned -b -w -n 3 dog .
+```
+#### Search skipping 3 occurrences and finding 2 occurences.
+**Note:** -k is the short form of --skip. (-s is the short form of the --single option.)
+```
+ned -k 3 -n 2 dog .
+```
+#### Search backwards, skipping 3 occurrences and finding 2 occurences.
+```
+ned -b -k 3 -n 2 dog .
 ```
 #### Search recursively only including certain files.
 ```
 ned -R --include '*.txt' dog .
 ```
-#### Search ignoring files.
+#### Search ignoring certain files.
 ```
-ned -R--exclude '*.htm' dog .
+ned -R --exclude '*.htm' dog .
 ```
 #### Search ignoring all non-utf8 files.
 Quietly ignore files that cannot be parsed as UTF-8 (or ASCII). Because this requires reading the file the --exclude option should be preferred. E.g. --exclude '*.png'
 ```
 ned -u dog .
 ```
-#### Search ignoring directories.
+#### Search ignoring certain directories.
 ```
 ned -R --exclude-dir '.git' dog .
 ```
@@ -308,45 +324,65 @@ ned -B 5 dog .
 ```
 ned -A 5 dog .
 ```
-#### Search matching the beginning or end of lines.
+#### Search matching the beginnings of lines.
 ```
+ned '^dog' .
 ```
-#### Search matching the beginning or end of files.
+#### Search matching the ends of lines.
 ```
+ned 'dog$' .
+```
+#### Search matching the beginnings of files.
+```
+ned -w '^dog' .
+```
+#### Search matching the ends of files.
+```
+ned -w 'dog$' .
+```
+#### Search spanning lines.
+Search for any and all three consecutive lines containing the word dog.
+```
+ned -w 'dog.*\n.*dog.*\n.*dog' .
 ```
 #### Replace.
 ```
 ned dog -r cat .
 ```
 #### Replace using numbered group references.
+'the big dog and the smelly dog' replaced with 'the smelly dog and the big dog'.
 ```
-ned 'the ([a-z]+) dog and the ([a-z]+) cat' -r 'the $2 dog and the $1 cat'
+ned 'the ([a-z]+) dog and the ([a-z]+) dog' -r 'the $2 dog and the $1 dog' .
 ```
 #### Replace using named group references.
+'the big dog and the smelly dog' replaced with 'the smelly dog and the big dog'.
 ```
-```
-#### Replace matching beginnings and endings of lines.
-```
+ned 'the (?P<first>[a-z]+) dog and the (?P<second>[a-z]+) dog' -r 'the $second dog and the $first dog' .
 ```
 #### Replace spanning lines.
+Delete any and all three consecutive lines containing the word dog.
 ```
-```
-#### Replace spanning lines and still matching beginnings and endings of lines.
-As opposed to matching the beginnings and endings of the file.
-```
+ned '\n.*dog.*\n.*dog.*\n.*dog.*\n' -r '\n'
 ```
 #### Replace changing case.
 'big dog' and 'smelly dog' replaced with 'BIG! dog' and 'SMELLY! dog'.
-
 Available case replacements: \U - uppercase, \L - lowercase, \I - initial uppercase (title case), \F - first uppercase (sentence case).
 ```
 ned ' ([a-z]+) dog' --case-replacements -r '\U$1\E! dog' --stdout .
 ```
-#### Replace and see the results without updating the target files.
+#### Replace and see the results in the terminal without updating the target files.
 ```
 ned dog -r cat --stdout .
 ```
-#### Unident tables and lists in MadCap Flare XHTML topic and snippet files.
+#### Strip blank lines from files.
 ```
-ned -R --include '*.htm' --include '*.flsnp' --exclude-dir .git '    (</?(table|col|tbody|tr|th|td|ol|ul|li)[^>]*>)' -r '$1'
+ned -w '(\s*\n)+' -r '\n' .
+```
+#### Strip blank lines from the ends of files.
+```
+ned -w '(\s*\n?)*$' -r '' .
+```
+#### Unident tables and lists in XHTML files, ignoring the .git directory.
+```
+ned -R --include '*.htm' --exclude-dir '.git '    (</?(table|col|tbody|tr|th|td|ol|ul|li)[^>]*>)' -r '$1'
 ```

@@ -107,9 +107,10 @@ pub fn get_parameters(options_with_defaults: &OptionsWithDefaults) -> NedResult<
         libc::isatty(/*libc::STDOUT_FILENO as i32*/ 1)
     } != 0;
 
+    let c = options_with_defaults.opt_present("c");
     let colors = parse_opt_str(&options_with_defaults, "colors", Some(Colors::Off))?
         .expect("The default is a Some.");
-    let colors = (colors == Colors::Always && (replace.is_none() || replace.is_some() && stdout)
+    let colors = c || (colors == Colors::Always && (replace.is_none() || replace.is_some() && stdout)
         || colors == Colors::Auto && (replace.is_none() || stdout) && isatty)
         && colors != Colors::Never;
 

@@ -45,10 +45,10 @@ Exit codes:
     1                   no matches
 
 Quiet:
-    When -q --quiet is specified ned tests for matches and returns an exit
+    When -q (--quiet) is specified, ned tests for matches and returns an exit
     code of 0 if a match is found in ANY file. Quiet matches will only read
     as many files as needed to find a match. Even without this shortcutting
-    behaviour quiet matches are more performant than non-quiet matches.";
+    behaviour, quiet matches are more performant than non-quiet matches.";
 
 static COPYRIGHT: &'static str =
     "\
@@ -176,10 +176,11 @@ pub fn make_opts() -> Options {
          this requires reading the file the --exclude option should be preferred",
     );
     opts.optflag("a", "all", "do not ignore entries starting with .");
+    opts.optflag("c", "", "show filenames, line numbers, and matches in color. is the same as --colors=always");
     opts.optflagopt(
-        "c",
+        "",
         "colors",
-        "show filenames and matches in color when a real stdout. defaults to auto, can be set to always to show color even when not a real stdout, or never",
+        "'auto' shows filenames, line numbers, and matches in color when stdout is a terminal, not when it is a pipe, 'always' shows color even when stdout is a pipe, and 'never' never shows colors",
         "WHEN",
     );
     opts.optflag("", "stdout", "output to stdout");
