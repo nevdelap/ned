@@ -22,11 +22,12 @@ use getopts::{Options, ParsingStyle};
 use std::string::String;
 
 pub static PROGRAM: &'static str = "ned";
-static OPTS_AND_ARGS: &'static str = "[OPTION]... [-p] <PATTERN> [FILE]...";
+static USAGE: &'static str = "Usage: ned [OPTION...] [-p] PATTERN [FILE...]
+       ned [OPTION...] [FILE...] -p PATTERN";
 
 static PRE_DESCRIPTION: &'static str = "\
 For regular expression power users, ned is like grep, but with
-powerful replace capabilities, and more powerful than sed, as it
+powerful replace capabilities, and unlike sed, as it
 isn't restricted to line oriented editing.
 
 FILEs are ASCII or UTF-8 text files. For regex syntax see:
@@ -34,10 +35,10 @@ FILEs are ASCII or UTF-8 text files. For regex syntax see:
   https://docs.rs/regex/1.1.0/regex/#syntax";
 
 static POST_DESCRIPTION: &'static str = "Environment:
-    NED_DEFAULTS        ned options added to the program's arguments. is
+    NED_DEFAULTS        ned options added to the program's arguments. Is
                         a space delimited list of options and is not first
-                        interpreted by a shell, so quotes are not required.
-                        for example...
+                        interpreted by a shell, so quotes are not required
+                        around arguments. For example:
 
                         NED_DEFAULTS=\"-u -R --exclude *.bk --exclude-dir .git\"
 Exit codes:
@@ -45,7 +46,7 @@ Exit codes:
     1                   no matches
 
 Quiet:
-    When -q (--quiet) is specified, ned tests for matches and returns an exit
+    When -q/--quiet is specified, ned tests for matches and returns an exit
     code of 0 if a match is found in ANY file. Quiet matches will only read
     as many files as needed to find a match. Even without this shortcutting
     behaviour, quiet matches are more performant than non-quiet matches.";
@@ -65,128 +66,128 @@ pub fn make_opts() -> Options {
     opts.optopt(
         "p",
         "pattern",
-        "specify pattern. if the option isn't used the pattern must precede the files. \
-         the option allows the pattern to be put after the files for more convenient \
-         editing",
+        "Specify a pattern. If the option isn't used the pattern must precede the files. \
+         The option allows the pattern to be put after the files for more convenient \
+         editing.",
         "PATTERN",
     );
     opts.optopt(
         "r",
         "replace",
-        "replace matches, may include named groups. replaces always operate on whole \
-         files",
+        "Replace matches. Replacements may include numbered and named groups. Replaces always operate on whole \
+         files.",
         "REPLACEMENT",
     );
     opts.optflag(
         "w",
         "whole-files",
-        "operate on whole files. otherwise matches are line oriented",
+        "Operate on whole files. Otherwise matches are line oriented.",
     );
-    opts.optopt("n", "number", "match/replace N occurrences", "N");
+    opts.optopt("n", "number", "Match/replace N occurrences.", "N");
     opts.optopt(
         "k",
         "skip",
-        "skip N occurrences before matching/replacing",
+        "Skip N occurrences before matching/replacing.",
         "N",
     );
     opts.optflag(
         "b",
         "backwards",
-        "-n --number and -k --skip options count backwards",
+        "Make -n/--number and -k/--skip options count backwards.",
     );
-    opts.optflag("i", "ignore-case", "ignore case");
+    opts.optflag("i", "ignore-case", "Ignore case.");
     opts.optflag(
         "s",
         "single",
-        ". matches newlines, ^ and $ match beginning and end of each file. use \
-         with --whole-files",
+        "'.' matches newlines, ^ and $ match the beginning and end of each file. Use \
+         with --whole-files.",
     );
     opts.optflag(
         "m",
         "multiline",
-        "multiline, ^ and $ match beginning and end of each line. use with \
-         --whole-files",
+        "Multiline, ^ and $ match the beginning and end of each line. Use with \
+         --whole-files.",
     );
-    opts.optflag("x", "extended", "ignore whitespace and # comments");
+    opts.optflag("x", "extended", "Ignore whitespace and # comments.");
     opts.optflag(
         "",
         "case-replacements",
-        "enable \\U - uppercase, \\L - \
+        "Enable \\U - uppercase, \\L - \
          lowercase, \\I - initial uppercase (title case), \\F - first uppercase \
-         (sentence case) replacements. \\E marks the end of a case replacement",
+         (sentence case) replacements. \\E marks the end of a case replacement.",
     );
-    opts.optflag("o", "matches-only", "show only matches");
+    opts.optflag("o", "matches-only", "Show only matches.");
     opts.optopt(
         "g",
         "group",
-        "show the match group, specified by number or name",
+        "Show the match group, specified by number or name.",
         "GROUP",
     );
-    opts.optflag("v", "no-match", "show only non-matching");
+    opts.optflag("v", "no-match", "Show only non-matching.");
     opts.optflag(
         "f",
         "filenames-only",
-        "show only filenames containing matches. use with -v \
-         --no-match to show filenames without matches",
+        "Show only filenames containing matches. Use with -v/\
+         --no-match to show filenames without matches.",
     );
-    opts.optflag("F", "no-filenames", "don't show filesnames");
+    opts.optflag("F", "no-filenames", "Don't show filenames.");
     opts.optflag(
         "l",
         "line-numbers-only",
-        "show only line numbers containing matches. use with -v \
-         --no-match to show line numbers without matches. use without -w \
-         --whole-files",
+        "Show only line numbers containing matches. Use with -v/\
+         --no-match to show line numbers without matches. Use without -w/\
+         --whole-files.",
     );
     opts.optflag(
         "L",
         "no-line-numbers",
-        "don't show line numbers, use without -w --whole-files",
+        "Don't show line numbers. Use without -w/--whole-files.",
     );
     opts.optopt(
         "C",
         "context",
-        "show LINES lines around each matching line. is the same as \
-         specifying both -B --before and -A --after with the same LINES. use without -w \
-         --whole-files",
+        "Show LINES lines around each matching line. Is the same as \
+         specifying both -B/--before and -A/--after with the same LINES. Use without -w/\
+         --whole-files.",
         "LINES",
     );
     opts.optopt(
         "B",
         "before",
-        "show LINES lines before each matching line. use without -w \
-         --whole-files",
+        "Show LINES lines before each matching line. Use without -w/\
+         --whole-files.",
         "LINES",
     );
     opts.optopt(
         "A",
         "after",
-        "show LINES lines after each matching line. use without -w \
-         --whole-files",
+        "Show LINES lines after each matching line. Use without -w/\
+         --whole-files.",
         "LINES",
     );
-    opts.optflag("R", "recursive", "recurse");
-    opts.optflag("l", "follow", "follow symlinks (Ignored on Windows.)");
-    opts.optmulti("", "include", "match only files that match GLOB", "GLOB");
-    opts.optmulti("", "exclude", "skip files matching GLOB", "GLOB");
-    opts.optmulti("", "exclude-dir", "skip directories matching GLOB", "GLOB");
+    opts.optflag("R", "recursive", "Recurse.");
+    opts.optflag("l", "follow", "Follow symlinks. (Ignored on Windows.)");
+    opts.optmulti("", "include", "Match only files that match GLOB.", "GLOB");
+    opts.optmulti("", "exclude", "Skip files matching GLOB.", "GLOB");
+    opts.optmulti("", "exclude-dir", "Skip directories matching GLOB.", "GLOB");
     opts.optflag(
         "u",
         "ignore-non-utf8",
-        "quietly ignore files that cannot be parsed as UTF-8 (or ASCII). because \
-         this requires reading the file the --exclude option should be preferred",
+        "Quietly ignore files that cannot be parsed as UTF-8 (or ASCII). Because \
+         this requires reading the file, the --exclude option should be preferred.",
     );
-    opts.optflag("a", "all", "do not ignore entries starting with .");
-    opts.optflag("c", "", "show filenames, line numbers, and matches in color. is the same as --colors=always");
+    opts.optflag("a", "all", "Do not ignore files and directories starting with '.'.");
+    opts.optflag("c", "", "Show filenames, line numbers, and matches in color. Is the same as --colors=always.");
     opts.optflagopt(
         "",
         "colors",
-        "'auto' shows filenames, line numbers, and matches in color when stdout is a terminal, not when it is a pipe, 'always' shows color even when stdout is a pipe, and 'never' never shows colors",
+        "'auto' shows filenames, line numbers, and matches in color when stdout is a terminal, not when it is a pipe, 'always' shows color even when stdout is a pipe, and 'never' never shows colors.",
         "WHEN",
     );
-    opts.optflag("", "stdout", "output to stdout");
-    opts.optflag("q", "quiet", "suppress all normal output");
-    opts.optflag("V", "version", "output version information and exit");
-    opts.optflag("h", "help", "print this help and exit");
+    opts.optflag("", "stdout", "Output to stdout.");
+    opts.optflag("q", "quiet", "Suppress all normal output. When matching terminate as soon as a match is found.");
+    opts.optflag("V", "version", "Output version information and exit.");
+    opts.optflag("h", "help", "Print this help and exit.");
     opts
 }
 
@@ -203,8 +204,8 @@ pub fn usage_version() -> String {
 
 pub fn usage_brief() -> String {
     format!(
-        "Usage: {} {}\n\n{}",
-        PROGRAM, &OPTS_AND_ARGS, &PRE_DESCRIPTION
+        "{}\n\n{}",
+        &USAGE, &PRE_DESCRIPTION
     )
 }
 
