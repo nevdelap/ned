@@ -47,7 +47,7 @@ Exit codes:
 
 Quiet:
     When -q/--quiet is specified, ned tests for matches and returns an exit
-    code of 0 if a match is found in ANY file. Quiet matches will only read
+    code of 0, if a match is found in ANY file. Quiet matches will only read
     as many files as needed to find a match. Even without this shortcutting
     behaviour, quiet matches are more performant than non-quiet matches.";
 
@@ -66,7 +66,7 @@ pub fn make_opts() -> Options {
     opts.optopt(
         "p",
         "pattern",
-        "Specify a pattern. If the option isn't used the pattern must precede the files. \
+        "Specify a pattern. If the option isn't used, the pattern must precede the files. \
          The option allows the pattern to be put after the files for more convenient \
          editing.",
         "PATTERN",

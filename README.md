@@ -24,7 +24,7 @@ FILEs are ASCII or UTF-8 text files. For regex syntax see:
 
 Options:
     -p, --pattern PATTERN
-                        Specify a pattern. If the option isn't used the
+                        Specify a pattern. If the option isn't used, the
                         pattern must precede the files. The option allows the
                         pattern to be put after the files for more convenient
                         editing.
@@ -104,7 +104,7 @@ Exit codes:
 
 Quiet:
     When -q/--quiet is specified, ned tests for matches and returns an exit
-    code of 0 if a match is found in ANY file. Quiet matches will only read
+    code of 0, if a match is found in ANY file. Quiet matches will only read
     as many files as needed to find a match. Even without this shortcutting
     behaviour, quiet matches are more performant than non-quiet matches.
 
@@ -125,22 +125,22 @@ since that is most of the time, generally. See the help... (as of v1.2.0)
 
 ```
        --case-replacements
-                        enable \U - uppercase, \L - lowercase, \I - initial
+                        Enable \U - uppercase, \L - lowercase, \I - initial
                         uppercase (title case), \F - first uppercase (sentence
                         case) replacements. \E marks the end of a case
-                        replacement
+                        replacement.
 ```
 
 ***Why do I get errors like ned: /path/file invalid utf-8 sequence of 1 bytes from index 25?***
 
-Because by default ned reads everything unless you tell it not to read it. If you want it to always
-ignore non-ASCII, non-UTF-8 files you can put this in NED_DEFAULTS. See the help...
+Because, by default, `ned` reads everything unless you tell it not to read it. If you want it to always
+ignore non-ASCII, non-UTF-8 files, you can put this in NED_DEFAULTS. See the help...
 
 ```
    -u, --ignore-non-utf8
-                        quietly ignore files that cannot be parsed as UTF-8
-                        (or ASCII). because this requires reading the file the
-                        --exclude option should be preferred
+                        Quietly ignore files that cannot be parsed as UTF-8
+                        (or ASCII). Because this requires reading the file,
+                        the --exclude option should be preferred.
 ```
 
 ***Why don't the tests pass in Git Bash?***
@@ -186,12 +186,16 @@ test result: ok. 137 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 ### To Install in Arch and Manjaro and other Arch based distros.
 ```
-yum -S ned
+yaourt -S ned
 ```
 
-### To Install in Debian, Ubuntu and other Debian  based distros.
+### To Install in Debian, Ubuntu and other Debian based distros, or Red Hat or CentOS.
 
-Download the 64-bit or 32-bit deb file from the latest release: https://github.com/nevdelap/ned/releases. They package a single musl binary of `ned` and its man page with no dependencies.
+Download the deb or rpm file from the latest release: https://github.com/nevdelap/ned/releases. They package a single musl binary of `ned` and its man page with no dependencies. Install with `dpkg -i` or `rpm -i`.
+
+### To Install in Other Linux Distros, Mac OS X, or Windows.
+
+Download the appropriate binary and put it on your path. In Windows install the dependencies as described in the latest release: https://github.com/nevdelap/ned/releases
 
 # TL;DR
 
@@ -228,7 +232,7 @@ ned --colors=always dog .
 ```
 ned --colors=never dog .
 ```
-#### Search showing colored output when outputting to a terminal, but don't send colored output if piped.
+#### Search showing colored output when outputting to a terminal, but don't send colored output, if piped.
 ```
 ned --colors=auto dog .
 ```
@@ -240,7 +244,7 @@ export NED_DEFAULTS='-i --colors=always'
 ```
 ned -c dog . | less -R
 ```
-#### Search showing no output, to just use the exit code in a script if something is found or not found.
+#### Search showing no output, to just use the exit code in a script, if something is found or not found.
 This is more efficient when you don't need the output since it shortcuts when it finds the first match.
 ```
 ned -q dog .; echo $?
