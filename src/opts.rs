@@ -176,8 +176,16 @@ pub fn make_opts() -> Options {
         "Quietly ignore files that cannot be parsed as UTF-8 (or ASCII). Because \
          this requires reading the file, the --exclude option should be preferred.",
     );
-    opts.optflag("a", "all", "Do not ignore files and directories starting with '.'.");
-    opts.optflag("c", "", "Show filenames, line numbers, and matches in color. Is the same as --colors=always.");
+    opts.optflag(
+        "a",
+        "all",
+        "Do not ignore files and directories starting with '.'.",
+    );
+    opts.optflag(
+        "c",
+        "",
+        "Show filenames, line numbers, and matches in color. Is the same as --colors=always.",
+    );
     opts.optflagopt(
         "",
         "colors",
@@ -185,7 +193,11 @@ pub fn make_opts() -> Options {
         "WHEN",
     );
     opts.optflag("", "stdout", "Output to stdout.");
-    opts.optflag("q", "quiet", "Suppress all normal output. When matching terminate as soon as a match is found.");
+    opts.optflag(
+        "q",
+        "quiet",
+        "Suppress all normal output. When matching terminate as soon as a match is found.",
+    );
     opts.optflag("V", "version", "Output version information and exit.");
     opts.optflag("h", "help", "Print this help and exit.");
     opts
@@ -203,10 +215,7 @@ pub fn usage_version() -> String {
 }
 
 pub fn usage_brief() -> String {
-    format!(
-        "{}\n\n{}",
-        &USAGE, &PRE_DESCRIPTION
-    )
+    format!("{}\n\n{}", &USAGE, &PRE_DESCRIPTION)
 }
 
 pub fn usage_full(opts: &Options) -> String {
