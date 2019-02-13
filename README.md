@@ -372,7 +372,7 @@ ned 'the (?P<first>[a-z]+) dog and the (?P<second>[a-z]+) dog' -r 'the $second d
 #### Replace spanning lines.
 Delete any and all three consecutive lines containing the word dog.
 ```
-ned '\n.*dog.*\n.*dog.*\n.*dog.*\n' -r '\n'
+ned -w '\n.*dog.*\n.*dog.*\n.*dog.*\n' -r '\n'
 ```
 #### Replace changing case.
 'big dog' and 'smelly dog' replaced with 'BIG! dog' and 'SMELLY! dog'.
@@ -392,7 +392,19 @@ ned -w '(\s*\n)+' -r '\n' .
 ```
 ned -w '(\s*\n?)*$' -r '' .
 ```
+#### Use `ned` in `clean` and `smudge` filters in Git.
+This example is stripping the value of the `toolbar_placement` configuration setting, and the values of all configuration settings that end in `_height` or `_width`, when doing a `git add` of `remmina.pref` in my personal config repo. The `-m/--multiline` means match the `toolbar_placement` at the beginning of a line, not the beginning of the file.
+```
+# .gitattributes
+remmina.pref  filter=clean_remmina_pref
+```
+```
+# .gitconfig
+[filter "clean_remmina_pref"]
+    clean = ned -m --colors=never '(^toolbar_placement|_height|_width)=.*' -r '$1=' --stdout
+    smudge = cat
+```
 #### Unident tables and lists in XHTML files, ignoring the .git directory.
 ```
-ned -R --include '*.htm' --exclude-dir '.git '    (</?(table|col|tbody|tr|th|td|ol|ul|li)[^>]*>)' -r '$1'
+ned -R --include '*.htm' --exclude-dir '.git'    (</?(table|col|tbody|tr|th|td|ol|ul|li)[^>]*>)' -r '$1'
 ```
