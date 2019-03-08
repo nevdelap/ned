@@ -75,19 +75,17 @@ impl Parameters {
         }
         let (skip, number) = if !self.backwards {
             (self.skip, self.number)
+        } else if let Some(number) = self.number {
+            (
+                if self.skip + number >= count {
+                    0
+                } else {
+                    count - number - self.skip
+                },
+                Some(number),
+            )
         } else {
-            if let Some(number) = self.number {
-                (
-                    if self.skip + number >= count {
-                        0
-                    } else {
-                        count - number - self.skip
-                    },
-                    Some(number),
-                )
-            } else {
-                (0, Some(count - self.skip))
-            }
+            (0, Some(count - self.skip))
         };
         index >= skip
             && if let Some(number) = number {
@@ -118,15 +116,13 @@ pub fn get_parameters(options_with_defaults: &OptionsWithDefaults) -> NedResult<
     // -C --context takes precedence over -B --before and -A --after.
     let mut context_before =
         parse_opt_str(&options_with_defaults, "context", Some(0))?.expect("The default is a Some.");
-    let context_after;
-    if context_before != 0 {
-        context_after = context_before;
+    let context_after = if context_before != 0 {
+        context_before
     } else {
         context_before = parse_opt_str(&options_with_defaults, "before", Some(0))?
             .expect("The default is a Some.");
-        context_after = parse_opt_str(&options_with_defaults, "after", Some(0))?
-            .expect("The default is a Some.");
-    }
+        parse_opt_str(&options_with_defaults, "after", Some(0))?.expect("The default is a Some.")
+    };
 
     let mut exclude_dirs = Vec::<Pattern>::new();
     for exclude in options_with_defaults.opt_strs("exclude-dir") {
@@ -173,7 +169,7 @@ pub fn get_parameters(options_with_defaults: &OptionsWithDefaults) -> NedResult<
             ),
         );
         regex = Some(Regex::new(&pattern)?);
-    } else if options_with_defaults.free().len() > 0 {
+    } else if !options_with_defaults.free().is_empty() {
         let pattern = globs.remove(0);
         let pattern = add_regex_flags_to_pattern(&options_with_defaults, &pattern);
         regex = Some(Regex::new(&pattern)?);
@@ -185,39 +181,39 @@ pub fn get_parameters(options_with_defaults: &OptionsWithDefaults) -> NedResult<
     let skip =
         parse_opt_str(&options_with_defaults, "skip", Some(0))?.expect("The default is a Some.");
 
-    let stdin = globs.len() == 0;
+    let stdin = globs.is_empty();
 
     Ok(Parameters {
         all: options_with_defaults.opt_present("all"),
         backwards: options_with_defaults.opt_present("backwards"),
         case_replacements: options_with_defaults.opt_present("case-replacements"),
-        colors: colors,
-        context_after: context_after,
-        context_before: context_before,
-        exclude_dirs: exclude_dirs,
-        excludes: excludes,
-        file_names_only: file_names_only,
+        colors,
+        context_after,
+        context_before,
+        exclude_dirs,
+        excludes,
+        file_names_only,
         follow: options_with_defaults.opt_present("follow"),
-        globs: globs,
+        globs,
         group: options_with_defaults.opt_str("group"),
         help: options_with_defaults.opt_present("help"),
         ignore_non_utf8: options_with_defaults.opt_present("ignore-non-utf8"),
-        includes: includes,
-        line_numbers_only: line_numbers_only,
+        includes,
+        line_numbers_only,
         matches_only: options_with_defaults.opt_present("matches-only"),
-        no_file_names: no_file_names,
-        no_line_numbers: no_line_numbers,
+        no_file_names,
+        no_line_numbers,
         no_match: options_with_defaults.opt_present("no-match"),
-        number: number,
+        number,
         quiet: options_with_defaults.opt_present("quiet"),
         recursive: options_with_defaults.opt_present("recursive"),
-        regex: regex,
-        replace: replace,
-        skip: skip,
-        stdin: stdin,
-        stdout: stdout,
+        regex,
+        replace,
+        skip,
+        stdin,
+        stdout,
         version: options_with_defaults.opt_present("version"),
-        whole_files: whole_files,
+        whole_files,
     })
 }
 
@@ -232,7 +228,7 @@ fn convert_escapes(str: Option<String>) -> Option<String> {
             let escapes = escapes;
 
             let mut result = String::new();
-            let mut chars = str.chars().peekable().into_iter();
+            let mut chars = str.chars().peekable();
             while let Some(char) = chars.next() {
                 let mut found_escape = false;
                 if char == '\\' {
@@ -264,7 +260,7 @@ fn add_regex_flags_to_pattern(
     pattern: &str,
 ) -> String {
     let mut regex_flags = "".to_string();
-    for option in vec!["i", "s", "m", "x"] {
+    for option in &["i", "s", "m", "x"] {
         if options_with_defaults.opt_present(&option) {
             regex_flags.push_str(&option);
         }
@@ -293,13 +289,9 @@ fn parse_opt_str<T: FromStr>(
     }
     // ..then parse it.
     match value.trim().parse::<T>() {
-        Ok(value) => {
-            return Ok(Some(value));
-        }
-        Err(_) => {
-            return Err(NedError::ParameterError(StringError {
-                err: format!("invalid value for --{} option", option),
-            }));
-        }
+        Ok(value) => Ok(Some(value)),
+        Err(_) => Err(NedError::ParameterError(StringError {
+            err: format!("invalid value for --{} option", option),
+        })),
     }
 }

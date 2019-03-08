@@ -65,7 +65,7 @@ impl Iterator for Files {
                                     self.walkdir.skip_current_dir();
                                 }
                                 let included_file = file_type.is_file()
-                                    && (self.parameters.includes.len() == 0
+                                    && (self.parameters.includes.is_empty()
                                         || self
                                             .parameters
                                             .includes
@@ -78,7 +78,7 @@ impl Iterator for Files {
                                         .iter()
                                         .any(|pattern| pattern.matches(file_name));
                                 let all = self.parameters.all;
-                                let hidden = file_name.starts_with(".");
+                                let hidden = file_name.starts_with('.');
                                 if included_file && !excluded_file && (all || !hidden) {
                                     return Some(Box::new(entry.path().to_path_buf()));
                                 }

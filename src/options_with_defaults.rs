@@ -46,7 +46,7 @@ impl OptionsWithDefaults {
                     vec![]
                 },
             )?,
-            opts: opts,
+            opts,
         })
     }
 
