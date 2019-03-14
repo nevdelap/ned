@@ -18,8 +18,8 @@
 // 02110-1301, USA.
 //
 
-use ned_error::stderr_write_err;
-use parameters::Parameters;
+use crate::ned_error::stderr_write_err;
+use crate::parameters::Parameters;
 use std::iter::IntoIterator;
 use std::path::PathBuf;
 use walkdir::{IntoIter, WalkDir};

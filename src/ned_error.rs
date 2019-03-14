@@ -18,9 +18,9 @@
 // 02110-1301, USA.
 //
 
+use crate::opts::PROGRAM;
 use getopts;
 use glob;
-use opts::PROGRAM;
 use regex;
 use std::error;
 use std::fmt;

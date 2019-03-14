@@ -18,7 +18,7 @@
 // 02110-1301, USA.
 //
 
-use ned_error::StringError;
+use crate::ned_error::StringError;
 use std::str::FromStr;
 
 #[derive(Debug, PartialEq)]

@@ -36,16 +36,16 @@ mod source;
 #[cfg(test)]
 mod tests;
 
+use crate::files::Files;
+use crate::ned_error::{stderr_write_file_err, NedError, NedResult};
+use crate::options_with_defaults::OptionsWithDefaults;
+use crate::opts::{make_opts, usage_brief, usage_full, usage_version};
+use crate::parameters::{get_parameters, Parameters};
+use crate::source::Source;
 #[cfg(target_os = "windows")]
 use ansi_term::enable_ansi_support;
 use ansi_term::Colour::{Purple, Red};
-use files::Files;
-use ned_error::{stderr_write_file_err, NedError, NedResult};
-use options_with_defaults::OptionsWithDefaults;
-use opts::{make_opts, usage_brief, usage_full, usage_version};
-use parameters::{get_parameters, Parameters};
 use regex::{Captures, Match, Regex};
-use source::Source;
 use std::collections::HashMap;
 use std::fs::OpenOptions;
 use std::io::{stderr, stdin, stdout, Read, Seek, SeekFrom, Write};

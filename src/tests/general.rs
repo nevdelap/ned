@@ -19,7 +19,7 @@
 //
 
 /// Just a few general tests. The specifics are tested in the other test files.
-use ned;
+use crate::ned;
 use std;
 
 #[test]

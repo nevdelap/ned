@@ -18,8 +18,8 @@
 // 02110-1301, USA.
 //
 
+use crate::ned_error::NedResult;
 use getopts::{Matches, Options};
-use ned_error::NedResult;
 use std::env;
 
 pub struct OptionsWithDefaults {

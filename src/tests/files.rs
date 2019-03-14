@@ -19,10 +19,10 @@
 //
 
 /// Test file related functionality - recursion, inclusion, exclusion, symlinks, etc.
-use files::Files;
-use options_with_defaults::OptionsWithDefaults;
-use opts::make_opts;
-use parameters::get_parameters;
+use crate::files::Files;
+use crate::options_with_defaults::OptionsWithDefaults;
+use crate::opts::make_opts;
+use crate::parameters::get_parameters;
 use std::env;
 
 #[test]

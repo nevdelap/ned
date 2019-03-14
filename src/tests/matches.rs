@@ -20,11 +20,11 @@
 
 /// Test match related functionality - different types of matches, matches with color, quiet, etc.
 /// The use of re, not re itself.
-use options_with_defaults::OptionsWithDefaults;
-use opts::make_opts;
-use parameters::get_parameters;
-use process_file;
-use source::Source;
+use crate::options_with_defaults::OptionsWithDefaults;
+use crate::opts::make_opts;
+use crate::parameters::get_parameters;
+use crate::process_file;
+use crate::source::Source;
 use std::env;
 use std::io::{Cursor, Read, Seek, SeekFrom, Write};
 

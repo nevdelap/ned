@@ -18,7 +18,7 @@
 // 02110-1301, USA.
 //
 
-use parameters::Parameters;
+use crate::parameters::Parameters;
 
 #[test]
 fn number_normal_range() {

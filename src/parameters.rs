@@ -20,11 +20,11 @@
 
 extern crate regex;
 
-use colors::Colors;
+use crate::colors::Colors;
+use crate::ned_error::{NedError, NedResult, StringError};
+use crate::options_with_defaults::OptionsWithDefaults;
 use glob::Pattern;
 use libc;
-use ned_error::{NedError, NedResult, StringError};
-use options_with_defaults::OptionsWithDefaults;
 use regex::Regex;
 use std::collections::HashMap;
 use std::iter::Iterator;
