@@ -1690,7 +1690,7 @@ fn really_test(
     let parameters = get_parameters(&options_with_defaults).unwrap();
 
     let mut cursor = Cursor::<Vec<u8>>::new(vec![]);
-    cursor.write(&input.to_string().into_bytes()).unwrap();
+    cursor.write_all(&input.to_string().into_bytes()).unwrap();
     cursor.seek(SeekFrom::Start(0)).unwrap();
     let mut file = Source::Cursor(Box::new(cursor));
     let mut screen_output: Vec<u8> = vec![];
