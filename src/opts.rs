@@ -21,20 +21,20 @@
 use getopts::{Options, ParsingStyle};
 use std::string::String;
 
-pub static PROGRAM: &'static str = "ned";
-static USAGE: &'static str = "Usage: ned [OPTION...] [-p] PATTERN [FILE...]
+pub static PROGRAM: &str = "ned";
+static USAGE: &str = "Usage: ned [OPTION...] [-p] PATTERN [FILE...]
        ned [OPTION...] [FILE...] -p PATTERN";
 
-static PRE_DESCRIPTION: &'static str = "\
+static PRE_DESCRIPTION: &str = "\
 For regular expression power users, ned is like grep, but with
 powerful replace capabilities, and unlike sed, as it
 isn't restricted to line oriented editing.
 
 FILEs are ASCII or UTF-8 text files. For regex syntax see:
 
-  https://docs.rs/regex/1.1.0/regex/#syntax";
+  https://docs.rs/regex/1.3.4/regex/#syntax";
 
-static POST_DESCRIPTION: &'static str = "Environment:
+static POST_DESCRIPTION: &str = "Environment:
     NED_DEFAULTS        ned options added to the program's arguments. Is
                         a space delimited list of options and is not first
                         interpreted by a shell, so quotes are not required
@@ -51,11 +51,10 @@ Quiet:
     as many files as needed to find a match. Even without this shortcutting
     behaviour, quiet matches are more performant than non-quiet matches.";
 
-static COPYRIGHT: &'static str =
-    "\
-     Copyright (C) 2016-2019 Nev Delap - https://github.com/nevdelap/ned";
+static COPYRIGHT: &str = "\
+                          Copyright (C) 2016-2019 Nev Delap - https://github.com/nevdelap/ned";
 
-static LICENSE: &'static str = "\
+static LICENSE: &str = "\
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.";
