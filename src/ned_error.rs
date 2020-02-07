@@ -44,7 +44,7 @@ impl error::Error for StringError {
         self.err.as_str()
     }
 
-    fn cause(&self) -> Option<&error::Error> {
+    fn cause(&self) -> Option<&dyn error::Error> {
         None
     }
 }
@@ -120,7 +120,7 @@ impl error::Error for NedError {
         }
     }
 
-    fn cause(&self) -> Option<&error::Error> {
+    fn cause(&self) -> Option<&dyn error::Error> {
         match *self {
             NedError::FromUtf8(ref err) => Some(err),
             NedError::GetOpts(ref err) => Some(err),
@@ -134,13 +134,13 @@ impl error::Error for NedError {
 
 pub type NedResult<T> = Result<T, NedError>;
 
-pub fn stderr_write_err(err: &error::Error) {
+pub fn stderr_write_err(err: &dyn error::Error) {
     io::stderr()
         .write_all(&format!("{}: {}\n", PROGRAM, err.to_string()).into_bytes())
         .expect("Can't write to stderr!");
 }
 
-pub fn stderr_write_file_err(path_buf: &path::PathBuf, err: &error::Error) {
+pub fn stderr_write_file_err(path_buf: &path::PathBuf, err: &dyn error::Error) {
     io::stderr()
         .write_all(
             &format!(

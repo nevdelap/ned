@@ -70,7 +70,7 @@ fn main() {
     process::exit(exit_code)
 }
 
-fn ned(output: &mut Write, args: &[String]) -> NedResult<i32> {
+fn ned(output: &mut dyn Write, args: &[String]) -> NedResult<i32> {
     let options_with_defaults = OptionsWithDefaults::new(make_opts(), args)?;
     let parameters = get_parameters(&options_with_defaults)?;
 
@@ -110,7 +110,7 @@ fn ned(output: &mut Write, args: &[String]) -> NedResult<i32> {
     Ok(if found_matches { 0 } else { 1 })
 }
 
-fn process_files(output: &mut Write, parameters: &Parameters) -> NedResult<bool> {
+fn process_files(output: &mut dyn Write, parameters: &Parameters) -> NedResult<bool> {
     let mut found_matches = false;
     if parameters.stdin {
         let mut source = Source::Stdin(Box::new(stdin()));
@@ -149,14 +149,14 @@ fn process_files(output: &mut Write, parameters: &Parameters) -> NedResult<bool>
 }
 
 fn process_file(
-    output: &mut Write,
+    output: &mut dyn Write,
     parameters: &Parameters,
     file_name: &Option<String>,
     source: &mut Source,
 ) -> NedResult<bool> {
     let content: String;
     {
-        let read: &mut Read = match source {
+        let read: &mut dyn Read = match source {
             &mut Source::Stdin(ref mut read) => read,
             &mut Source::File(ref mut file) => file,
             #[cfg(test)]
@@ -291,7 +291,7 @@ fn is_match_with_number_skip_backwards(parameters: &Parameters, re: &Regex, text
 }
 
 fn process_text(
-    output: &mut Write,
+    output: &mut dyn Write,
     parameters: &Parameters,
     re: &Regex,
     file_name: &Option<String>,
@@ -462,7 +462,7 @@ fn title_case(str: &str) -> String {
 }
 
 fn write_line(
-    output: &mut Write,
+    output: &mut dyn Write,
     parameters: &Parameters,
     file_name: &Option<String>,
     line_number: Option<usize>,
@@ -479,7 +479,7 @@ fn write_line(
 }
 
 fn write_groups(
-    output: &mut Write,
+    output: &mut dyn Write,
     parameters: &Parameters,
     re: &Regex,
     file_name: &Option<String>,
@@ -525,7 +525,7 @@ fn write_groups(
 /// Write matches taking into account which of --number, --skip, and --backwards have been
 /// specified.
 fn write_matches(
-    output: &mut Write,
+    output: &mut dyn Write,
     parameters: &Parameters,
     re: &Regex,
     file_name: &Option<String>,
@@ -561,7 +561,7 @@ fn write_matches(
 /// write the filename, and line number if they are given, colored if the parameters specify color,
 /// and with a newline, colon and newline, or colon, also depending on the specified parameters.
 fn write_file_name_and_line_number(
-    output: &mut Write,
+    output: &mut dyn Write,
     parameters: &Parameters,
     file_name: &Option<String>,
     line_number: Option<usize>,
@@ -601,7 +601,7 @@ fn write_file_name_and_line_number(
 }
 
 fn write_newline_if_replaced_text_ends_with_newline(
-    output: &mut Write,
+    output: &mut dyn Write,
     text: &str,
 ) -> NedResult<()> {
     if !text.ends_with('\n') {
