@@ -1,7 +1,7 @@
 //
 // ned, https://github.com/nevdelap/ned, opts.rs
 //
-// Copyright 2016-2019 Nev Delap (nevdelap at gmail)
+// Copyright 2016-2020 Nev Delap (nevdelap at gmail)
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -52,7 +52,7 @@ Quiet:
     behaviour, quiet matches are more performant than non-quiet matches.";
 
 static COPYRIGHT: &str = "\
-                          Copyright (C) 2016-2019 Nev Delap - https://github.com/nevdelap/ned";
+                          Copyright (C) 2016-2020 Nev Delap - https://github.com/nevdelap/ned";
 
 static LICENSE: &str = "\
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
