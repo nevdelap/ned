@@ -492,22 +492,6 @@ ned -w '(\s*\n)+' -r '\n' .
 ned -w '(\s*\n?)*$' -r '' .
 ```
 
-**Use `ned` in `clean` and `smudge` filters in Git.**
-
-This example is stripping the value of the `toolbar_placement` configuration setting, and the values of all configuration settings that end in `_height` or `_width`, when doing a `git add` of `remmina.pref` in my personal config repo. The `-m/--multiline` means match the `toolbar_placement` at the beginning of a line, not the beginning of the file. **Note:** For a `clean` operation we want no replacements to be treated as success, hence the `|| true`.
-
-```bash
-# .gitattributes
-remmina.pref  filter=clean_remmina_pref
-```
-
-```bash
-# .gitconfig
-[filter "clean_remmina_pref"]
-    clean = ned -m --colors=never '(^toolbar_placement|_height|_width)=.*' -r '$1=' --stdout || true
-    smudge = cat
-```
-
 **Unident tables and lists in XHTML files, ignoring the .git directory.**
 
 ```bash
