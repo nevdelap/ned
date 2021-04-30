@@ -157,10 +157,10 @@ fn process_file(
     let content: String;
     {
         let read: &mut dyn Read = match source {
-            &mut Source::Stdin(ref mut read) => read,
-            &mut Source::File(ref mut file) => file,
+            Source::Stdin(ref mut read) => read,
+            Source::File(ref mut file) => file,
             #[cfg(test)]
-            &mut Source::Cursor(ref mut cursor) => cursor,
+            Source::Cursor(ref mut cursor) => cursor,
         };
         let mut buffer = Vec::new();
         let _ = read.read_to_end(&mut buffer)?;
@@ -202,9 +202,11 @@ fn process_file(
                 output.write_all(&content.into_bytes())?;
             }
         } else {
+            // It's not a single match in test.
+            #[allow(clippy::single_match)]
             match source {
                 // A better way???
-                &mut Source::File(ref mut file) => {
+                Source::File(ref mut file) => {
                     if found_matches {
                         file.seek(SeekFrom::Start(0))?;
                         let bytes = &content.into_bytes();
@@ -213,23 +215,23 @@ fn process_file(
                     }
                 }
                 #[cfg(test)]
-                &mut Source::Cursor(ref mut cursor) => {
+                Source::Cursor(ref mut cursor) => {
                     cursor.seek(SeekFrom::Start(0))?;
                     cursor.write_all(&content.into_bytes())?;
                 }
                 _ => {}
             }
         }
-        return Ok(found_matches);
+        Ok(found_matches)
     } else if parameters.file_names_only {
         let found_matches = re.is_match(&content);
         if found_matches ^ parameters.no_match {
             write_file_name_and_line_number(output, parameters, file_name, None)?;
         }
-        return Ok(found_matches);
+        Ok(found_matches)
     } else if !parameters.whole_files {
         let mut found_matches = false;
-        let context_map = make_context_map(&parameters, &re, &content)?;
+        let context_map = make_context_map(&parameters, &re, &content);
         for (index, line) in content.lines().enumerate() {
             let line_number = index + 1;
             found_matches |= process_text(
@@ -245,17 +247,17 @@ fn process_file(
                 break;
             }
         }
-        return Ok(found_matches);
+        Ok(found_matches)
     } else {
         let found_matches = process_text(output, parameters, &re, file_name, None, &content, None)?;
-        return Ok(found_matches);
+        Ok(found_matches)
     }
 }
 
 /// Returns a vector whose capacity equals the number of lines in the file, and whose
 /// value is a boolean that indicates whether or not that line should be shown given
 /// the -C --context, -B --before, and -A --after options specified in the parameters.
-fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> NedResult<Vec<bool>> {
+fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> Vec<bool> {
     let lines = content.lines().map(str::to_string).collect::<Vec<String>>();
     let mut match_map = Vec::<bool>::with_capacity(lines.len());
     for line in lines {
@@ -276,12 +278,12 @@ fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> NedRe
             }
         }
     }
-    Ok(context_map)
+    context_map
 }
 
 fn is_match_with_number_skip_backwards(parameters: &Parameters, re: &Regex, text: &str) -> bool {
-    let start_end_byte_indices = re.find_iter(&text).collect::<Vec<Match>>();
-    let count = start_end_byte_indices.len();
+    let start_end_byte_indices = re.find_iter(&text);
+    let count = start_end_byte_indices.count();
     for index in 0..count {
         if parameters.include_match(index, count) {
             return true;
@@ -305,7 +307,7 @@ fn process_text(
     }
     if let Some(ref group) = parameters.group {
         // TODO 2: make it respect -n, -k, -b TO TEST
-        return Ok(write_groups(
+        return write_groups(
             output,
             parameters,
             &re,
@@ -313,7 +315,7 @@ fn process_text(
             line_number,
             text,
             group,
-        )?);
+        );
     } else if parameters.no_match {
         let found_matches = re.is_match(&text);
         if !found_matches {

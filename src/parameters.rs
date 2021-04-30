@@ -264,7 +264,7 @@ fn add_regex_flags_to_pattern(
             regex_flags.push_str(&option);
         }
     }
-    if regex_flags != "" {
+    if !regex_flags.is_empty() {
         format!("(?{}){}", &regex_flags, &pattern)
     } else {
         pattern.to_string()

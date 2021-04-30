@@ -125,13 +125,13 @@ pub fn stderr_write_err(err: &dyn error::Error) {
         .expect("Can't write to stderr!");
 }
 
-pub fn stderr_write_file_err(path_buf: &path::PathBuf, err: &dyn error::Error) {
+pub fn stderr_write_file_err(path_buf: &path::Path, err: &dyn error::Error) {
     io::stderr()
         .write_all(
             &format!(
                 "{}: {} {}\n",
                 PROGRAM,
-                path_buf.as_path().to_string_lossy(),
+                path_buf.to_string_lossy(),
                 err.to_string()
             )
             .into_bytes(),
