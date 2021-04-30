@@ -1,7 +1,7 @@
 //
 // ned, https://github.com/nevdelap/ned, tests/parameters.rs
 //
-// Copyright 2016-2020 Nev Delap (nevdelap at gmail)
+// Copyright 2016-2021 Nev Delap (nevdelap at gmail)
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
