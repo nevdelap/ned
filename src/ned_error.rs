@@ -24,7 +24,7 @@ use glob;
 use regex;
 use std::error;
 use std::fmt;
-use std::io::{self, Write};
+use std::io::{self, ErrorKind, Write};
 use std::path;
 use std::string;
 
@@ -53,6 +53,19 @@ pub enum NedError {
     Io(io::Error),
     ParameterError(StringError),
     Regex(regex::Error),
+}
+
+impl NedError {
+    pub fn io_error_kind(&self) -> Option<ErrorKind> {
+        match self {
+            NedError::Io(err) => {
+                Some(err.kind())
+            }
+            _ => {
+                None
+            }
+        }
+    }
 }
 
 impl From<string::FromUtf8Error> for NedError {

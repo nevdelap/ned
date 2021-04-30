@@ -168,8 +168,8 @@ pub fn get_parameters(options_with_defaults: &OptionsWithDefaults) -> NedResult<
     let stdin = globs.is_empty();
     let stdout = stdin || options_with_defaults.opt_present("stdout");
     let replace = convert_escapes(options_with_defaults.opt_str("replace"));
-    // TODO: decide what is the best way to deal with STDOUT_FILENO not
-    // being defined in the x86_64-pc-windows-gnu version of libc.
+    // TODO: decide what is the best way to deal with STDOUT_FILENO not being defined in the x86_64-pc-windows-gnu,
+    // x86_64-pc-windows-msvc, or i686-pc-windows-msvc versions of libc.
     let isatty = unsafe {
         libc::isatty(/*libc::STDOUT_FILENO as i32*/ 1)
     } != 0;

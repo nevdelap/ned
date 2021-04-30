@@ -130,6 +130,9 @@ fn process_files(output: &mut dyn Write, parameters: &Parameters) -> NedResult<b
                             match process_file(output, parameters, &file_name, &mut source) {
                                 Ok(found_matches) => found_matches,
                                 Err(err) => {
+                                    if err.io_error_kind() == Some(std::io::ErrorKind::BrokenPipe) {
+                                        break;
+                                    }
                                     stderr_write_file_err(&path_buf, &err);
                                     false
                                 }
@@ -141,8 +144,8 @@ fn process_files(output: &mut dyn Write, parameters: &Parameters) -> NedResult<b
             if parameters.quiet && found_matches {
                 break;
             }
-            output.flush()?;
-            stderr().flush()?;
+            let _ = output.flush();
+            let _ = stderr().flush();
         }
     }
     Ok(found_matches)
