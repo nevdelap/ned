@@ -97,22 +97,6 @@ impl Parameters {
 }
 
 pub fn get_parameters(options_with_defaults: &OptionsWithDefaults) -> NedResult<Parameters> {
-    let stdout = options_with_defaults.opt_present("stdout");
-    let replace = convert_escapes(options_with_defaults.opt_str("replace"));
-    // TODO: decide what is the best way to deal with STDOUT_FILENO not
-    // being defined in the x86_64-pc-windows-gnu version of libc.
-    let isatty = unsafe {
-        libc::isatty(/*libc::STDOUT_FILENO as i32*/ 1)
-    } != 0;
-
-    let c = options_with_defaults.opt_present("c");
-    let colors = parse_opt_str(&options_with_defaults, "colors", Some(Colors::Off))?
-        .expect("The default is a Some.");
-    let colors = c
-        || (colors == Colors::Always && (replace.is_none() || replace.is_some() && stdout)
-            || colors == Colors::Auto && (replace.is_none() || stdout) && isatty)
-            && colors != Colors::Never;
-
     // -C --context takes precedence over -B --before and -A --after.
     let mut context_before =
         parse_opt_str(&options_with_defaults, "context", Some(0))?.expect("The default is a Some.");
@@ -182,6 +166,21 @@ pub fn get_parameters(options_with_defaults: &OptionsWithDefaults) -> NedResult<
         parse_opt_str(&options_with_defaults, "skip", Some(0))?.expect("The default is a Some.");
 
     let stdin = globs.is_empty();
+    let stdout = stdin || options_with_defaults.opt_present("stdout");
+    let replace = convert_escapes(options_with_defaults.opt_str("replace"));
+    // TODO: decide what is the best way to deal with STDOUT_FILENO not
+    // being defined in the x86_64-pc-windows-gnu version of libc.
+    let isatty = unsafe {
+        libc::isatty(/*libc::STDOUT_FILENO as i32*/ 1)
+    } != 0;
+
+    let c = options_with_defaults.opt_present("c");
+    let colors = parse_opt_str(&options_with_defaults, "colors", Some(Colors::Off))?
+        .expect("The default is a Some.");
+    let colors = c
+        || (colors == Colors::Always && (replace.is_none() || replace.is_some() && stdout)
+            || colors == Colors::Auto && (replace.is_none() || stdout) && isatty)
+            && colors != Colors::Never;
 
     Ok(Parameters {
         all: options_with_defaults.opt_present("all"),

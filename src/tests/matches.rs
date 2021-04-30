@@ -1652,16 +1652,18 @@ fn test(
     expected_file_content: &str,
 ) {
     println!("NOT QUIET");
+    // The dummy glob argument prevents it from assuming --stdout.
+    let args = format!("{} dummy", args);
     really_test(
         input,
         pattern,
-        args,
+        &args,
         expected_found_matches,
         expected_screen_output,
         expected_file_content,
     );
     println!("QUIET");
-    let args = format!("{} --quiet", args);
+    let args = format!("{} --quiet dummy", args);
     really_test(
         input,
         pattern,
