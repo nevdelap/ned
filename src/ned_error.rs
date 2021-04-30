@@ -34,16 +34,12 @@ pub struct StringError {
 }
 
 impl fmt::Display for StringError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.err)
     }
 }
 
 impl error::Error for StringError {
-    fn description(&self) -> &str {
-        self.err.as_str()
-    }
-
     fn cause(&self) -> Option<&dyn error::Error> {
         None
     }
@@ -109,17 +105,6 @@ impl fmt::Display for NedError {
 }
 
 impl error::Error for NedError {
-    fn description(&self) -> &str {
-        match *self {
-            NedError::FromUtf8(ref err) => err.description(),
-            NedError::GetOpts(ref err) => err.description(),
-            NedError::GlobPattern(ref err) => err.description(),
-            NedError::Io(ref err) => err.description(),
-            NedError::ParameterError(ref err) => err.description(),
-            NedError::Regex(ref err) => err.description(),
-        }
-    }
-
     fn cause(&self) -> Option<&dyn error::Error> {
         match *self {
             NedError::FromUtf8(ref err) => Some(err),
