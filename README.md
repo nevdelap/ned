@@ -155,7 +155,7 @@ Git Bash does not support colored output using ansi_term. Run the tests in cmd.e
 
 ### To Build For The Current Platform
 
-Last tested on Manjaro up-to-date at 2021/04/30 with Rust 1.51.0, on Windows 10.0.17134.523 and on OS X High Sierra with Rust 1.32.0.
+Last tested on Manjaro up-to-date at 2021/05/15 with Rust 1.52.1, on Windows 10.0.17134.523 and on OS X High Sierra with Rust 1.32.0.
 
 ```bash
 cd ned
@@ -167,7 +167,7 @@ test result: ok. 137 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 ### To Build For 64bit Musl
 
-Last tested on Manjaro up-to-date at 2021/04/30 with Rust 1.51.0.
+Last tested on Manjaro up-to-date at 2021/05/15 with Rust 1.52.1.
 
 ```bash
 cd ned
