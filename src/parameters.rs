@@ -175,8 +175,11 @@ pub fn get_parameters(options_with_defaults: &OptionsWithDefaults) -> NedResult<
     } != 0;
 
     let c = options_with_defaults.opt_present("c");
-    let colors = parse_opt_str(&options_with_defaults, "colors", Some(Colors::Off))?
-        .expect("The default is a Some.");
+    let mut colors = parse_opt_str(&options_with_defaults, "colors", None)?;
+    if colors.is_none() {
+        colors = parse_opt_str(&options_with_defaults, "color", Some(Colors::Off))?; // --color is a synonym of --colors.
+    }
+    let colors = colors.expect("The default is a Some.");
     let colors = c
         || (colors == Colors::Always && (replace.is_none() || replace.is_some() && stdout)
             || colors == Colors::Auto && (replace.is_none() || stdout) && isatty)

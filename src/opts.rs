@@ -191,6 +191,12 @@ pub fn make_opts() -> Options {
         "'auto' shows filenames, line numbers, and matches in color when stdout is a terminal, not when it is a pipe, 'always' shows color even when stdout is a pipe, and 'never' never shows colors.",
         "WHEN",
     );
+    opts.optflagopt(
+        "",
+        "color",
+        "Synonym for --colors.",
+        "WHEN",
+    );
     opts.optflag("", "stdout", "Output to stdout.");
     opts.optflag(
         "q",

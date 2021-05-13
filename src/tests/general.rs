@@ -546,8 +546,41 @@ fn only_matches_whole_files() {
 }
 
 #[test]
-fn colored_match() {
-    let args = vec!["accidentally.*hand", "test", "--colors=always"];
+fn colored_match_with_original_colors_option() {
+    let args = vec!["accidentally.*hand", "test", "--color=always"];
+    let expected_exit_code = 0;
+    let expected_screen_output = ["\u{1b}[35mtest/file1.txt:1:\u{1b}[0mThe \
+                                   \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans AN \
+                                   ESCAPE from a cream puff the placid widow. A slovenly\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn colored_match_with_colors_synonym_option() {
+    let args = vec!["accidentally.*hand", "test", "--color=always"];
+    let expected_exit_code = 0;
+    let expected_screen_output = ["\u{1b}[35mtest/file1.txt:1:\u{1b}[0mThe \
+                                   \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans AN \
+                                   ESCAPE from a cream puff the placid widow. A slovenly\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn colored_match_with_original_colors_option_and_color_synonym_option() {
+    let args = vec!["accidentally.*hand", "test", "--colors=always", "--color=never"]; // --colors takes precedence.
+    let expected_exit_code = 0;
+    let expected_screen_output = ["\u{1b}[35mtest/file1.txt:1:\u{1b}[0mThe \
+                                   \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans AN \
+                                   ESCAPE from a cream puff the placid widow. A slovenly\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn colored_match_with_original_colors_option_and_color_synonym_option_in_opposite_order() {
+    let args = vec!["accidentally.*hand", "test", "--color=never", "--colors=always"]; // --colors takes precedence.
     let expected_exit_code = 0;
     let expected_screen_output = ["\u{1b}[35mtest/file1.txt:1:\u{1b}[0mThe \
                                    \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans AN \
