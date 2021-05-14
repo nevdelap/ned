@@ -569,7 +569,12 @@ fn colored_match_with_colors_synonym_option() {
 
 #[test]
 fn colored_match_with_original_colors_option_and_color_synonym_option() {
-    let args = vec!["accidentally.*hand", "test", "--colors=always", "--color=never"]; // --colors takes precedence.
+    let args = vec![
+        "accidentally.*hand",
+        "test",
+        "--colors=always",
+        "--color=never",
+    ]; // --colors takes precedence.
     let expected_exit_code = 0;
     let expected_screen_output = ["\u{1b}[35mtest/file1.txt:1:\u{1b}[0mThe \
                                    \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans AN \
@@ -580,7 +585,12 @@ fn colored_match_with_original_colors_option_and_color_synonym_option() {
 
 #[test]
 fn colored_match_with_original_colors_option_and_color_synonym_option_in_opposite_order() {
-    let args = vec!["accidentally.*hand", "test", "--color=never", "--colors=always"]; // --colors takes precedence.
+    let args = vec![
+        "accidentally.*hand",
+        "test",
+        "--color=never",
+        "--colors=always",
+    ]; // --colors takes precedence.
     let expected_exit_code = 0;
     let expected_screen_output = ["\u{1b}[35mtest/file1.txt:1:\u{1b}[0mThe \
                                    \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans AN \

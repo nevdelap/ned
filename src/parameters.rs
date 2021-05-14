@@ -177,7 +177,8 @@ pub fn get_parameters(options_with_defaults: &OptionsWithDefaults) -> NedResult<
     let c = options_with_defaults.opt_present("c");
     let mut colors = parse_opt_str(&options_with_defaults, "colors", None)?;
     if colors.is_none() {
-        colors = parse_opt_str(&options_with_defaults, "color", Some(Colors::Off))?; // --color is a synonym of --colors.
+        // --color is a synonym of --colors, the original --colors is used if both are specified.
+        colors = parse_opt_str(&options_with_defaults, "color", Some(Colors::Off))?;
     }
     let colors = colors.expect("The default is a Some.");
     let colors = c

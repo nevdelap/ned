@@ -310,15 +310,7 @@ fn process_text(
     }
     if let Some(ref group) = parameters.group {
         // TODO 2: make it respect -n, -k, -b TO TEST
-        return write_groups(
-            output,
-            parameters,
-            &re,
-            file_name,
-            line_number,
-            text,
-            group,
-        );
+        return write_groups(output, parameters, &re, file_name, line_number, text, group);
     } else if parameters.no_match {
         let found_matches = re.is_match(&text);
         if !found_matches {
