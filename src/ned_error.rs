@@ -58,12 +58,8 @@ pub enum NedError {
 impl NedError {
     pub fn io_error_kind(&self) -> Option<ErrorKind> {
         match self {
-            NedError::Io(err) => {
-                Some(err.kind())
-            }
-            _ => {
-                None
-            }
+            NedError::Io(err) => Some(err.kind()),
+            _ => None,
         }
     }
 }
