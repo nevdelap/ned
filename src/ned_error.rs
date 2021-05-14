@@ -1,7 +1,7 @@
 //
 // ned, https://github.com/nevdelap/ned, ned_error.rs
 //
-// Copyright 2016-2019 Nev Delap (nevdelap at gmail)
+// Copyright 2016-2021 Nev Delap (nevdelap at gmail)
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ use glob;
 use regex;
 use std::error;
 use std::fmt;
-use std::io::{self, Write};
+use std::io::{self, ErrorKind, Write};
 use std::path;
 use std::string;
 
@@ -34,17 +34,13 @@ pub struct StringError {
 }
 
 impl fmt::Display for StringError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.err)
     }
 }
 
 impl error::Error for StringError {
-    fn description(&self) -> &str {
-        self.err.as_str()
-    }
-
-    fn cause(&self) -> Option<&error::Error> {
+    fn cause(&self) -> Option<&dyn error::Error> {
         None
     }
 }
@@ -57,6 +53,19 @@ pub enum NedError {
     Io(io::Error),
     ParameterError(StringError),
     Regex(regex::Error),
+}
+
+impl NedError {
+    pub fn io_error_kind(&self) -> Option<ErrorKind> {
+        match self {
+            NedError::Io(err) => {
+                Some(err.kind())
+            }
+            _ => {
+                None
+            }
+        }
+    }
 }
 
 impl From<string::FromUtf8Error> for NedError {
@@ -109,18 +118,7 @@ impl fmt::Display for NedError {
 }
 
 impl error::Error for NedError {
-    fn description(&self) -> &str {
-        match *self {
-            NedError::FromUtf8(ref err) => err.description(),
-            NedError::GetOpts(ref err) => err.description(),
-            NedError::GlobPattern(ref err) => err.description(),
-            NedError::Io(ref err) => err.description(),
-            NedError::ParameterError(ref err) => err.description(),
-            NedError::Regex(ref err) => err.description(),
-        }
-    }
-
-    fn cause(&self) -> Option<&error::Error> {
+    fn cause(&self) -> Option<&dyn error::Error> {
         match *self {
             NedError::FromUtf8(ref err) => Some(err),
             NedError::GetOpts(ref err) => Some(err),
@@ -134,19 +132,19 @@ impl error::Error for NedError {
 
 pub type NedResult<T> = Result<T, NedError>;
 
-pub fn stderr_write_err(err: &error::Error) {
+pub fn stderr_write_err(err: &dyn error::Error) {
     io::stderr()
         .write_all(&format!("{}: {}\n", PROGRAM, err.to_string()).into_bytes())
         .expect("Can't write to stderr!");
 }
 
-pub fn stderr_write_file_err(path_buf: &path::PathBuf, err: &error::Error) {
+pub fn stderr_write_file_err(path_buf: &path::Path, err: &dyn error::Error) {
     io::stderr()
         .write_all(
             &format!(
                 "{}: {} {}\n",
                 PROGRAM,
-                path_buf.as_path().to_string_lossy(),
+                path_buf.to_string_lossy(),
                 err.to_string()
             )
             .into_bytes(),

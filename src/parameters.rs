@@ -1,7 +1,7 @@
 //
 // ned, https://github.com/nevdelap/ned, parameters.rs
 //
-// Copyright 2016-2019 Nev Delap (nevdelap at gmail)
+// Copyright 2016-2021 Nev Delap (nevdelap at gmail)
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -97,22 +97,6 @@ impl Parameters {
 }
 
 pub fn get_parameters(options_with_defaults: &OptionsWithDefaults) -> NedResult<Parameters> {
-    let stdout = options_with_defaults.opt_present("stdout");
-    let replace = convert_escapes(options_with_defaults.opt_str("replace"));
-    // TODO: decide what is the best way to deal with STDOUT_FILENO not
-    // being defined in the x86_64-pc-windows-gnu version of libc.
-    let isatty = unsafe {
-        libc::isatty(/*libc::STDOUT_FILENO as i32*/ 1)
-    } != 0;
-
-    let c = options_with_defaults.opt_present("c");
-    let colors = parse_opt_str(&options_with_defaults, "colors", Some(Colors::Off))?
-        .expect("The default is a Some.");
-    let colors = c
-        || (colors == Colors::Always && (replace.is_none() || replace.is_some() && stdout)
-            || colors == Colors::Auto && (replace.is_none() || stdout) && isatty)
-            && colors != Colors::Never;
-
     // -C --context takes precedence over -B --before and -A --after.
     let mut context_before =
         parse_opt_str(&options_with_defaults, "context", Some(0))?.expect("The default is a Some.");
@@ -182,6 +166,24 @@ pub fn get_parameters(options_with_defaults: &OptionsWithDefaults) -> NedResult<
         parse_opt_str(&options_with_defaults, "skip", Some(0))?.expect("The default is a Some.");
 
     let stdin = globs.is_empty();
+    let stdout = stdin || options_with_defaults.opt_present("stdout");
+    let replace = convert_escapes(options_with_defaults.opt_str("replace"));
+    // TODO: decide what is the best way to deal with STDOUT_FILENO not being defined in the x86_64-pc-windows-gnu,
+    // x86_64-pc-windows-msvc, or i686-pc-windows-msvc versions of libc.
+    let isatty = unsafe {
+        libc::isatty(/*libc::STDOUT_FILENO as i32*/ 1)
+    } != 0;
+
+    let c = options_with_defaults.opt_present("c");
+    let mut colors = parse_opt_str(&options_with_defaults, "colors", None)?;
+    if colors.is_none() {
+        colors = parse_opt_str(&options_with_defaults, "color", Some(Colors::Off))?; // --color is a synonym of --colors.
+    }
+    let colors = colors.expect("The default is a Some.");
+    let colors = c
+        || (colors == Colors::Always && (replace.is_none() || replace.is_some() && stdout)
+            || colors == Colors::Auto && (replace.is_none() || stdout) && isatty)
+            && colors != Colors::Never;
 
     Ok(Parameters {
         all: options_with_defaults.opt_present("all"),
@@ -265,7 +267,7 @@ fn add_regex_flags_to_pattern(
             regex_flags.push_str(&option);
         }
     }
-    if regex_flags != "" {
+    if !regex_flags.is_empty() {
         format!("(?{}){}", &regex_flags, &pattern)
     } else {
         pattern.to_string()

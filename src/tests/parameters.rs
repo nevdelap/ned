@@ -1,7 +1,7 @@
 //
 // ned, https://github.com/nevdelap/ned, tests/parameters.rs
 //
-// Copyright 2016-2019 Nev Delap (nevdelap at gmail)
+// Copyright 2016-2021 Nev Delap (nevdelap at gmail)
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -110,12 +110,12 @@ fn test_include_match(
         no_file_names: false,
         no_line_numbers: false,
         no_match: false,
-        number: number,
+        number,
         quiet: false,
         regex: None,
         recursive: false,
         replace: None,
-        skip: skip,
+        skip,
         stdin: false,
         stdout: false,
         version: false,

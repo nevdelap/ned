@@ -1,7 +1,7 @@
 //
 // ned, https://github.com/nevdelap/ned, tests/matches.rs
 //
-// Copyright 2016-2019 Nev Delap (nevdelap at gmail)
+// Copyright 2016-2021 Nev Delap (nevdelap at gmail)
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -1652,16 +1652,18 @@ fn test(
     expected_file_content: &str,
 ) {
     println!("NOT QUIET");
+    // The dummy glob argument prevents it from assuming --stdout.
+    let args = format!("{} dummy", args);
     really_test(
         input,
         pattern,
-        args,
+        &args,
         expected_found_matches,
         expected_screen_output,
         expected_file_content,
     );
     println!("QUIET");
-    let args = format!("{} --quiet", args);
+    let args = format!("{} --quiet dummy", args);
     really_test(
         input,
         pattern,
@@ -1690,7 +1692,7 @@ fn really_test(
     let parameters = get_parameters(&options_with_defaults).unwrap();
 
     let mut cursor = Cursor::<Vec<u8>>::new(vec![]);
-    cursor.write(&input.to_string().into_bytes()).unwrap();
+    cursor.write_all(&input.to_string().into_bytes()).unwrap();
     cursor.seek(SeekFrom::Start(0)).unwrap();
     let mut file = Source::Cursor(Box::new(cursor));
     let mut screen_output: Vec<u8> = vec![];

@@ -1,7 +1,7 @@
 //
 // ned, https://github.com/nevdelap/ned, files.rs
 //
-// Copyright 2016-2019 Nev Delap (nevdelap at gmail)
+// Copyright 2016-2021 Nev Delap (nevdelap at gmail)
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -55,14 +55,16 @@ impl Iterator for Files {
                         if let Some(file_name) = entry.path().file_name() {
                             if let Some(file_name) = file_name.to_str() {
                                 let file_type = entry.file_type();
-                                let excluded_dir = file_type.is_dir()
-                                    && self
+                                if file_type.is_dir() {
+                                    let excluded_dir = self
                                         .parameters
                                         .exclude_dirs
                                         .iter()
                                         .any(|pattern| pattern.matches(file_name));
-                                if excluded_dir {
-                                    self.walkdir.skip_current_dir();
+                                    if excluded_dir {
+                                        self.walkdir.skip_current_dir();
+                                    }
+                                    continue;
                                 }
                                 let included_file = file_type.is_file()
                                     && (self.parameters.includes.is_empty()

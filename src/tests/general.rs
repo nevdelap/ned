@@ -1,7 +1,7 @@
 //
 // ned, https://github.com/nevdelap/ned, tests/general.rs
 //
-// Copyright 2016-2019 Nev Delap (nevdelap at gmail)
+// Copyright 2016-2021 Nev Delap (nevdelap at gmail)
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -546,8 +546,41 @@ fn only_matches_whole_files() {
 }
 
 #[test]
-fn colored_match() {
-    let args = vec!["accidentally.*hand", "test", "--colors=always"];
+fn colored_match_with_original_colors_option() {
+    let args = vec!["accidentally.*hand", "test", "--color=always"];
+    let expected_exit_code = 0;
+    let expected_screen_output = ["\u{1b}[35mtest/file1.txt:1:\u{1b}[0mThe \
+                                   \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans AN \
+                                   ESCAPE from a cream puff the placid widow. A slovenly\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn colored_match_with_colors_synonym_option() {
+    let args = vec!["accidentally.*hand", "test", "--color=always"];
+    let expected_exit_code = 0;
+    let expected_screen_output = ["\u{1b}[35mtest/file1.txt:1:\u{1b}[0mThe \
+                                   \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans AN \
+                                   ESCAPE from a cream puff the placid widow. A slovenly\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn colored_match_with_original_colors_option_and_color_synonym_option() {
+    let args = vec!["accidentally.*hand", "test", "--colors=always", "--color=never"]; // --colors takes precedence.
+    let expected_exit_code = 0;
+    let expected_screen_output = ["\u{1b}[35mtest/file1.txt:1:\u{1b}[0mThe \
+                                   \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans AN \
+                                   ESCAPE from a cream puff the placid widow. A slovenly\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn colored_match_with_original_colors_option_and_color_synonym_option_in_opposite_order() {
+    let args = vec!["accidentally.*hand", "test", "--color=never", "--colors=always"]; // --colors takes precedence.
     let expected_exit_code = 0;
     let expected_screen_output = ["\u{1b}[35mtest/file1.txt:1:\u{1b}[0mThe \
                                    \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans AN \
@@ -1388,12 +1421,12 @@ fn recursive_match_line_numbers_only_no_match() {
 
 // These tests look for each of the file's matches it expects to be in the screen output, which
 // can be in any order, because the order that walkdir walks directories is undefined.
-fn test(args: &Vec<&str>, expected_exit_code: i32, expected_screen_output: &[&str]) {
+fn test(args: &[&str], expected_exit_code: i32, expected_screen_output: &[&str]) {
     let args: Vec<String> = args
-        .into_iter()
+        .iter()
         .map(|arg| arg.to_string())
         .collect::<Vec<String>>();
-    assert!(!(expected_screen_output[0].len() == 0 && expected_exit_code == 0));
+    assert!(!expected_screen_output[0].is_empty() || expected_exit_code != 0);
 
     let mut screen_output: Vec<u8> = vec![];
 
@@ -1401,7 +1434,7 @@ fn test(args: &Vec<&str>, expected_exit_code: i32, expected_screen_output: &[&st
 
     let screen_output = fix_output_for_windows(&String::from_utf8(screen_output).unwrap());
 
-    for part in expected_screen_output.into_iter() {
+    for part in expected_screen_output.iter() {
         let part = fix_output_for_windows(&part);
         if !screen_output.contains(&part) {
             println!("{:?} not in {:?}", part, screen_output);

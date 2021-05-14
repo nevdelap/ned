@@ -1,7 +1,7 @@
 //
 // ned, https://github.com/nevdelap/ned, main.rs
 //
-// Copyright 2016-2019 Nev Delap (nevdelap at gmail)
+// Copyright 2016-2021 Nev Delap (nevdelap at gmail)
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -70,7 +70,7 @@ fn main() {
     process::exit(exit_code)
 }
 
-fn ned(output: &mut Write, args: &[String]) -> NedResult<i32> {
+fn ned(output: &mut dyn Write, args: &[String]) -> NedResult<i32> {
     let options_with_defaults = OptionsWithDefaults::new(make_opts(), args)?;
     let parameters = get_parameters(&options_with_defaults)?;
 
@@ -110,7 +110,7 @@ fn ned(output: &mut Write, args: &[String]) -> NedResult<i32> {
     Ok(if found_matches { 0 } else { 1 })
 }
 
-fn process_files(output: &mut Write, parameters: &Parameters) -> NedResult<bool> {
+fn process_files(output: &mut dyn Write, parameters: &Parameters) -> NedResult<bool> {
     let mut found_matches = false;
     if parameters.stdin {
         let mut source = Source::Stdin(Box::new(stdin()));
@@ -130,6 +130,9 @@ fn process_files(output: &mut Write, parameters: &Parameters) -> NedResult<bool>
                             match process_file(output, parameters, &file_name, &mut source) {
                                 Ok(found_matches) => found_matches,
                                 Err(err) => {
+                                    if err.io_error_kind() == Some(std::io::ErrorKind::BrokenPipe) {
+                                        break;
+                                    }
                                     stderr_write_file_err(&path_buf, &err);
                                     false
                                 }
@@ -141,26 +144,26 @@ fn process_files(output: &mut Write, parameters: &Parameters) -> NedResult<bool>
             if parameters.quiet && found_matches {
                 break;
             }
-            output.flush()?;
-            stderr().flush()?;
+            let _ = output.flush();
+            let _ = stderr().flush();
         }
     }
     Ok(found_matches)
 }
 
 fn process_file(
-    output: &mut Write,
+    output: &mut dyn Write,
     parameters: &Parameters,
     file_name: &Option<String>,
     source: &mut Source,
 ) -> NedResult<bool> {
     let content: String;
     {
-        let read: &mut Read = match source {
-            &mut Source::Stdin(ref mut read) => read,
-            &mut Source::File(ref mut file) => file,
+        let read: &mut dyn Read = match source {
+            Source::Stdin(ref mut read) => read,
+            Source::File(ref mut file) => file,
             #[cfg(test)]
-            &mut Source::Cursor(ref mut cursor) => cursor,
+            Source::Cursor(ref mut cursor) => cursor,
         };
         let mut buffer = Vec::new();
         let _ = read.read_to_end(&mut buffer)?;
@@ -202,9 +205,11 @@ fn process_file(
                 output.write_all(&content.into_bytes())?;
             }
         } else {
+            // It's not a single match in test.
+            #[allow(clippy::single_match)]
             match source {
                 // A better way???
-                &mut Source::File(ref mut file) => {
+                Source::File(ref mut file) => {
                     if found_matches {
                         file.seek(SeekFrom::Start(0))?;
                         let bytes = &content.into_bytes();
@@ -213,23 +218,23 @@ fn process_file(
                     }
                 }
                 #[cfg(test)]
-                &mut Source::Cursor(ref mut cursor) => {
+                Source::Cursor(ref mut cursor) => {
                     cursor.seek(SeekFrom::Start(0))?;
                     cursor.write_all(&content.into_bytes())?;
                 }
                 _ => {}
             }
         }
-        return Ok(found_matches);
+        Ok(found_matches)
     } else if parameters.file_names_only {
         let found_matches = re.is_match(&content);
         if found_matches ^ parameters.no_match {
             write_file_name_and_line_number(output, parameters, file_name, None)?;
         }
-        return Ok(found_matches);
+        Ok(found_matches)
     } else if !parameters.whole_files {
         let mut found_matches = false;
-        let context_map = make_context_map(&parameters, &re, &content)?;
+        let context_map = make_context_map(&parameters, &re, &content);
         for (index, line) in content.lines().enumerate() {
             let line_number = index + 1;
             found_matches |= process_text(
@@ -245,17 +250,17 @@ fn process_file(
                 break;
             }
         }
-        return Ok(found_matches);
+        Ok(found_matches)
     } else {
         let found_matches = process_text(output, parameters, &re, file_name, None, &content, None)?;
-        return Ok(found_matches);
+        Ok(found_matches)
     }
 }
 
 /// Returns a vector whose capacity equals the number of lines in the file, and whose
 /// value is a boolean that indicates whether or not that line should be shown given
 /// the -C --context, -B --before, and -A --after options specified in the parameters.
-fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> NedResult<Vec<bool>> {
+fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> Vec<bool> {
     let lines = content.lines().map(str::to_string).collect::<Vec<String>>();
     let mut match_map = Vec::<bool>::with_capacity(lines.len());
     for line in lines {
@@ -276,12 +281,12 @@ fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> NedRe
             }
         }
     }
-    Ok(context_map)
+    context_map
 }
 
 fn is_match_with_number_skip_backwards(parameters: &Parameters, re: &Regex, text: &str) -> bool {
-    let start_end_byte_indices = re.find_iter(&text).collect::<Vec<Match>>();
-    let count = start_end_byte_indices.len();
+    let start_end_byte_indices = re.find_iter(&text);
+    let count = start_end_byte_indices.count();
     for index in 0..count {
         if parameters.include_match(index, count) {
             return true;
@@ -291,7 +296,7 @@ fn is_match_with_number_skip_backwards(parameters: &Parameters, re: &Regex, text
 }
 
 fn process_text(
-    output: &mut Write,
+    output: &mut dyn Write,
     parameters: &Parameters,
     re: &Regex,
     file_name: &Option<String>,
@@ -305,7 +310,7 @@ fn process_text(
     }
     if let Some(ref group) = parameters.group {
         // TODO 2: make it respect -n, -k, -b TO TEST
-        return Ok(write_groups(
+        return write_groups(
             output,
             parameters,
             &re,
@@ -313,7 +318,7 @@ fn process_text(
             line_number,
             text,
             group,
-        )?);
+        );
     } else if parameters.no_match {
         let found_matches = re.is_match(&text);
         if !found_matches {
@@ -462,7 +467,7 @@ fn title_case(str: &str) -> String {
 }
 
 fn write_line(
-    output: &mut Write,
+    output: &mut dyn Write,
     parameters: &Parameters,
     file_name: &Option<String>,
     line_number: Option<usize>,
@@ -479,7 +484,7 @@ fn write_line(
 }
 
 fn write_groups(
-    output: &mut Write,
+    output: &mut dyn Write,
     parameters: &Parameters,
     re: &Regex,
     file_name: &Option<String>,
@@ -525,7 +530,7 @@ fn write_groups(
 /// Write matches taking into account which of --number, --skip, and --backwards have been
 /// specified.
 fn write_matches(
-    output: &mut Write,
+    output: &mut dyn Write,
     parameters: &Parameters,
     re: &Regex,
     file_name: &Option<String>,
@@ -561,7 +566,7 @@ fn write_matches(
 /// write the filename, and line number if they are given, colored if the parameters specify color,
 /// and with a newline, colon and newline, or colon, also depending on the specified parameters.
 fn write_file_name_and_line_number(
-    output: &mut Write,
+    output: &mut dyn Write,
     parameters: &Parameters,
     file_name: &Option<String>,
     line_number: Option<usize>,
@@ -601,7 +606,7 @@ fn write_file_name_and_line_number(
 }
 
 fn write_newline_if_replaced_text_ends_with_newline(
-    output: &mut Write,
+    output: &mut dyn Write,
     text: &str,
 ) -> NedResult<()> {
     if !text.ends_with('\n') {
