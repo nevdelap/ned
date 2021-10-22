@@ -188,7 +188,7 @@ yaourt -S ned
 
 ### To Install In Debian, Ubuntu And Other Debian Based Distros, Or Red Hat Or CentOS
 
-Download the deb or rpm file from the latest release: <https://github.com/nevdelap/ned/releases.> They package a single musl binary of `ned` and its man page with no dependencies. Install with `dpkg -i` or `rpm -i`.
+Download the deb or rpm file from the latest release: <https://github.com/nevdelap/ned/releases>. They package a single musl binary of `ned` and its man page with no dependencies. Install with `dpkg -i` or `rpm -i`.
 
 ### To Install In Other Linux Distros, Mac OS X, Or Windows
 
