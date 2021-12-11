@@ -99,13 +99,13 @@ impl Parameters {
 pub fn get_parameters(options_with_defaults: &OptionsWithDefaults) -> NedResult<Parameters> {
     // -C --context takes precedence over -B --before and -A --after.
     let mut context_before =
-        parse_opt_str(&options_with_defaults, "context", Some(0))?.expect("The default is a Some.");
+        parse_opt_str(options_with_defaults, "context", Some(0))?.expect("The default is a Some.");
     let context_after = if context_before != 0 {
         context_before
     } else {
-        context_before = parse_opt_str(&options_with_defaults, "before", Some(0))?
+        context_before = parse_opt_str(options_with_defaults, "before", Some(0))?
             .expect("The default is a Some.");
-        parse_opt_str(&options_with_defaults, "after", Some(0))?.expect("The default is a Some.")
+        parse_opt_str(options_with_defaults, "after", Some(0))?.expect("The default is a Some.")
     };
 
     let mut exclude_dirs = Vec::<Pattern>::new();
@@ -146,7 +146,7 @@ pub fn get_parameters(options_with_defaults: &OptionsWithDefaults) -> NedResult<
 
     if options_with_defaults.opt_present("pattern") {
         let pattern = add_regex_flags_to_pattern(
-            &options_with_defaults,
+            options_with_defaults,
             &options_with_defaults.opt_str("pattern").expect(
                 "Bug, already checked that pattern \
                  is present.",
@@ -155,15 +155,15 @@ pub fn get_parameters(options_with_defaults: &OptionsWithDefaults) -> NedResult<
         regex = Some(Regex::new(&pattern)?);
     } else if !options_with_defaults.free().is_empty() {
         let pattern = globs.remove(0);
-        let pattern = add_regex_flags_to_pattern(&options_with_defaults, &pattern);
+        let pattern = add_regex_flags_to_pattern(options_with_defaults, &pattern);
         regex = Some(Regex::new(&pattern)?);
     } else {
         regex = None;
     }
 
-    let number = parse_opt_str(&options_with_defaults, "number", None)?;
+    let number = parse_opt_str(options_with_defaults, "number", None)?;
     let skip =
-        parse_opt_str(&options_with_defaults, "skip", Some(0))?.expect("The default is a Some.");
+        parse_opt_str(options_with_defaults, "skip", Some(0))?.expect("The default is a Some.");
 
     let stdin = globs.is_empty();
     let stdout = stdin || options_with_defaults.opt_present("stdout");
@@ -175,10 +175,10 @@ pub fn get_parameters(options_with_defaults: &OptionsWithDefaults) -> NedResult<
     } != 0;
 
     let c = options_with_defaults.opt_present("c");
-    let mut colors = parse_opt_str(&options_with_defaults, "colors", None)?;
+    let mut colors = parse_opt_str(options_with_defaults, "colors", None)?;
     if colors.is_none() {
         // --color is a synonym of --colors, the original --colors is used if both are specified.
-        colors = parse_opt_str(&options_with_defaults, "color", Some(Colors::Off))?;
+        colors = parse_opt_str(options_with_defaults, "color", Some(Colors::Off))?;
     }
     let colors = colors.expect("The default is a Some.");
     let colors = c
@@ -236,7 +236,7 @@ fn convert_escapes(str: Option<String>) -> Option<String> {
                 let mut found_escape = false;
                 if char == '\\' {
                     if let Some(next) = chars.peek() {
-                        if let Some(escape) = escapes.get(&next) {
+                        if let Some(escape) = escapes.get(next) {
                             // Escape sequences converted to the character they represent.
                             result.push(*escape);
                             found_escape = true;
@@ -264,8 +264,8 @@ fn add_regex_flags_to_pattern(
 ) -> String {
     let mut regex_flags = "".to_string();
     for option in &["i", "s", "m", "x"] {
-        if options_with_defaults.opt_present(&option) {
-            regex_flags.push_str(&option);
+        if options_with_defaults.opt_present(option) {
+            regex_flags.push_str(option);
         }
     }
     if !regex_flags.is_empty() {

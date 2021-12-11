@@ -81,7 +81,7 @@ fn ned(output: &mut dyn Write, args: &[String]) -> NedResult<i32> {
 
     if parameters.help {
         let _ = output.write_all(
-            &format!("\n{}\n", usage_full(&options_with_defaults.get_opts())).into_bytes(),
+            &format!("\n{}\n", usage_full(options_with_defaults.get_opts())).into_bytes(),
         );
         process::exit(0);
     }
@@ -117,7 +117,7 @@ fn process_files(output: &mut dyn Write, parameters: &Parameters) -> NedResult<b
         found_matches = process_file(output, parameters, &None, &mut source)?;
     } else {
         for glob in &parameters.globs {
-            for path_buf in &mut Files::new(parameters, &glob) {
+            for path_buf in &mut Files::new(parameters, glob) {
                 match OpenOptions::new()
                     .read(true)
                     .write(parameters.replace.is_some())
@@ -127,7 +127,7 @@ fn process_files(output: &mut dyn Write, parameters: &Parameters) -> NedResult<b
                         let mut source = Source::File(Box::new(file));
                         let file_name = &Some(path_buf.as_path().to_string_lossy().to_string());
                         found_matches |=
-                            match process_file(output, parameters, &file_name, &mut source) {
+                            match process_file(output, parameters, file_name, &mut source) {
                                 Ok(found_matches) => found_matches,
                                 Err(err) => {
                                     if err.io_error_kind() == Some(std::io::ErrorKind::BrokenPipe) {
@@ -234,7 +234,7 @@ fn process_file(
         Ok(found_matches)
     } else if !parameters.whole_files {
         let mut found_matches = false;
-        let context_map = make_context_map(&parameters, &re, &content);
+        let context_map = make_context_map(parameters, &re, &content);
         for (index, line) in content.lines().enumerate() {
             let line_number = index + 1;
             found_matches |= process_text(
@@ -285,7 +285,7 @@ fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> Vec<b
 }
 
 fn is_match_with_number_skip_backwards(parameters: &Parameters, re: &Regex, text: &str) -> bool {
-    let start_end_byte_indices = re.find_iter(&text);
+    let start_end_byte_indices = re.find_iter(text);
     let count = start_end_byte_indices.count();
     for index in 0..count {
         if parameters.include_match(index, count) {
@@ -306,20 +306,20 @@ fn process_text(
 ) -> NedResult<bool> {
     if parameters.quiet && !parameters.limit_matches() && parameters.group.is_none() {
         // Quiet match only is shortcut by the more performant is_match() .
-        return Ok(re.is_match(&text));
+        return Ok(re.is_match(text));
     }
     if let Some(ref group) = parameters.group {
         // TODO 2: make it respect -n, -k, -b TO TEST
-        return write_groups(output, parameters, &re, file_name, line_number, text, group);
+        return write_groups(output, parameters, re, file_name, line_number, text, group);
     } else if parameters.no_match {
-        let found_matches = re.is_match(&text);
+        let found_matches = re.is_match(text);
         if !found_matches {
-            write_line(output, parameters, file_name, line_number, &text)?;
+            write_line(output, parameters, file_name, line_number, text)?;
         }
         return Ok(found_matches);
     } else if re.is_match(text) {
         if parameters.matches_only {
-            if write_matches(output, parameters, &re, file_name, line_number, text)? {
+            if write_matches(output, parameters, re, file_name, line_number, text)? {
                 return Ok(true);
             }
         } else {
@@ -354,7 +354,7 @@ fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> (S
         new_text = re.replace_all(text, replace).into_owned()
     } else {
         new_text = text.to_string();
-        let start_end_byte_indices = re.find_iter(&text).collect::<Vec<Match>>();
+        let start_end_byte_indices = re.find_iter(text).collect::<Vec<Match>>();
         let count = start_end_byte_indices.len();
         // Walk it backwards so that replacements don't invalidate indices.
         for (rev_index, &_match) in start_end_byte_indices.iter().rev().enumerate() {
@@ -415,7 +415,7 @@ fn replace_case_with_special_strings(str: &str) -> String {
         // Apply the last escape to the current piece,
         // append it to the result, clear the current
         // piece, and remember the escape we just found.
-        let piece = apply_case_escape(last_case_escape, &piece);
+        let piece = apply_case_escape(last_case_escape, piece);
         result.push_str(&piece);
         last_end = end;
         last_case_escape = case_escape;
@@ -423,7 +423,7 @@ fn replace_case_with_special_strings(str: &str) -> String {
     // Apply the last escape to the remaining piece
     // when we've hit the end of the string.
     let piece = &str[last_end..];
-    let piece = apply_case_escape(last_case_escape, &piece);
+    let piece = apply_case_escape(last_case_escape, piece);
     result.push_str(&piece);
     result
 }
@@ -437,7 +437,7 @@ fn apply_case_escape(case_escape: &CaseEscape, piece: &str) -> String {
             .map(title_case)
             .collect::<Vec<String>>()
             .join(" "),
-        CaseEscape::First => title_case(&piece),
+        CaseEscape::First => title_case(piece),
         CaseEscape::End => piece.to_string(),
     }
 }
@@ -445,16 +445,15 @@ fn apply_case_escape(case_escape: &CaseEscape, piece: &str) -> String {
 fn title_case(str: &str) -> String {
     let mut result = String::new();
     let str = str.to_lowercase();
-    let mut chars = str.chars();
-    while let Some(char) = chars.next() {
-        if char.is_whitespace() {
-            result.push(char);
-        } else {
+    let mut uppercased = false;
+    for char in str.chars() {
+        if !uppercased && !char.is_whitespace() {
             result.push_str(&char.to_string().to_uppercase());
-            break;
+            uppercased = true
+        } else {
+            result.push(char);
         }
     }
-    result.push_str(chars.as_str());
     result
 }
 
@@ -469,7 +468,7 @@ fn write_line(
         write_file_name_and_line_number(output, parameters, file_name, line_number)?;
         if !parameters.line_numbers_only && !parameters.quiet {
             output.write_all(&text.to_string().into_bytes())?;
-            write_newline_if_replaced_text_ends_with_newline(output, &text)?;
+            write_newline_if_replaced_text_ends_with_newline(output, text)?;
         }
     }
     Ok(())
@@ -567,7 +566,7 @@ fn write_file_name_and_line_number(
         let mut location = "".to_string();
         if !parameters.no_file_names && !parameters.line_numbers_only {
             if let Some(ref file_name) = file_name {
-                location.push_str(&file_name);
+                location.push_str(file_name);
             }
         }
         if !parameters.no_line_numbers && !parameters.file_names_only {
@@ -616,7 +615,7 @@ fn color_matches_with_number_skip_backwards(
 ) -> (String, bool) {
     let (new_text, found_matches) = replace(
         parameters,
-        &re,
+        re,
         text,
         Red.bold().paint("$0").to_string().as_str(),
     );
@@ -629,7 +628,7 @@ fn color_matches_with_number_skip_backwards(
 
 fn color_matches_all(parameters: &Parameters, re: &Regex, text: &str) -> String {
     if parameters.colors {
-        re.replace_all(&text, Red.bold().paint("$0").to_string().as_str())
+        re.replace_all(text, Red.bold().paint("$0").to_string().as_str())
             .into_owned()
     } else {
         text.to_string()

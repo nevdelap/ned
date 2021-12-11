@@ -546,7 +546,7 @@ fn only_matches_whole_files() {
 }
 
 #[test]
-fn colored_match_with_original_colors_option() {
+fn colored_match_with_original_colors_always_option() {
     let args = vec!["accidentally.*hand", "test", "--color=always"];
     let expected_exit_code = 0;
     let expected_screen_output = ["\u{1b}[35mtest/file1.txt:1:\u{1b}[0mThe \
@@ -557,11 +557,33 @@ fn colored_match_with_original_colors_option() {
 }
 
 #[test]
-fn colored_match_with_colors_synonym_option() {
+fn colored_match_with_original_colors_never_option() {
+    let args = vec!["accidentally.*hand", "test", "--color=never"];
+    let expected_exit_code = 0;
+    let expected_screen_output = ["test/file1.txt:1:The \
+                                   accidentally ghastly hand plans AN \
+                                   ESCAPE from a cream puff the placid widow. A slovenly\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn colored_match_with_colors_synonym_always_option() {
     let args = vec!["accidentally.*hand", "test", "--color=always"];
     let expected_exit_code = 0;
     let expected_screen_output = ["\u{1b}[35mtest/file1.txt:1:\u{1b}[0mThe \
                                    \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans AN \
+                                   ESCAPE from a cream puff the placid widow. A slovenly\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn colored_match_with_colors_synonym_never_option() {
+    let args = vec!["accidentally.*hand", "test", "--color=never"];
+    let expected_exit_code = 0;
+    let expected_screen_output = ["test/file1.txt:1:The \
+                                   accidentally ghastly hand plans AN \
                                    ESCAPE from a cream puff the placid widow. A slovenly\n"];
 
     test(&args, expected_exit_code, &expected_screen_output);
@@ -1445,10 +1467,10 @@ fn test(args: &[&str], expected_exit_code: i32, expected_screen_output: &[&str])
     let screen_output = fix_output_for_windows(&String::from_utf8(screen_output).unwrap());
 
     for part in expected_screen_output.iter() {
-        let part = fix_output_for_windows(&part);
+        let part = fix_output_for_windows(part);
         if !screen_output.contains(&part) {
             println!("{:?} not in {:?}", part, screen_output);
-            assert!(false);
+            unreachable!();
         }
     }
     assert_eq!(exit_code, expected_exit_code);

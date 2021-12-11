@@ -34,7 +34,7 @@ fn no_recursion() {
         expected_file_names.insert(1, "file8.txt");
     }
 
-    test(&args, &expected_file_names);
+    test(args, &expected_file_names);
 }
 
 #[test]
@@ -46,7 +46,7 @@ fn no_recursion_all() {
         expected_file_names.insert(2, "file8.txt");
     }
 
-    test(&args, &expected_file_names);
+    test(args, &expected_file_names);
 }
 
 #[test]
@@ -54,7 +54,7 @@ fn no_recursion_follow() {
     let args = "pattern --follow test";
     let expected_file_names = ["file1.txt", "file8.txt", "file9.txt", "longfile.txt"];
 
-    test(&args, &expected_file_names);
+    test(args, &expected_file_names);
 }
 
 #[test]
@@ -68,7 +68,7 @@ fn no_recursion_follow_all() {
         "longfile.txt",
     ];
 
-    test(&args, &expected_file_names);
+    test(args, &expected_file_names);
 }
 
 #[test]
@@ -90,7 +90,7 @@ fn recursion() {
         expected_file_names.insert(7, "file8.txt");
     }
 
-    test(&args, &expected_file_names);
+    test(args, &expected_file_names);
 }
 
 #[test]
@@ -114,7 +114,7 @@ fn recursion_all() {
         expected_file_names.insert(9, "file8.txt");
     }
 
-    test(&args, &expected_file_names);
+    test(args, &expected_file_names);
 }
 
 #[test]
@@ -122,7 +122,7 @@ fn recursion_follow() {
     let args = "pattern --follow test";
     let expected_file_names = ["file1.txt", "file8.txt", "file9.txt", "longfile.txt"];
 
-    test(&args, &expected_file_names);
+    test(args, &expected_file_names);
 }
 
 #[test]
@@ -143,7 +143,7 @@ fn recursion_follow_all() {
         "longfile.txt",
     ];
 
-    test(&args, &expected_file_names);
+    test(args, &expected_file_names);
 }
 
 #[test]
@@ -151,7 +151,7 @@ fn include_files() {
     let args = "pattern -R test --include file7*";
     let expected_file_names = ["file7.txt"];
 
-    test(&args, &expected_file_names);
+    test(args, &expected_file_names);
 }
 
 #[test]
@@ -172,7 +172,7 @@ fn exclude_files() {
         expected_file_names.insert(6, "file8.txt");
     }
 
-    test(&args, &expected_file_names);
+    test(args, &expected_file_names);
 }
 
 #[test]
@@ -192,7 +192,7 @@ fn exclude_directory() {
         expected_file_names.insert(5, "file8.txt");
     }
 
-    test(&args, &expected_file_names);
+    test(args, &expected_file_names);
 }
 
 fn test(args: &str, expected_file_names: &[&str]) {
