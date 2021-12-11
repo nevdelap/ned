@@ -449,10 +449,10 @@ fn title_case(str: &str) -> String {
     for char in str.chars() {
         if !uppercased && !char.is_whitespace() {
             result.push_str(&char.to_string().to_uppercase());
-            uppercased = true
-        } else {
-            result.push(char);
+            uppercased = true;
+            continue;
         }
+        result.push(char);
     }
     result
 }
