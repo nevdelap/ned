@@ -28,8 +28,8 @@ ansi_term = "0.12.*"
 getopts = "0.2.*"
 glob = "0.3.*"
 libc = "0.2.*"
-regex = "1.4.*"
-time = "0.2.*"
+regex = "1.5.*"
+time = "0.3.*"
 walkdir = "2.3.*"
 
 [profile.release]
