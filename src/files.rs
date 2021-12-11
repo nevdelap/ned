@@ -54,13 +54,16 @@ impl Iterator for Files {
                     Ok(entry) => {
                         if let Some(file_name) = entry.path().file_name() {
                             if let Some(file_name) = file_name.to_str() {
+                                let all = self.parameters.all;
+                                let hidden = file_name.starts_with('.');
                                 let file_type = entry.file_type();
                                 if file_type.is_dir() {
-                                    let excluded_dir = self
-                                        .parameters
-                                        .exclude_dirs
-                                        .iter()
-                                        .any(|pattern| pattern.matches(file_name));
+                                    let excluded_dir = (!all && hidden)
+                                        || self
+                                            .parameters
+                                            .exclude_dirs
+                                            .iter()
+                                            .any(|pattern| pattern.matches(file_name));
                                     if excluded_dir {
                                         self.walkdir.skip_current_dir();
                                     }
@@ -79,8 +82,6 @@ impl Iterator for Files {
                                         .excludes
                                         .iter()
                                         .any(|pattern| pattern.matches(file_name));
-                                let all = self.parameters.all;
-                                let hidden = file_name.starts_with('.');
                                 if included_file && !excluded_file && (all || !hidden) {
                                     return Some(Box::new(entry.path().to_path_buf()));
                                 }
