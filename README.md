@@ -84,6 +84,7 @@ Options:
                         color when stdout is a terminal, not when it is a
                         pipe, 'always' shows color even when stdout is a pipe,
                         and 'never' never shows colors.
+        --color [WHEN]  Synonym for --colors.
         --stdout        Output to stdout.
     -q, --quiet         Suppress all normal output. When matching terminate as
                         soon as a match is found.
