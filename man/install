@@ -1,3 +1,0 @@
-#!/bin/sh
-gzip --stdout ned.1 > ned.1.gz
-sudo install -g 0 -o 0 -m 0644 ned.1.gz /usr/share/man/man1/
