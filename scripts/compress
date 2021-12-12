@@ -1,4 +1,4 @@
 #!/bin/sh
 # Run from the project root.
-cargo build --release --target x86_64-unknown-linux-musl
+cargo build --release --target x86_64-unknown-linux-musl || exit 1
 tar czf artifacts/ned.64-bit.musl.linux.tar.gz -C target/x86_64-unknown-linux-musl/release ned
