@@ -199,7 +199,7 @@ On macOS, `ned` can also be [installed using MacPorts](https://ports.macports.or
 
 ## TL;DR
 
-**IMPORTANT NOTE:** The search capabilities of `ned` are not so interesting, you can do them all with `grep` or `ripgrep`, see https://github.com/BurntSushi/ripgrep. It is the replace that is interesting, which `grep` and `ripgrep` cannot do, and `sed` can only do in a line oriented way. Examples of searching are shown first, followed by examples of replacing. Replacing with `ned` is a very powerful way of doing bulk editing from the terminal. Stage or commit your files before doing bulk edits, so that you can undo changes until you get your regex right.
+**IMPORTANT NOTE:** The search capabilities of `ned` are not so interesting, you can do them all with `grep` or `ripgrep`, see https://github.com/BurntSushi/ripgrep. It is the replace that is interesting, which `grep` and `ripgrep` cannot do, and `sed` can only do in a line oriented way. Examples of searching are shown first, followed by examples of replacing. Replacing with `ned` is a very powerful way of doing bulk editing from the terminal. Hence `ned` = **Nev's Bulk Editor**. Stage or commit your files before doing bulk edits, so that you can undo changes until you get your regex right.
 
 These examples use short options and search for 'dog' and replace with 'cat' wherever the example doesn't need a regular expression to demonstrate what it is doing.
 
