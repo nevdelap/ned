@@ -19,7 +19,7 @@ isn't restricted to line oriented editing.
 
 FILEs are ASCII or UTF-8 text files. For regex syntax see:
 
-  https://docs.rs/regex/1.4.6/regex/#syntax
+  https://docs.rs/regex/1.6.0/regex/#syntax
 
 Options:
     -p, --pattern PATTERN
