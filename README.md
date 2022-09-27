@@ -147,120 +147,103 @@ ignore non-ASCII, non-UTF-8 files, you can put this in NED_DEFAULTS. See the hel
 
 Git Bash does not support colored output. Run the tests in cmd.exe on Windows.
 
-## Building `ned`
+## Building And Testing `ned` On Linux
 
-### Machine Setup To Build `ned`
+Last tested with Rust 1.64.0.
 
--   Install Rust as per: <https://www.rust-lang.org/en-US/install.html>
--   (Windows) Install Visual Studio Build Tools 2017 as per: <https://www.visualstudio.com/downloads/>
-
-### To Build For The Current Platform
-
-Last tested on Manjaro up-to-date at 2021/12/12 with Rust 1.57.0, on Windows 10.0.17134.523 and on OS X High Sierra with Rust 1.32.0.
-
-```bash
+1. Install docker on your system.
+2. Add yourself to the `docker` group.
+3. Log out and log in so that you group change is effective.
+4. Build and test:
+```plaintext
 cd ned
-cargo build --release
-cargo test
+scripts/build && scripts/test
 ...
 test result: ok. 137 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 ```
 
-### To Build For 64bit Musl
+## Building And Testing `ned` On Other Systems
 
-Last tested on Manjaro up-to-date at 2021/12/12 with Rust 1.57.0.
-
-```bash
-cd ned
-rustup target add x86_64-unknown-linux-musl
-cargo build --release --target x86_64-unknown-linux-musl
-cargo test --target x86_64-unknown-linux-musl
-...
-test result: ok. 137 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+1. Install Rust with as per instructions for your system [here](https://www.rust-lang.org/tools/install).
+2. Build and test it.
+```
+cargo build --release && cargo test --release
 ```
 
-## Installing `ned`
+## Installing `ned` On Arch And Manjaro And Other Arch Based Distros
 
-### To Install In Arch And Manjaro And Other Arch Based Distros
-
-```bash
-yaourt -S ned
+```plaintext
+yay -Sy ned
 ```
 
-### To Install In Debian, Ubuntu And Other Debian Based Distros, Or Red Hat Or CentOS
+## Installing `ned` On Other Systems
 
-Download the deb or rpm file from the latest release: <https://github.com/nevdelap/ned/releases>. They package a single musl binary of `ned` and its man page with no dependencies. Install with `dpkg -i` or `rpm -i`.
-
-### To Install In Other Linux Distros, Mac OS X, Or Windows
-
-Download the appropriate binary and put it on your path. In Windows install the dependencies as described in the latest release: <https://github.com/nevdelap/ned/releases>
-
-On macOS, `ned` can also be [installed using MacPorts](https://ports.macports.org/port/ned/).
+Build it as described above and copy its executable to your path.
 
 ## TL;DR
 
-**IMPORTANT NOTE:** The search capabilities of `ned` are not so interesting, you can do them all with `grep` or `ripgrep`, see https://github.com/BurntSushi/ripgrep. It is the replace that is interesting, which `grep` and `ripgrep` cannot do - `ripgrep` can replace as it writes to stdout, it doesn't modify files, and `sed` can only do in a line oriented way. Examples of searching are shown first, followed by examples of replacing. Replacing with `ned` is a very powerful way of doing bulk editing from the terminal. Hence `ned` = **Nev's Editor**. Stage or commit your files before doing bulk edits, so that you can undo changes until you get your regex right.
+**IMPORTANT NOTE:** The search capabilities of `ned` are not so interesting, you can do them all with `grep` or `ripgrep`, see https://github.com/BurntSushi/ripgrep. It is the replace that is interesting, which `grep` and `ripgrep` cannot do - `ripgrep` can replace as it writes to stdout, it doesn't modify files, and `sed` can only do it in a line oriented way. Examples of searching are shown first, followed by examples of replacing. Replacing with `ned` is a very powerful way of doing bulk editing from the terminal. Hence `ned` = **Nev's Editor**. Stage or commit your files before doing bulk edits, so that you can undo changes until you get your regex right.
 
 These examples use short options and search for 'dog' and replace with 'cat' wherever the example doesn't need a regular expression to demonstrate what it is doing.
 
 **Search non-hidden files in the current directory.**
 
-```bash
+```plaintext
 ned dog .
 ```
 
 **Search txt files in the current directory.**
 
-```bash
+```plaintext
 ned dog *.txt
 ```
 
 **Search including hidden files.**
 
-```bash
+```plaintext
 ned -a dog .
 ```
 
 **Search recursively.**
 
-```bash
+```plaintext
 ned -R dog .
 ```
 
 **Search case insensitively.**
 
-```bash
+```plaintext
 ned -i dog .
 ```
 
 **Search always showing colored output.**
 
-```bash
+```plaintext
 ned -c dog .
 ned --colors=always dog .
 ```
 
 **Search never showing colored output.**
 
-```bash
+```plaintext
 ned --colors=never dog .
 ```
 
 **Search showing colored output when outputting to a terminal, but don't send colored output, if piped.**
 
-```bash
+```plaintext
 ned --colors=auto dog .
 ```
 
 **Set default arguments in your terminal environment.**
 
-```bash
+```plaintext
 export NED_DEFAULTS='-i --colors=always'
 ```
 
 **Search showing colored output through less.**
 
-```bash
+```plaintext
 ned -c dog . | less -R
 ```
 
@@ -268,7 +251,7 @@ ned -c dog . | less -R
 
 This is more efficient when you don't need the output since it shortcuts when it finds the first match.
 
-```bash
+```plaintext
 ned -q dog .; echo $?
 0 # Found.
 ned -q dinosaur .; echo $?
@@ -277,67 +260,67 @@ ned -q dinosaur .; echo $?
 
 **Search specifying the pattern at the end of the command - for convenience of editing when you have a lot of options.**
 
-```bash
+```plaintext
 ned . -p dog
 ```
 
 **Search not showing line numbers.**
 
-```bash
+```plaintext
 ned -L dog .
 ```
 
 **Search only showing numbers of matched lines.**
 
-```bash
+```plaintext
 ned -l dog .
 ```
 
 **Search not showing file names**
 
-```bash
+```plaintext
 ned -F dog .
 ```
 
 **Search only showing file names of matched files.**
 
-```bash
+```plaintext
 ned -f dog .
 ```
 
 **Search showing only matches.**
 
-```bash
+```plaintext
 ned -o dog .
 ```
 
 **Search really showing only matches.**
 
-```bash
+```plaintext
 ned -oFL dog .
 ```
 
 **Search matching first 3 occurences per line.**
 
-```bash
+```plaintext
 ned -n 3 dog .
 ```
 
 **Search matching first 3 occurences per file.**
 
-```bash
+```plaintext
 ned -w -n 3 dog .
 ```
 
 **Search backwards, matching last 3 occurences per line.**
 
-```bash
+```plaintext
 ned -b -n 3 dog .
 ```
 
 **Search backwards, matching last 3 occurences per file.**
 
-```bash
+```plaintext
 ned -b -w -n 3 dog .
 ```
 
@@ -345,25 +328,25 @@ ned -b -w -n 3 dog .
 
 **Note:** -k is the short form of --skip. (-s is the short form of the --single option.)
 
-```bash
+```plaintext
 ned -k 3 -n 2 dog .
 ```
 
 **Search backwards, skipping 3 occurrences and finding 2 occurences.**
 
-```bash
+```plaintext
 ned -b -k 3 -n 2 dog .
 ```
 
 **Search recursively only including certain files.**
 
-```bash
+```plaintext
 ned -R --include '*.txt' dog .
 ```
 
 **Search ignoring certain files.**
 
-```bash
+```plaintext
 ned -R --exclude '*.htm' dog .
 ```
 
@@ -371,55 +354,55 @@ ned -R --exclude '*.htm' dog .
 
 Quietly ignore files that cannot be parsed as UTF-8 (or ASCII). Because this requires reading the file the --exclude option should be preferred. E.g. --exclude '\*.png'
 
-```bash
+```plaintext
 ned -u dog .
 ```
 
 **Search ignoring certain directories.**
 
-```bash
+```plaintext
 ned -R --exclude-dir '.git' dog .
 ```
 
 **Search showing context of 5 lines around each match.**
 
-```bash
+```plaintext
 ned -C 5 dog .
 ```
 
 **Search showing context of 5 lines before each match.**
 
-```bash
+```plaintext
 ned -B 5 dog .
 ```
 
 **Search showing context of 5 lines after match.**
 
-```bash
+```plaintext
 ned -A 5 dog .
 ```
 
 **Search matching the beginnings of lines.**
 
-```bash
+```plaintext
 ned '^dog' .
 ```
 
 **Search matching the ends of lines.**
 
-```bash
+```plaintext
 ned 'dog$' .
 ```
 
 **Search matching the beginnings of files.**
 
-```bash
+```plaintext
 ned -w '^dog' .
 ```
 
 **Search matching the ends of files.**
 
-```bash
+```plaintext
 ned -w 'dog$' .
 ```
 
@@ -427,13 +410,13 @@ ned -w 'dog$' .
 
 Search for any and all three consecutive lines containing the word dog.
 
-```bash
+```plaintext
 ned -w 'dog.*\n.*dog.*\n.*dog' .
 ```
 
 **Replace.**
 
-```bash
+```plaintext
 ned dog -r cat .
 ```
 
@@ -441,7 +424,7 @@ ned dog -r cat .
 
 'the big dog and the smelly dog' replaced with 'the smelly dog and the big dog'.
 
-```bash
+```plaintext
 ned 'the ([a-z]+) dog and the ([a-z]+) dog' -r 'the $2 dog and the $1 dog' .
 ```
 
@@ -449,7 +432,7 @@ ned 'the ([a-z]+) dog and the ([a-z]+) dog' -r 'the $2 dog and the $1 dog' .
 
 'the big dog and the smelly dog' replaced with 'the smelly dog and the big dog'.
 
-```bash
+```plaintext
 ned 'the (?P<first>[a-z]+) dog and the (?P<second>[a-z]+) dog' -r 'the $second dog and the $first dog' .
 ```
 
@@ -457,7 +440,7 @@ ned 'the (?P<first>[a-z]+) dog and the (?P<second>[a-z]+) dog' -r 'the $second d
 
 Delete any and all three consecutive lines containing the word dog.
 
-```bash
+```plaintext
 ned -w '\n.*dog.*\n.*dog.*\n.*dog.*\n' -r '\n'
 ```
 
@@ -466,37 +449,31 @@ ned -w '\n.*dog.*\n.*dog.*\n.*dog.*\n' -r '\n'
 'big dog' and 'smelly dog' replaced with 'BIG! dog' and 'SMELLY! dog'.
 Available case replacements: \U - uppercase, \L - lowercase, \I - initial uppercase (title case), \F - first uppercase (sentence case).
 
-```bash
+```plaintext
 ned ' ([a-z]+) dog' --case-replacements -r '\U$1\E! dog' --stdout .
 ```
 
 **Replace and see the results in the terminal without updating the target files.**
 
-```bash
+```plaintext
 ned dog -r cat --stdout .
 ```
 
 **Replace and treat no replacements as success.**
 
-```bash
+```plaintext
 ned trggde -r cat . || true; echo $?
 0 # Maybe not found, but if so, not an error.
 ```
 
 **Strip blank lines from files.**
 
-```bash
+```plaintext
 ned -w '(\s*\n)+' -r '\n' .
 ```
 
 **Strip blank lines from the ends of files.**
 
-```bash
+```plaintext
 ned -w '(\s*\n?)*$' -r '' .
-```
-
-**Unident tables and lists in XHTML files, ignoring the .git directory.**
-
-```bash
-ned -R --include '*.htm' --exclude-dir '.git'    (</?(table|col|tbody|tr|th|td|ol|ul|li)[^>]*>)' -r '$1'
 ```
