@@ -1,0 +1,6 @@
+#!/bin/bash
+set -e
+SCRIPT_DIR=$(cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)
+cd "$SCRIPT_DIR/.."
+find . \( -name '*.rs' -o -name '*.toml' \) -not -path './.cargo/*' -print | \
+    entr bash -c 'reset; scripts/pre-push'

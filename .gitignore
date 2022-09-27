@@ -18,6 +18,8 @@
 # 02110-1301, USA.
 #
 
+.bash_history
+.cargo
 src/tmp*
 target
 *.bk

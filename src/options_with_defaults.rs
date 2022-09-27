@@ -37,7 +37,7 @@ impl OptionsWithDefaults {
                     // This replace of ASCII RS character (what the?) is special - it is for
                     // if when using fish shell someone has done "set NED_DEFAULTS -u -R" rather
                     // than this "set NED_DEFAULTS '-u -R'" they don't get a cryptic complaint.
-                    default_args = default_args.replace("\u{1e}", " ");
+                    default_args = default_args.replace('\u{1e}', " ");
                     default_args
                         .split_whitespace()
                         .map(str::to_string)

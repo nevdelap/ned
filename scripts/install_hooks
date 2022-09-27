@@ -1,0 +1,7 @@
+#!/bin/bash
+set -e
+SCRIPT_DIR=$(cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)
+cd "$SCRIPT_DIR/.."
+mkdir -p .git/hooks
+cp scripts/pre-push .git/hooks
+chmod +x .git/hooks/pre-push

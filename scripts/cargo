@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+SCRIPT_DIR=$(cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)
+cd "$SCRIPT_DIR/.."
+
+docker build \
+    -t rust_musl\
+    docker
+
+docker run \
+    --rm \
+    -u "$(id -u)":"$(id -g)" \
+    -v "$PWD":/home/ned \
+    rust_musl \
+    cargo "$@"

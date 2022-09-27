@@ -130,20 +130,12 @@ pub type NedResult<T> = Result<T, NedError>;
 
 pub fn stderr_write_err(err: &dyn error::Error) {
     io::stderr()
-        .write_all(&format!("{}: {}\n", PROGRAM, err.to_string()).into_bytes())
+        .write_all(&format!("{}: {}\n", PROGRAM, err).into_bytes())
         .expect("Can't write to stderr!");
 }
 
 pub fn stderr_write_file_err(path_buf: &path::Path, err: &dyn error::Error) {
     io::stderr()
-        .write_all(
-            &format!(
-                "{}: {} {}\n",
-                PROGRAM,
-                path_buf.to_string_lossy(),
-                err.to_string()
-            )
-            .into_bytes(),
-        )
+        .write_all(&format!("{}: {} {}\n", PROGRAM, path_buf.to_string_lossy(), err).into_bytes())
         .expect("Can't write to stderr!");
 }

@@ -21,7 +21,7 @@
 use crate::ned_error::StringError;
 use std::str::FromStr;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum Colors {
     Auto,
     Always,

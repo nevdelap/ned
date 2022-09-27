@@ -1,0 +1,6 @@
+#!/bin/bash
+set -e
+shopt -s globstar
+SCRIPT_DIR=$(cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)
+cd "$SCRIPT_DIR/.."
+scripts/cargo fmt "$@"

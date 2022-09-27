@@ -61,8 +61,7 @@ fn main() {
     let exit_code = match ned(&mut output, &env::args().skip(1).collect::<Vec<String>>()) {
         Ok(exit_code) => exit_code,
         Err(err) => {
-            let _ = stderr()
-                .write_all(&format!("{}\n{}\n\n", usage_brief(), err.to_string()).into_bytes());
+            let _ = stderr().write_all(&format!("{}\n{}\n\n", usage_brief(), err).into_bytes());
             1
         }
     };
