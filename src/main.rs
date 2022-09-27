@@ -18,13 +18,13 @@
 // 02110-1301, USA.
 //
 
-extern crate ansi_term;
 extern crate getopts;
 extern crate glob;
 extern crate libc;
 extern crate regex;
 extern crate time;
 extern crate walkdir;
+extern crate yansi;
 
 mod colors;
 mod files;
@@ -42,9 +42,6 @@ use crate::options_with_defaults::OptionsWithDefaults;
 use crate::opts::{make_opts, usage_brief, usage_full, usage_version};
 use crate::parameters::{get_parameters, Parameters};
 use crate::source::Source;
-#[cfg(target_os = "windows")]
-use ansi_term::enable_ansi_support;
-use ansi_term::Colour::{Purple, Red};
 use regex::{Captures, Match, Regex};
 use std::collections::HashMap;
 use std::fs::OpenOptions;
@@ -52,6 +49,7 @@ use std::io::{stderr, stdin, stdout, Read, Seek, SeekFrom, Write};
 use std::iter::Iterator;
 use std::string::String;
 use std::{env, process};
+use yansi::Paint;
 
 fn main() {
     // Output is passed here so that tests can
@@ -92,16 +90,13 @@ fn ned(output: &mut dyn Write, args: &[String]) -> NedResult<i32> {
 
     if parameters.colors {
         #[cfg(target_os = "windows")]
-        match enable_ansi_support() {
-            Ok(_) => {}
-            Err(_) => {
-                let _ = stderr().write_all(
-                    &"Sadly, colors are not supported in this terminal. ansi_term colors are not supported in Git Bash or Cygwin Terminal. Colors are supported in cmd.exe, PowerShell, the OS X terminal, and all Linux terminals.\n\n"
-                        .to_string()
-                        .into_bytes(),
-                );
-                process::exit(1);
-            }
+        if !Paint::enable_windows_ascii() {
+            let _ = stderr().write_all(
+                &"Sadly, colors are not supported in this terminal.\n\n"
+                    .to_string()
+                    .into_bytes(),
+            );
+            process::exit(1);
         }
     }
 
@@ -187,7 +182,7 @@ fn process_file(
 
     if let Some(mut replacement) = parameters.replace.clone() {
         if parameters.colors {
-            replacement = Red.bold().paint(replacement.as_str()).to_string();
+            replacement = Paint::red(replacement).bold().to_string();
         }
         if parameters.case_replacements {
             replacement = replace_case_escape_sequences_with_special_strings(&replacement);
@@ -587,7 +582,7 @@ fn write_file_name_and_line_number(
                 },
             );
             if parameters.colors {
-                location = Purple.paint(location).to_string();
+                location = Paint::magenta(location).to_string();
             }
             output.write_all(&location.into_bytes())?;
         }
@@ -616,7 +611,7 @@ fn color_matches_with_number_skip_backwards(
         parameters,
         re,
         text,
-        Red.bold().paint("$0").to_string().as_str(),
+        Paint::red("$0").bold().to_string().as_str(),
     );
     if parameters.colors {
         (new_text, found_matches)
@@ -627,7 +622,7 @@ fn color_matches_with_number_skip_backwards(
 
 fn color_matches_all(parameters: &Parameters, re: &Regex, text: &str) -> String {
     if parameters.colors {
-        re.replace_all(text, Red.bold().paint("$0").to_string().as_str())
+        re.replace_all(text, Paint::red("$0").bold().to_string().as_str())
             .into_owned()
     } else {
         text.to_string()
@@ -637,7 +632,7 @@ fn color_matches_all(parameters: &Parameters, re: &Regex, text: &str) -> String 
 /// Color the whole text if --colors has been specified.
 fn color(parameters: &Parameters, text: &str) -> String {
     if parameters.colors {
-        Red.bold().paint(text).to_string()
+        Paint::red(text).bold().to_string()
     } else {
         text.to_string()
     }

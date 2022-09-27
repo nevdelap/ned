@@ -145,7 +145,7 @@ ignore non-ASCII, non-UTF-8 files, you can put this in NED_DEFAULTS. See the hel
 
 **_Why don't the tests pass in Git Bash?_**
 
-Git Bash does not support colored output using ansi_term. Run the tests in cmd.exe on Windows.
+Git Bash does not support colored output. Run the tests in cmd.exe on Windows.
 
 ## Building `ned`
 
