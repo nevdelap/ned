@@ -22,6 +22,7 @@
 name = "ned"
 version = "1.3.2"
 authors = ["Nev Delap <nevdelap@gmail.com>"]
+edition = "2021"
 
 [dependencies]
 ansi_term = "0.12.*"

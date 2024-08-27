@@ -1687,7 +1687,7 @@ fn really_test(
         .map(|arg| arg.to_string())
         .collect::<Vec<String>>();
     args.insert(0, pattern.to_string());
-    env::set_var("NED_DEFAULTS", "");
+    unsafe { env::set_var("NED_DEFAULTS", "") };
     let options_with_defaults = OptionsWithDefaults::new(make_opts(), &args).unwrap();
     let parameters = get_parameters(&options_with_defaults).unwrap();
 
