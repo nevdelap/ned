@@ -151,24 +151,24 @@ Git Bash does not support colored output using ansi_term. Run the tests in cmd.e
 
 ### Machine Setup To Build `ned`
 
--   Install Rust as per: <https://www.rust-lang.org/en-US/install.html>
--   (Windows) Install Visual Studio Build Tools 2017 as per: <https://www.visualstudio.com/downloads/>
+- Install Rust as per: <https://www.rust-lang.org/en-US/install.html>
+- (Windows) Install Visual Studio Build Tools 2017 as per: <https://www.visualstudio.com/downloads/>
 
 ### To Build For The Current Platform
 
-Last tested on Manjaro up-to-date at 2021/12/12 with Rust 1.57.0, on Windows 10.0.17134.523 and on OS X High Sierra with Rust 1.32.0.
+Last tested on Manjaro up-to-date at 2024/08/27 with Rust 1.57.0, on Windows 10.0.17134.523 and on OS X High Sierra with Rust 1.80.1.
 
 ```bash
 cd ned
 cargo build --release
 cargo test
 ...
-test result: ok. 137 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+test result: ok. 142 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 ```
 
 ### To Build For 64bit Musl
 
-Last tested on Manjaro up-to-date at 2021/12/12 with Rust 1.57.0.
+Last tested on Manjaro up-to-date at 2024/08/27 with `rustup` from the AUR.
 
 ```bash
 cd ned
@@ -176,30 +176,12 @@ rustup target add x86_64-unknown-linux-musl
 cargo build --release --target x86_64-unknown-linux-musl
 cargo test --target x86_64-unknown-linux-musl
 ...
-test result: ok. 137 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+test result: ok. 142 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 ```
-
-## Installing `ned`
-
-### To Install In Arch And Manjaro And Other Arch Based Distros
-
-```bash
-yaourt -S ned
-```
-
-### To Install In Debian, Ubuntu And Other Debian Based Distros, Or Red Hat Or CentOS
-
-Download the deb or rpm file from the latest release: <https://github.com/nevdelap/ned/releases>. They package a single musl binary of `ned` and its man page with no dependencies. Install with `dpkg -i` or `rpm -i`.
-
-### To Install In Other Linux Distros, Mac OS X, Or Windows
-
-Download the appropriate binary and put it on your path. In Windows install the dependencies as described in the latest release: <https://github.com/nevdelap/ned/releases>
-
-On macOS, `ned` can also be [installed using MacPorts](https://ports.macports.org/port/ned/).
 
 ## TL;DR
 
-**IMPORTANT NOTE:** The search capabilities of `ned` are not so interesting, you can do them all with `grep` or `ripgrep`, see https://github.com/BurntSushi/ripgrep. It is the replace that is interesting, which `grep` and `ripgrep` cannot do - `ripgrep` can replace as it writes to stdout, it doesn't modify files, and `sed` can only do in a line oriented way. Examples of searching are shown first, followed by examples of replacing. Replacing with `ned` is a very powerful way of doing bulk editing from the terminal. Hence `ned` = **Nev's Editor**. Stage or commit your files before doing bulk edits, so that you can undo changes until you get your regex right.
+**IMPORTANT NOTE:** The search capabilities of `ned` are not so interesting, you can do them all with `grep` or `ripgrep`, see <https://github.com/BurntSushi/ripgrep>. It is the replace that is interesting, which `grep` and `ripgrep` cannot do - `ripgrep` can replace as it writes to stdout, it doesn't modify files, and `sed` can only do in a line oriented way. Examples of searching are shown first, followed by examples of replacing. Replacing with `ned` is a very powerful way of doing bulk editing from the terminal. Hence `ned` = **Nev's Editor**. Stage or commit your files before doing bulk edits, so that you can undo changes until you get your regex right.
 
 These examples use short options and search for 'dog' and replace with 'cat' wherever the example doesn't need a regular expression to demonstrate what it is doing.
 
@@ -293,7 +275,7 @@ ned -L dog .
 ned -l dog .
 ```
 
-**Search not showing file names**
+**Search not showing file names.**
 
 ```bash
 ned -F dog .
