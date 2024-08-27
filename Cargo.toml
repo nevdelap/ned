@@ -1,7 +1,7 @@
 #
 # ned, https://github.com/nevdelap/ned, Cargo.toml
 #
-# Copyright 2016-2021 Nev Delap (nevdelap at gmail)
+# Copyright 2016-2024 Nev Delap (nevdelap at gmail)
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 
 [package]
 name = "ned"
-version = "1.3.1"
+version = "1.3.2"
 authors = ["Nev Delap <nevdelap@gmail.com>"]
 
 [dependencies]
@@ -28,9 +28,9 @@ ansi_term = "0.12.*"
 getopts = "0.2.*"
 glob = "0.3.*"
 libc = "0.2.*"
-regex = "1.5.*"
+regex = "1.10.*"
 time = "0.3.*"
-walkdir = "2.3.*"
+walkdir = "2.5.*"
 
 [profile.release]
 lto = true
