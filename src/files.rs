@@ -48,7 +48,6 @@ impl Files {
     /// converting symlinks to the path they point to.
     fn normalize_relative_paths(input_path: PathBuf) -> std::io::Result<PathBuf> {
         let mut components: Vec<Component> = Vec::new();
-
         for component in input_path.components() {
             match component {
                 Component::CurDir => {
@@ -72,12 +71,10 @@ impl Files {
                 }
             }
         }
-
         let mut output_path = PathBuf::new();
         for component in components {
             output_path.push(component.as_os_str());
         }
-
         Ok(output_path)
     }
 }

@@ -70,7 +70,7 @@ fn no_recursion_follow() {
     let test_path = Path::new("test");
     let expected_file_names = vec![
         test_path.join("file1.txt"),
-        test_path.join("file8.txt"),  // TEST ON WINDOWS
+        test_path.join("file8.txt"),
         test_path.join("file9.txt"),
         test_path.join("longfile.txt"),
     ];
@@ -96,7 +96,11 @@ fn no_recursion_follow_all() {
 fn recursion() {
     let test_path = Path::new("test");
     let mut expected_file_names = vec![
-        test_path.join("dir1").join("dir4").join("dir5").join("file7.txt"),
+        test_path
+            .join("dir1")
+            .join("dir4")
+            .join("dir5")
+            .join("file7.txt"),
         test_path.join("dir1").join("dir4").join("file6.txt"),
         test_path.join("dir1").join("file2.txt"),
         test_path.join("dir1").join("file3.txt"),
@@ -120,7 +124,11 @@ fn recursion_all() {
         test_path.join(".hidden_dir").join(".hidden_file2"),
         test_path.join(".hidden_dir").join("file10.txt"),
         test_path.join(".hidden_file1"),
-        test_path.join("dir1").join("dir4").join("dir5").join("file7.txt"),
+        test_path
+            .join("dir1")
+            .join("dir4")
+            .join("dir5")
+            .join("file7.txt"),
         test_path.join("dir1").join("dir4").join("file6.txt"),
         test_path.join("dir1").join("file2.txt"),
         test_path.join("dir1").join("file3.txt"),
@@ -156,7 +164,11 @@ fn recursion_follow_all() {
         test_path.join(".hidden_dir").join(".hidden_file2"),
         test_path.join(".hidden_dir").join("file10.txt"),
         test_path.join(".hidden_file1"),
-        test_path.join("dir1").join("dir4").join("dir5").join("file7.txt"),
+        test_path
+            .join("dir1")
+            .join("dir4")
+            .join("dir5")
+            .join("file7.txt"),
         test_path.join("dir1").join("dir4").join("file6.txt"),
         test_path.join("dir1").join("file2.txt"),
         test_path.join("dir1").join("file3.txt"),
@@ -167,13 +179,20 @@ fn recursion_follow_all() {
         test_path.join("file9.txt"),
         test_path.join("longfile.txt"),
     ];
-    test("pattern --recursive --follow --all test", &expected_file_names);
+    test(
+        "pattern --recursive --follow --all test",
+        &expected_file_names,
+    );
 }
 
 #[test]
 fn include_files() {
     let test_path = Path::new("test");
-    let expected_file_names = vec![test_path.join("dir1").join("dir4").join("dir5").join("file7.txt")];
+    let expected_file_names = vec![test_path
+        .join("dir1")
+        .join("dir4")
+        .join("dir5")
+        .join("file7.txt")];
     test("pattern -R test --include file7*", &expected_file_names);
 }
 
@@ -236,7 +255,8 @@ fn test(args: &str, expected_file_names: &Vec<PathBuf>) {
         .collect::<Vec<String>>();
     file_names.sort();
 
-    let expected_file_names = expected_file_names.iter()
+    let expected_file_names = expected_file_names
+        .iter()
         .map(|path| path.to_str().unwrap().to_string())
         .collect::<Vec<String>>();
 
