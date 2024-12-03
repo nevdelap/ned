@@ -21,6 +21,7 @@
 use crate::ned_error::stderr_write_err;
 use crate::parameters::Parameters;
 use std::iter::IntoIterator;
+use std::path::Component;
 use std::path::PathBuf;
 use walkdir::{IntoIter, WalkDir};
 
@@ -41,6 +42,43 @@ impl Files {
             parameters: parameters.clone(),
             walkdir: Box::new(walkdir.into_iter()),
         }
+    }
+
+    /// Normalize relative paths (remove ./ and normalize ../) without
+    /// converting symlinks to the path they point to.
+    fn normalize_relative_paths(input_path: PathBuf) -> std::io::Result<PathBuf> {
+        let mut components: Vec<Component> = Vec::new();
+
+        for component in input_path.components() {
+            match component {
+                Component::CurDir => {
+                    // Ignore `./`
+                    continue;
+                }
+                Component::ParentDir => {
+                    // Resolve `../` by popping the last normal component
+                    if let Some(last_component) = components.last() {
+                        if *last_component != Component::ParentDir {
+                            components.pop();
+                            continue;
+                        }
+                    }
+                    // If there's no preceding component to pop, keep `..`
+                    components.push(component);
+                }
+                _ => {
+                    // Keep normal components
+                    components.push(component);
+                }
+            }
+        }
+
+        let mut output_path = PathBuf::new();
+        for component in components {
+            output_path.push(component.as_os_str());
+        }
+
+        Ok(output_path)
     }
 }
 
@@ -83,7 +121,10 @@ impl Iterator for Files {
                                         .iter()
                                         .any(|pattern| pattern.matches(file_name));
                                 if included_file && !excluded_file && (all || !hidden) {
-                                    return Some(Box::new(entry.path().to_path_buf()));
+                                    return Some(Box::new(
+                                        Self::normalize_relative_paths(entry.path().to_path_buf())
+                                            .ok()?,
+                                    ));
                                 }
                             }
                         }
