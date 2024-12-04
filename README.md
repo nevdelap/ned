@@ -4,7 +4,9 @@
 
 ## `ned` Usage
 
-The program's help gives a comprehensive description of its available options, the [wiki](https://github.com/nevdelap/ned/wiki) gives further details, and the [TL;DR](#tldr) section below has a list of quick and easy example usages.
+The program's help gives a comprehensive description of its available options,
+the [wiki](https://github.com/nevdelap/ned/wiki) gives further details, and the
+[TL;DR](#tldr) section below has a list of quick and easy example usages.
 
 ```text
 
@@ -120,8 +122,9 @@ There is NO WARRANTY, to the extent permitted by law.
 
 **_Why isn't \U working? (or \L, \I, \F)_**
 
-Because case replacing is off by default to not waste cycles when you're not doing it,
-since that is most of the time, generally. See the help: (as of v1.2.0)
+Because case replacing is off by default to not waste cycles when you're not
+doing it, since that is most of the time, generally. See the help: (as of
+v1.2.0)
 
 ```text
        --case-replacements
@@ -131,10 +134,12 @@ since that is most of the time, generally. See the help: (as of v1.2.0)
                         replacement.
 ```
 
-**_Why do I get errors like ned: /path/file invalid utf-8 sequence of 1 bytes from index 25?_**
+**_Why do I get errors like ned: /path/file invalid utf-8 sequence of 1 bytes
+from index 25?_**
 
-Because, by default, `ned` reads everything unless you tell it not to read it. If you want it to always
-ignore non-ASCII, non-UTF-8 files, you can put this in NED_DEFAULTS. See the help:
+Because, by default, `ned` reads everything unless you tell it not to read it.
+If you want it to always ignore non-ASCII, non-UTF-8 files, you can put this in
+NED_DEFAULTS. See the help:
 
 ```text
    -u, --ignore-non-utf8
@@ -145,18 +150,22 @@ ignore non-ASCII, non-UTF-8 files, you can put this in NED_DEFAULTS. See the hel
 
 **_Why don't the tests pass in Git Bash?_**
 
-Git Bash does not support colored output using ansi_term. Run the tests in cmd.exe on Windows.
+Git Bash does not support colored output using ansi_term. Run the tests in
+cmd.exe on Windows.
 
 ## Building `ned`
 
 ### Machine Setup To Build `ned`
 
 - Install Rust as per: <https://www.rust-lang.org/en-US/install.html>
-- (Windows) Install Visual Studio Build Tools 2017 as per: <https://www.visualstudio.com/downloads/>
+- (Windows) Install Visual Studio Build Tools 2017 as per:
+  <https://www.visualstudio.com/downloads/>
 
 ### To Build For The Current Platform
 
-Last tested on Manjaro up-to-date at 2024/08/27 with Rust 1.57.0, on Windows 10.0.17134.523 and on OS X High Sierra with Rust 1.80.1.
+10.0.22000.832 with Rust 1.83.0, and in the past on OS X High Sierra with Rust
+Last tested on Manjaro up-to-date at 2024/12/04 with Rust 1.83.0, on Windows
+1.80.1.
 
 ```bash
 cd ned
@@ -181,9 +190,19 @@ test result: ok. 142 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 ## TL;DR
 
-**IMPORTANT NOTE:** The search capabilities of `ned` are not so interesting, you can do them all with `grep` or `ripgrep`, see <https://github.com/BurntSushi/ripgrep>. It is the replace that is interesting, which `grep` and `ripgrep` cannot do - `ripgrep` can replace as it writes to stdout, it doesn't modify files, and `sed` can only do in a line oriented way. Examples of searching are shown first, followed by examples of replacing. Replacing with `ned` is a very powerful way of doing bulk editing from the terminal. Hence `ned` = **Nev's Editor**. Stage or commit your files before doing bulk edits, so that you can undo changes until you get your regex right.
+**IMPORTANT NOTE:** The search capabilities of `ned` are not so interesting, you
+can do them all with `grep` or `ripgrep`, see
+<https://github.com/BurntSushi/ripgrep>. It is the replace that is interesting,
+which `grep` and `ripgrep` cannot do - `ripgrep` can replace as it writes to
+stdout, it doesn't modify files, and `sed` can only do in a line oriented way.
+Examples of searching are shown first, followed by examples of replacing.
+Replacing with `ned` is a very powerful way of doing bulk editing from the
+terminal. Hence `ned` = **Nev's Editor**. Stage or commit your files before
+doing bulk edits, so that you can undo changes until you get your regex right.
 
-These examples use short options and search for 'dog' and replace with 'cat' wherever the example doesn't need a regular expression to demonstrate what it is doing.
+These examples use short options and search for 'dog' and replace with 'cat'
+wherever the example doesn't need a regular expression to demonstrate what it is
+doing.
 
 **Search non-hidden files in the current directory.**
 
@@ -228,7 +247,8 @@ ned --colors=always dog .
 ned --colors=never dog .
 ```
 
-**Search showing colored output when outputting to a terminal, but don't send colored output, if piped.**
+**Search showing colored output when outputting to a terminal, but don't send
+colored output, if piped.**
 
 ```bash
 ned --colors=auto dog .
@@ -246,9 +266,11 @@ export NED_DEFAULTS='-i --colors=always'
 ned -c dog . | less -R
 ```
 
-**Search showing no output, to just use the exit code in a script, if something is found or not found.**
+**Search showing no output, to just use the exit code in a script, if something
+is found or not found.**
 
-This is more efficient when you don't need the output since it shortcuts when it finds the first match.
+This is more efficient when you don't need the output since it shortcuts when it
+finds the first match.
 
 ```bash
 ned -q dog .; echo $?
@@ -257,7 +279,8 @@ ned -q dinosaur .; echo $?
 1 # Not found.
 ```
 
-**Search specifying the pattern at the end of the command - for convenience of editing when you have a lot of options.**
+**Search specifying the pattern at the end of the command - for convenience of
+editing when you have a lot of options.**
 
 ```bash
 ned . -p dog
@@ -299,39 +322,40 @@ ned -o dog .
 ned -oFL dog .
 ```
 
-**Search matching first 3 occurences per line.**
+**Search matching first 3 occurrences per line.**
 
 ```bash
 ned -n 3 dog .
 ```
 
-**Search matching first 3 occurences per file.**
+**Search matching first 3 occurrences per file.**
 
 ```bash
 ned -w -n 3 dog .
 ```
 
-**Search backwards, matching last 3 occurences per line.**
+**Search backwards, matching last 3 occurrences per line.**
 
 ```bash
 ned -b -n 3 dog .
 ```
 
-**Search backwards, matching last 3 occurences per file.**
+**Search backwards, matching last 3 occurrences per file.**
 
 ```bash
 ned -b -w -n 3 dog .
 ```
 
-**Search skipping 3 occurrences and finding 2 occurences.**
+**Search skipping 3 occurrences and finding 2 occurrences.**
 
-**Note:** -k is the short form of --skip. (-s is the short form of the --single option.)
+**Note:** -k is the short form of --skip. (-s is the short form of the --single
+option.)
 
 ```bash
 ned -k 3 -n 2 dog .
 ```
 
-**Search backwards, skipping 3 occurrences and finding 2 occurences.**
+**Search backwards, skipping 3 occurrences and finding 2 occurrences.**
 
 ```bash
 ned -b -k 3 -n 2 dog .
@@ -351,7 +375,9 @@ ned -R --exclude '*.htm' dog .
 
 **Search ignoring all non-utf8 files.**
 
-Quietly ignore files that cannot be parsed as UTF-8 (or ASCII). Because this requires reading the file the --exclude option should be preferred. E.g. --exclude '\*.png'
+Quietly ignore files that cannot be parsed as UTF-8 (or ASCII). Because this
+requires reading the file the --exclude option should be preferred. E.g.
+--exclude '\*.png'
 
 ```bash
 ned -u dog .
@@ -445,14 +471,16 @@ ned -w '\n.*dog.*\n.*dog.*\n.*dog.*\n' -r '\n'
 
 **Replace changing case.**
 
-'big dog' and 'smelly dog' replaced with 'BIG! dog' and 'SMELLY! dog'.
-Available case replacements: \U - uppercase, \L - lowercase, \I - initial uppercase (title case), \F - first uppercase (sentence case).
+'big dog' and 'smelly dog' replaced with 'BIG! dog' and 'SMELLY! dog'. Available
+case replacements: \U - uppercase, \L - lowercase, \I - initial uppercase (title
+case), \F - first uppercase (sentence case).
 
 ```bash
 ned ' ([a-z]+) dog' --case-replacements -r '\U$1\E! dog' --stdout .
 ```
 
-**Replace and see the results in the terminal without updating the target files.**
+**Replace and see the results in the terminal without updating the target
+files.**
 
 ```bash
 ned dog -r cat --stdout .
