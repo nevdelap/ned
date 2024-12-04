@@ -1,0 +1,8 @@
+#!/bin/sh
+# Run from the project root.
+rustup target add x86_64-unknown-linux-musl &&
+cargo build --release --target x86_64-unknown-linux-musl &&
+    gzip --stdout target/x86_64-unknown-linux-musl/release/ned > artifacts/ned.64-bit.musl.linux.gz &&
+    gzip --stdout man/ned.1 > artifacts/ned.1.gz ||
+    exit 1
+echo "Artifacts written to ./artifacts."

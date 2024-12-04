@@ -1,5 +1,0 @@
-#!/bin/sh
-# Run from the project root.
-cargo build --release --target x86_64-unknown-linux-musl && gzip --stdout man/ned.1 > artifacts/ned.1.gz || exit 1
-sudo cp target/x86_64-unknown-linux-musl/release/ned /usr/local/bin
-sudo install -g 0 -o 0 -m 0644 artifacts/ned.1.gz /usr/share/man/man1/
