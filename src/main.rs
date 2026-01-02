@@ -438,7 +438,7 @@ fn write_line(
         write_file_name_and_line_number(output, parameters, file_name, line_number)?;
         if !parameters.line_numbers_only && !parameters.quiet {
             output.write_all(text.as_bytes())?;
-            write_newline_if_replaced_text_ends_with_newline(output, text)?;
+            write_ensuring_trailing_newline(output, text)?;
         }
     }
     Ok(())
@@ -566,7 +566,7 @@ fn write_file_name_and_line_number(
     Ok(())
 }
 
-fn write_newline_if_replaced_text_ends_with_newline(
+fn write_ensuring_trailing_newline(
     output: &mut dyn Write,
     text: &str,
 ) -> NedResult<()> {
