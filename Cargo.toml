@@ -27,7 +27,7 @@ rust-version = "1.85"
 license = "GPL-3.0-or-later"
 
 [dependencies]
-nu-ansi-term = "0.50.*"
+yansi = "0.6.*"
 getopts = "0.2.*"
 glob = "0.3.*"
 regex = "1.11.*"

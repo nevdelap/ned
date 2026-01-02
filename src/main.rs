@@ -34,9 +34,7 @@ use crate::options_with_defaults::OptionsWithDefaults;
 use crate::opts::{make_opts, usage_brief, usage_full, usage_version};
 use crate::parameters::{Parameters, get_parameters};
 use crate::source::Source;
-use nu_ansi_term::Color::{Purple, Red};
-#[cfg(target_os = "windows")]
-use nu_ansi_term::enable_ansi_support;
+use yansi::Color;
 use regex::{Captures, Match, Regex};
 use std::collections::HashMap;
 use std::fs::OpenOptions;
@@ -80,21 +78,6 @@ fn ned(output: &mut dyn Write, args: &[String]) -> NedResult<i32> {
         let mut e = stderr();
         let _ = write!(e, "\n{}\n\n", usage_brief());
         return Ok(1);
-    }
-
-    if parameters.colors {
-        #[cfg(target_os = "windows")]
-        match enable_ansi_support() {
-            Ok(_) => {}
-            Err(_) => {
-                let mut e = stderr();
-                let _ = write!(
-                    e,
-                    "Sadly, colors are not supported in this terminal. ANSI colors may not be supported in Git Bash or Cygwin Terminal. Colors are supported in cmd.exe, PowerShell, macOS Terminal, and most Linux terminals.\n\n"
-                );
-                return Ok(1);
-            }
-        }
     }
 
     let found_matches = process_files(output, &parameters)?;
@@ -179,7 +162,7 @@ fn process_file(
 
     if let Some(mut replacement) = parameters.replace.clone() {
         if parameters.colors {
-            replacement = Red.bold().paint(replacement.as_str()).to_string();
+            replacement = Color::Red.paint(replacement.as_str()).bold().to_string();
         }
         if parameters.case_replacements {
             replacement = replace_case_escape_sequences_with_special_strings(&replacement);
@@ -331,7 +314,7 @@ fn process_text(
 }
 
 fn paint_red_bold(text: &str) -> String {
-    Red.bold().paint(text).to_string()
+    Color::Red.paint(text).bold().to_string()
 }
 
 /// Do a replace_all() or a find_iter() taking into account which of --number, --skip, and
@@ -574,7 +557,7 @@ fn write_file_name_and_line_number(
                 },
             );
             if parameters.colors {
-                location = Purple.paint(location).to_string();
+                location = Color::Purple.paint(location).to_string();
             }
             output.write_all(location.as_bytes())?;
         }
