@@ -34,8 +34,8 @@ glob = "0.3.*"
 # output, and in the man page.
 regex = "1.12.2"
 walkdir = "2.5.*"
-supports-color = "1.*"
-shell-words = "1.*"
+supports-color = "3.0.*"
+shell-words = "1.1.*"
 
 [profile.release]
 lto = true
