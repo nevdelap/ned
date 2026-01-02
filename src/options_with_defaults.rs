@@ -34,7 +34,9 @@ impl OptionsWithDefaults {
             Ok(mut s) => {
                 // Normalize ASCII RS and apply POSIX shell-style splitting.
                 s = s.replace("\u{1e}", " ");
-                shell_words::split(&s).map_err(|e| e.to_string())?
+                let mut v = shell_words::split(&s).map_err(|e| e.to_string())?;
+                v = Self::normalize_flagopts(v);
+                v
             }
             Err(_) => vec![],
         };
@@ -59,7 +61,9 @@ impl OptionsWithDefaults {
         let default_vec: Vec<String> = match defaults {
             Some(s) => {
                 let s = s.replace("\u{1e}", " ");
-                shell_words::split(&s).map_err(|e| e.to_string())?
+                let mut v = shell_words::split(&s).map_err(|e| e.to_string())?;
+                v = Self::normalize_flagopts(v);
+                v
             }
             None => vec![],
         };
@@ -95,5 +99,27 @@ impl OptionsWithDefaults {
         free.extend(self.arg_matches.free.iter().cloned());
         free.extend(self.default_matches.free.iter().cloned());
         free
+    }
+
+    /// Normalize flag options that accept optional values so that forms like
+    /// `--colors always` become `--colors=always`. This avoids treating the value
+    /// as a positional argument and ensures consistent parsing across environments.
+    fn normalize_flagopts(tokens: Vec<String>) -> Vec<String> {
+        let mut out = Vec::with_capacity(tokens.len());
+        let mut i = 0;
+        while i < tokens.len() {
+            let t = &tokens[i];
+            if (t == "--colors" || t == "--color") && i + 1 < tokens.len() {
+                let next = &tokens[i + 1];
+                if !next.starts_with('-') {
+                    out.push(format!("{}={}", t, next));
+                    i += 2;
+                    continue;
+                }
+            }
+            out.push(t.clone());
+            i += 1;
+        }
+        out
     }
 }

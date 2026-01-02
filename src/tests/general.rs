@@ -1499,8 +1499,9 @@ fn fix_output_for_windows(part: &str) -> String {
     // Is sufficient for current requirements as I make tests
     // written on Linux work on Windows. Future tests will
     // be written to work on both platforms .
-    part.replace("/", std::path::MAIN_SEPARATOR_STR)
-        .replace("\r", "")
+    // Normalize Windows backslashes to forward slashes for comparison,
+    // and strip CR to make outputs consistent across platforms.
+    part.replace("\\", "/").replace("\r", "")
 }
 
 #[test]

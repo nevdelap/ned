@@ -35,14 +35,13 @@ use crate::opts::{make_opts, usage_brief, usage_full, usage_version};
 use crate::parameters::{Parameters, get_parameters};
 use crate::source::Source;
 use regex::{Captures, Match, Regex};
+use nu_ansi_term::Color;
 use std::collections::HashMap;
 use std::fs::OpenOptions;
 use std::io::{Read, Seek, SeekFrom, Write, stderr, stdin, stdout};
 use std::iter::Iterator;
 use std::string::String;
 use std::{env, process};
-use yansi::Color;
-use yansi::Paint;
 
 fn main() {
     // Output is passed here so that tests can
@@ -193,7 +192,7 @@ fn process_file(
 
     if let Some(mut replacement) = parameters.replace.clone() {
         if parameters.colors {
-            replacement = replacement.paint(Color::Red).bold().to_string();
+            replacement = paint_red_bold(&replacement);
         }
         if parameters.case_replacements {
             replacement = replace_case_escape_sequences_with_special_strings(&replacement);
@@ -345,7 +344,7 @@ fn process_text(
 }
 
 fn paint_red_bold(text: &str) -> String {
-    text.paint(Color::Red).bold().to_string()
+    Color::Red.bold().paint(text).to_string()
 }
 
 /// Do a replace_all() or a find_iter() taking into account which of --number, --skip, and
@@ -588,7 +587,7 @@ fn write_file_name_and_line_number(
                 },
             );
             if parameters.colors {
-                location = location.paint(Color::Magenta).to_string();
+                location = Color::Purple.paint(location).to_string();
             }
             output.write_all(location.as_bytes())?;
         }
