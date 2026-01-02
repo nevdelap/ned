@@ -68,18 +68,18 @@ fn ned(output: &mut dyn Write, args: &[String]) -> NedResult<i32> {
 
     if parameters.version {
         let _ = writeln!(output, "\n{}", usage_version());
-        process::exit(0);
+        return Ok(0);
     }
 
     if parameters.help {
         let _ = writeln!(output, "\n{}", usage_full(options_with_defaults.get_opts()));
-        process::exit(0);
+        return Ok(0);
     }
 
     if parameters.regex.is_none() {
         let mut e = stderr();
         let _ = write!(e, "\n{}\n\n", usage_brief());
-        process::exit(1);
+        return Ok(1);
     }
 
     if parameters.colors {
@@ -92,7 +92,7 @@ fn ned(output: &mut dyn Write, args: &[String]) -> NedResult<i32> {
                     e,
                     "Sadly, colors are not supported in this terminal. ANSI colors may not be supported in Git Bash or Cygwin Terminal. Colors are supported in cmd.exe, PowerShell, macOS Terminal, and most Linux terminals.\n\n"
                 );
-                process::exit(1);
+                return Ok(1);
             }
         }
     }
