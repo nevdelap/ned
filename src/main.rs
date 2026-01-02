@@ -35,6 +35,7 @@ use crate::opts::{make_opts, usage_brief, usage_full, usage_version};
 use crate::parameters::{Parameters, get_parameters};
 use crate::source::Source;
 use yansi::Color;
+use yansi::Paint;
 use regex::{Captures, Match, Regex};
 use std::collections::HashMap;
 use std::fs::OpenOptions;
@@ -162,7 +163,7 @@ fn process_file(
 
     if let Some(mut replacement) = parameters.replace.clone() {
         if parameters.colors {
-            replacement = Color::Red.paint(replacement.as_str()).bold().to_string();
+            replacement = replacement.paint(Color::Red).bold().to_string();
         }
         if parameters.case_replacements {
             replacement = replace_case_escape_sequences_with_special_strings(&replacement);
@@ -314,7 +315,7 @@ fn process_text(
 }
 
 fn paint_red_bold(text: &str) -> String {
-    Color::Red.paint(text).bold().to_string()
+    text.paint(Color::Red).bold().to_string()
 }
 
 /// Do a replace_all() or a find_iter() taking into account which of --number, --skip, and
@@ -557,7 +558,7 @@ fn write_file_name_and_line_number(
                 },
             );
             if parameters.colors {
-                location = Color::Purple.paint(location).to_string();
+                location = location.paint(Color::Magenta).to_string();
             }
             output.write_all(location.as_bytes())?;
         }
