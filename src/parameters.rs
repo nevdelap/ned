@@ -24,6 +24,7 @@ use crate::options_with_defaults::OptionsWithDefaults;
 use glob::Pattern;
 use regex::Regex;
 use std::collections::HashMap;
+use supports_color::Stream;
 use std::io::IsTerminal;
 use std::iter::Iterator;
 use std::str::FromStr;
@@ -167,6 +168,8 @@ pub fn get_parameters(options_with_defaults: &OptionsWithDefaults) -> NedResult<
     let stdout = stdin || options_with_defaults.opt_present("stdout");
     let replace = convert_escapes(options_with_defaults.opt_str("replace"));
     let isatty = std::io::stdout().is_terminal();
+    // Detect if the current stdout stream supports ANSI colors (handles Windows correctly).
+    let supports_colors = supports_color::on(Stream::Stdout).is_some();
 
     let c = options_with_defaults.opt_present("c");
     let mut colors = parse_opt_str(options_with_defaults, "colors", None)?;
@@ -175,16 +178,20 @@ pub fn get_parameters(options_with_defaults: &OptionsWithDefaults) -> NedResult<
         colors = parse_opt_str(options_with_defaults, "color", Some(Colors::Off))?;
     }
     let colors = colors.expect("The default is a Some.");
-    let colors = c
-        || (colors == Colors::Always && (replace.is_none() || replace.is_some() && stdout)
-            || colors == Colors::Auto && (replace.is_none() || stdout) && isatty)
+    // Enable color if:
+    // - `-c` is present, or
+    // - `--colors=always` and we're writing to stdout appropriately, or
+    // - `--colors=auto` and stdout is a terminal that supports ANSI colors.
+    let use_colors = c
+        || ((colors == Colors::Always && (replace.is_none() || (replace.is_some() && stdout)))
+            || (colors == Colors::Auto && (replace.is_none() || stdout) && isatty && supports_colors))
             && colors != Colors::Never;
 
     Ok(Parameters {
         all: options_with_defaults.opt_present("all"),
         backwards: options_with_defaults.opt_present("backwards"),
         case_replacements: options_with_defaults.opt_present("case-replacements"),
-        colors,
+        colors: use_colors,
         context_after,
         context_before,
         exclude_dirs,
