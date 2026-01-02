@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   build-lint-test:
-    name: Build, lint, test (${{ matrix.os }})
+    name: Build, Lint, Test (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -26,13 +26,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Rust
+      - name: Set Up Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache cargo
+      - name: Cache Cargo
         uses: Swatinem/rust-cache@v2
 
-      - name: Install just
+      - name: Install Just
         uses: taiki-e/install-action@v2
         with:
           tool: just
@@ -66,35 +66,35 @@ jobs:
         run: just test --release
 
   cargo-deny:
-    name: Dependency policy checks (cargo-deny)
+    name: Check Dependency Policy
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Rust
+      - name: Set Up Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache cargo
+      - name: Cache Cargo
         uses: Swatinem/rust-cache@v2
 
-      - name: Install cargo-deny
+      - name: Install cargo-deny Package
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-deny
 
-      - name: Run cargo-deny checks
+      - name: Run cargo-deny check
         run: |
           cargo deny check
 
   msrv:
-    name: MSRV build, lint, test (ubuntu)
+    name: Minimum Supported Rust Version Build, Lint, Test (ubuntu)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Rust (MSRV)
+      - name: Set Up Rust (MSRV)
         uses: dtolnay/rust-toolchain@1.85.0
 
       - name: Cache cargo
@@ -103,7 +103,7 @@ jobs:
       - name: Build (MSRV)
         run: cargo build --all-targets
 
-      - name: Clippy (MSRV)
+      - name: Lint (MSRV)
         run: cargo clippy --all-targets --all-features -- -D warnings
 
       - name: Test (MSRV)
