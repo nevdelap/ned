@@ -24,10 +24,10 @@ use crate::options_with_defaults::OptionsWithDefaults;
 use glob::Pattern;
 use regex::Regex;
 use std::collections::HashMap;
-use supports_color::Stream;
 use std::io::IsTerminal;
 use std::iter::Iterator;
 use std::str::FromStr;
+use supports_color::Stream;
 
 #[derive(Clone)]
 pub struct Parameters {
@@ -184,7 +184,10 @@ pub fn get_parameters(options_with_defaults: &OptionsWithDefaults) -> NedResult<
     // - `--colors=auto` and stdout is a terminal that supports ANSI colors.
     let use_colors = c
         || ((colors == Colors::Always && (replace.is_none() || (replace.is_some() && stdout)))
-            || (colors == Colors::Auto && (replace.is_none() || stdout) && isatty && supports_colors))
+            || (colors == Colors::Auto
+                && (replace.is_none() || stdout)
+                && isatty
+                && supports_colors))
             && colors != Colors::Never;
 
     Ok(Parameters {

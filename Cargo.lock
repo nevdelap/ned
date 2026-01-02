@@ -71,6 +71,7 @@ dependencies = [
  "getopts",
  "glob",
  "regex",
+ "shell-words",
  "supports-color",
  "walkdir",
  "yansi",
@@ -113,6 +114,12 @@ checksum = "93fc1dc3aaa9bfed95e02e6eadabb4baf7e3078b0bd1b4d7b6b0b68378900502"
 dependencies = [
  "winapi-util",
 ]
+
+[[package]]
+name = "shell-words"
+version = "1.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dc6fe69c597f9c37bfeeeeeb33da3530379845f10be461a66d16d03eca2ded77"
 
 [[package]]
 name = "supports-color"

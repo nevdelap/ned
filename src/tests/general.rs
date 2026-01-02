@@ -1502,3 +1502,33 @@ fn fix_output_for_windows(part: &str) -> String {
     part.replace("/", std::path::MAIN_SEPARATOR_STR)
         .replace("\r", "")
 }
+
+#[test]
+fn env_defaults_shell_parsing() {
+    // Local helper to run ned with provided defaults string to avoid global env changes.
+    fn run_with_defaults(args: &[&str], defaults: &str) -> (i32, String) {
+        let args: Vec<String> = args.iter().map(|a| a.to_string()).collect();
+        let mut screen_output: Vec<u8> = vec![];
+        let exit_code = crate::ned_with_defaults(&mut screen_output, &args, Some(defaults))
+            .expect("ned_with_defaults should succeed");
+        let out = fix_output_for_windows(&String::from_utf8(screen_output).unwrap());
+        (exit_code, out)
+    }
+
+    // 1) Colors from NED_DEFAULTS (shell-style parsing of simple flags)
+    let (exit_code, out) = run_with_defaults(&["accidentally.*hand", "test"], "--colors always");
+    assert_eq!(exit_code, 0);
+    assert!(out.contains(
+        "\u{1b}[35mtest/file1.txt:1:\u{1b}[0mThe \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans AN ESCAPE from a cream puff the placid widow. A slovenly\n"
+    ));
+
+    // 2) Replacement with spaces from NED_DEFAULTS (quotes respected)
+    let (exit_code, out) = run_with_defaults(
+        &["--stdout", "accidentally", "test"],
+        r"--replace 'out standing'",
+    );
+    assert_eq!(exit_code, 0);
+    assert!(out.contains(
+        "test/file1.txt:\nThe out standing ghastly hand plans AN ESCAPE from a cream puff the placid widow. A slovenly\n"
+    ));
+}

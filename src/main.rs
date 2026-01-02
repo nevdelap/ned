@@ -34,8 +34,6 @@ use crate::options_with_defaults::OptionsWithDefaults;
 use crate::opts::{make_opts, usage_brief, usage_full, usage_version};
 use crate::parameters::{Parameters, get_parameters};
 use crate::source::Source;
-use yansi::Color;
-use yansi::Paint;
 use regex::{Captures, Match, Regex};
 use std::collections::HashMap;
 use std::fs::OpenOptions;
@@ -43,6 +41,8 @@ use std::io::{Read, Seek, SeekFrom, Write, stderr, stdin, stdout};
 use std::iter::Iterator;
 use std::string::String;
 use std::{env, process};
+use yansi::Color;
+use yansi::Paint;
 
 fn main() {
     // Output is passed here so that tests can
@@ -63,6 +63,36 @@ fn main() {
 
 fn ned(output: &mut dyn Write, args: &[String]) -> NedResult<i32> {
     let options_with_defaults = OptionsWithDefaults::new(make_opts(), args)?;
+    let parameters = get_parameters(&options_with_defaults)?;
+
+    if parameters.version {
+        let _ = writeln!(output, "\n{}", usage_version());
+        return Ok(0);
+    }
+
+    if parameters.help {
+        let _ = writeln!(output, "\n{}", usage_full(options_with_defaults.get_opts()));
+        return Ok(0);
+    }
+
+    if parameters.regex.is_none() {
+        let mut e = stderr();
+        let _ = write!(e, "\n{}\n\n", usage_brief());
+        return Ok(1);
+    }
+
+    let found_matches = process_files(output, &parameters)?;
+    Ok(if found_matches { 0 } else { 1 })
+}
+
+#[cfg(test)]
+fn ned_with_defaults(
+    output: &mut dyn Write,
+    args: &[String],
+    defaults: Option<&str>,
+) -> NedResult<i32> {
+    let options_with_defaults =
+        OptionsWithDefaults::new_with_defaults_string(make_opts(), args, defaults)?;
     let parameters = get_parameters(&options_with_defaults)?;
 
     if parameters.version {
@@ -566,10 +596,7 @@ fn write_file_name_and_line_number(
     Ok(())
 }
 
-fn write_ensuring_trailing_newline(
-    output: &mut dyn Write,
-    text: &str,
-) -> NedResult<()> {
+fn write_ensuring_trailing_newline(output: &mut dyn Write, text: &str) -> NedResult<()> {
     if !text.ends_with('\n') {
         output.write_all(b"\n")?;
     }

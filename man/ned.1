@@ -169,9 +169,20 @@ An exit status of 0 means matches were found/replaced. An exit status of 1 means
 .SH ENVIRONMENT
 .B NED_DEFAULTS
 .RS
-.RB "Specifies " ned " options added to the program's arguments. Is a space delimited list of options and is not first interpreted by a shell, so quotes are not required around arguments. For example:"
+.RB "Specifies " ned " options added to the program's arguments. Arguments are parsed using POSIX shell-style splitting: quotes and escapes are respected, so quoted segments remain a single argument."
 .PP
-NED_DEFAULTS="-u -R --exclude *.bk --exclude-dir .git"
+.RB "Example: "
+NED_DEFAULTS="-u -R --exclude '*.bk' --exclude-dir .git --colors always"
+.PP
+.RB "Notes: There is no shell expansion (wildcards and variables are not expanded during parsing). Use quotes if you need to preserve spaces inside a value."
+.RE
+.SH PLATFORM NOTES (Windows)
+.RS
+.RB "Colors: " --colors=auto " emits color only when stdout is a terminal; " --colors=always " forces color even through pipes; " --colors=never " disables color. Modern Windows terminals (Windows Terminal, PowerShell, VS Code) support ANSI colors; Git Bash may render ANSI escapes inconsistently."
+.PP
+.RB "less: use " less " with the " -R " flag to preserve ANSI colors."
+.PP
+.RB "Symlinks: " --follow " is long-only and ignored on Windows. Symlink handling depends on filesystem and runner settings; tests adapt to runtime semantics."
 .RE
 .SH EXAMPLES
 .RB "The TL;DR section of the " ned " README.md gives example usages."
