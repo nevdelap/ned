@@ -11,6 +11,9 @@ default: help
 help:
     @just --list
 
+install:
+    @if [ ! -f .git/hooks/pre-push ]; then mkdir -p .git/hooks && cd .git/hooks/ && ln -f -s ../../scripts/pre-push.sh pre-push; fi
+
 # Format Markdown.
 format_markdown:
     mapfile -t changed_files < <(git diff --name-only --diff-filter=AMR origin/master -- '*.md'); \
@@ -37,7 +40,7 @@ format_rust:
     cargo fmt --all
 
 # Format code; fail if it changed anything.
-format:
+format: install
     just format_markdown
     just format_toml
     just format_shell
