@@ -36,6 +36,7 @@ use crate::parameters::{Parameters, get_parameters};
 use crate::source::Source;
 use nu_ansi_term::Color;
 use regex::{Captures, Match, Regex};
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::fs::OpenOptions;
 use std::io::{Read, Seek, SeekFrom, Write, stderr, stdin, stdout};
@@ -179,7 +180,11 @@ fn process_file(
         let mut content = match String::from_utf8(buffer) {
             Ok(parsed) => parsed,
             Err(err) => {
-                if parameters.ignore_non_utf8 { return Ok(false); } else { return Err(NedError::from(err)); }
+                if parameters.ignore_non_utf8 {
+                    return Ok(false);
+                } else {
+                    return Err(NedError::from(err));
+                }
             }
         };
         if parameters.colors {
@@ -241,7 +246,11 @@ fn process_file(
                     Ok(found_matches)
                 }
                 Err(err) => {
-                    if parameters.ignore_non_utf8 { Ok(false) } else { Err(NedError::from(err)) }
+                    if parameters.ignore_non_utf8 {
+                        Ok(false)
+                    } else {
+                        Err(NedError::from(err))
+                    }
                 }
             }
         } else {
@@ -252,11 +261,19 @@ fn process_file(
             loop {
                 line.truncate(0);
                 let n = buf.read_line(&mut line)?;
-                if n == 0 { break; }
-                let text = if line.ends_with('\n') { &line[..line.len()-1] } else { &line };
+                if n == 0 {
+                    break;
+                }
+                let text = if line.ends_with('\n') {
+                    &line[..line.len() - 1]
+                } else {
+                    &line
+                };
                 if is_match_with_number_skip_backwards(parameters, &re, text) {
                     found_matches = true;
-                    if parameters.quiet { break; }
+                    if parameters.quiet {
+                        break;
+                    }
                 }
             }
             if found_matches ^ parameters.no_match {
@@ -286,12 +303,22 @@ fn process_file(
         loop {
             line.truncate(0);
             let n = buf.read_line(&mut line)?;
-            if n == 0 { break; }
+            if n == 0 {
+                break;
+            }
             line_number += 1;
-            let text = if line.ends_with('\n') { &line[..line.len()-1] } else { &line };
+            let text = if line.ends_with('\n') {
+                &line[..line.len() - 1]
+            } else {
+                &line
+            };
 
-            if parameters.quiet && !parameters.limit_matches() && parameters.group.is_none() {
-                if re.is_match(text) { return Ok(true); }
+            if parameters.quiet
+                && !parameters.limit_matches()
+                && parameters.group.is_none()
+                && re.is_match(text)
+            {
+                return Ok(true);
             }
 
             let this_line_matches = is_match_with_number_skip_backwards(parameters, &re, text);
@@ -318,7 +345,9 @@ fn process_file(
                     None,
                 )?;
                 printed.insert(line_number);
-                if parameters.quiet && found_matches { break; }
+                if parameters.quiet && found_matches {
+                    break;
+                }
             } else if after_remaining > 0 {
                 write_line(output, parameters, file_name, Some(line_number), text)?;
                 printed.insert(line_number);
@@ -331,7 +360,9 @@ fn process_file(
             // Maintain before buffer window.
             if parameters.context_before > 0 {
                 before_buf.push_back((line_number, text.to_string()));
-                while before_buf.len() > parameters.context_before { before_buf.pop_front(); }
+                while before_buf.len() > parameters.context_before {
+                    before_buf.pop_front();
+                }
             }
         }
         Ok(found_matches)
@@ -348,7 +379,11 @@ fn process_file(
         let content = match String::from_utf8(buffer) {
             Ok(parsed) => parsed,
             Err(err) => {
-                if parameters.ignore_non_utf8 { return Ok(false); } else { return Err(NedError::from(err)); }
+                if parameters.ignore_non_utf8 {
+                    return Ok(false);
+                } else {
+                    return Err(NedError::from(err));
+                }
             }
         };
         let found_matches = process_text(output, parameters, &re, file_name, None, &content, None)?;
@@ -397,10 +432,10 @@ fn process_text(
         } else {
             // TODO 4: make it respect -n, -k, -b TO TEST
             // Need to get is found_matches out of this...
-            let (text, found_matches) =
+            let (colored, found_matches) =
                 color_matches_with_number_skip_backwards(parameters, re, text);
             if found_matches {
-                write_line(output, parameters, file_name, line_number, &text)?;
+                write_line(output, parameters, file_name, line_number, colored.as_ref())?;
                 return Ok(true);
             }
         }
@@ -577,7 +612,7 @@ fn write_groups(
                         )?;
                         wrote_file_name = true;
                     }
-                    output.write_all(text.as_bytes())?;
+                    output.write_all(text.as_ref().as_bytes())?;
                 } else {
                     break;
                 }
@@ -611,9 +646,9 @@ fn write_matches(
                 write_file_name_and_line_number(output, parameters, file_name, line_number)?;
                 file_name_written = true;
             }
-            let text = color(parameters, &text[_match.start().._match.end()]);
+            let colored = color(parameters, &text[_match.start().._match.end()]);
             if !parameters.quiet {
-                output.write_all(text.as_bytes())?;
+                output.write_all(colored.as_ref().as_bytes())?;
             } else {
                 return Ok(found_matches);
             }
@@ -677,35 +712,38 @@ fn write_ensuring_trailing_newline(output: &mut dyn Write, text: &str) -> NedRes
 
 // TODO: use Cows to reduce allocations in the color*() functions.
 
-fn color_matches_with_number_skip_backwards(
+fn color_matches_with_number_skip_backwards<'a>(
     parameters: &Parameters,
     re: &Regex,
-    text: &str,
-) -> (String, bool) {
+    text: &'a str,
+) -> (Cow<'a, str>, bool) {
     if parameters.colors {
         let (new_text, found_matches) =
             replace(parameters, re, text, paint_red_bold("$0").as_str());
-        (new_text, found_matches)
+        (Cow::Owned(new_text), found_matches)
     } else {
         let found_matches = is_match_with_number_skip_backwards(parameters, re, text);
-        (text.to_string(), found_matches)
+        (Cow::Borrowed(text), found_matches)
     }
 }
 
-fn color_matches_all(parameters: &Parameters, re: &Regex, text: &str) -> String {
+fn color_matches_all<'a>(parameters: &Parameters, re: &Regex, text: &'a str) -> Cow<'a, str> {
     if parameters.colors {
-        re.replace_all(text, paint_red_bold("$0").as_str())
-            .into_owned()
+        re.replace_all(text, |caps: &Captures| {
+            // Color the actual matched text via a closure to avoid building a static replacement.
+            let m = caps.get(0).expect("match exists").as_str();
+            paint_red_bold(m)
+        })
     } else {
-        text.to_string()
+        Cow::Borrowed(text)
     }
 }
 
 /// Color the whole text if --colors has been specified.
-fn color(parameters: &Parameters, text: &str) -> String {
+fn color<'a>(parameters: &Parameters, text: &'a str) -> Cow<'a, str> {
     if parameters.colors {
-        paint_red_bold(text)
+        Cow::Owned(paint_red_bold(text))
     } else {
-        text.to_string()
+        Cow::Borrowed(text)
     }
 }

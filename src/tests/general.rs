@@ -1477,7 +1477,7 @@ fn test(args: &[&str], expected_exit_code: i32, expected_screen_output: &[&str])
         .iter()
         .map(|arg| arg.to_string())
         .collect::<Vec<String>>();
-    assert!(!expected_screen_output[0].is_empty() || expected_exit_code != 0);
+    // Allow tests that expect no output (empty expected_screen_output) with a success exit code.
 
     let mut screen_output: Vec<u8> = vec![];
 
@@ -1485,14 +1485,22 @@ fn test(args: &[&str], expected_exit_code: i32, expected_screen_output: &[&str])
 
     let screen_output = fix_output_for_windows(&String::from_utf8(screen_output).unwrap());
 
-    for part in expected_screen_output.iter() {
-        let part = fix_output_for_windows(part);
+    if expected_screen_output.is_empty() {
         assert!(
-            screen_output.contains(&part),
-            "Expected output missing. Looking for: {:?}\nActual output: {:?}",
-            part,
+            screen_output.is_empty(),
+            "Expected no output, got: {:?}",
             screen_output
         );
+    } else {
+        for part in expected_screen_output.iter() {
+            let part = fix_output_for_windows(part);
+            assert!(
+                screen_output.contains(&part),
+                "Expected output missing. Looking for: {:?}\nActual output: {:?}",
+                part,
+                screen_output
+            );
+        }
     }
     assert_eq!(exit_code, expected_exit_code);
 }
@@ -1558,7 +1566,17 @@ fn streaming_context_windows() {
 #[test]
 fn colored_context_windows() {
     // Ensure context headers are colored and matched text is highlighted.
-    let args = vec!["her", "test", "--include", "long*.txt", "-B", "1", "-A", "1", "--color=always"];
+    let args = vec![
+        "her",
+        "test",
+        "--include",
+        "long*.txt",
+        "-B",
+        "1",
+        "-A",
+        "1",
+        "--color=always",
+    ];
     let expected_exit_code = 0;
     let expected_screen_output = [
         "\u{1b}[35mtest/longfile.txt:17:\u{1b}[0m",
@@ -1571,7 +1589,17 @@ fn colored_context_windows() {
 #[test]
 fn quiet_with_context_no_output() {
     // Quiet mode should suppress output even with context flags, but return success on match.
-    let args = vec!["her", "test", "--include", "long*.txt", "-B", "1", "-A", "1", "--quiet"];
+    let args = vec![
+        "her",
+        "test",
+        "--include",
+        "long*.txt",
+        "-B",
+        "1",
+        "-A",
+        "1",
+        "--quiet",
+    ];
     let expected_exit_code = 0;
     let expected_screen_output: [&str; 0] = [];
     test(&args, expected_exit_code, &expected_screen_output);

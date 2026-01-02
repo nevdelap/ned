@@ -14,8 +14,8 @@
 ### Changed
 
 - Dependencies' versions updated. Most importantly for the `regex` crate. See
-  latest syntax documentation for supported regular expressions
-  [here](https://docs.rs/regex/1.12.2/regex/#syntax).
+  the [latest syntax documentation for supported regular
+  expressions](https://docs.rs/regex/1.12.2/regex/#syntax).
 
 - Line-mode context with `-A/-B/-C` options streams more efficiently, reducing
   memory usage and improving performance on large files; quiet modes
@@ -24,15 +24,19 @@
 - Environment defaults (`NED_DEFAULTS`) now support quoted/escaped values via
   POSIX shell-style splitting; shell expansion and globbing is not performed.
   Quote patterns or values with spaces inside `NED_DEFAULTS`.
+
 - Color handling is more reliable across modern terminals (including Windows).
   `--colors=auto|always|never` behavior is unchanged but detection is improved.
- - Option parsing now adheres to standard `getopts` semantics. Free arguments
-   and the `-p/--pattern` option can be placed after files as documented,
-   making command composition more predictable.
- - Path normalization is simplified for more consistent printed paths across
-   platforms; matching behavior is unchanged.
- - Quiet matching short-circuits earlier and avoids reading unnecessary files,
-   improving performance on large trees.
+
+- Option parsing now adheres to standard `getopts` semantics. Free arguments
+  and the `-p/--pattern` option can be placed after files as documented,
+  making command composition more predictable.
+
+- Path normalization is simplified for more consistent printed paths across
+  platforms; matching behavior is unchanged.
+
+- Quiet matching short-circuits earlier and avoids reading unnecessary files,
+  improving performance on large trees.
 
 ### Documentation
 
