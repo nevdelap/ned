@@ -1487,10 +1487,12 @@ fn test(args: &[&str], expected_exit_code: i32, expected_screen_output: &[&str])
 
     for part in expected_screen_output.iter() {
         let part = fix_output_for_windows(part);
-        if !screen_output.contains(&part) {
-            println!("{:?} not in {:?}", part, screen_output);
-            unreachable!();
-        }
+        assert!(
+            screen_output.contains(&part),
+            "Expected output missing. Looking for: {:?}\nActual output: {:?}",
+            part,
+            screen_output
+        );
     }
     assert_eq!(exit_code, expected_exit_code);
 }
@@ -1532,4 +1534,45 @@ fn env_defaults_shell_parsing() {
     assert!(out.contains(
         "test/file1.txt:\nThe out standing ghastly hand plans AN ESCAPE from a cream puff the placid widow. A slovenly\n"
     ));
+}
+
+#[test]
+fn streaming_context_windows() {
+    // Verify before/after contexts are emitted correctly in line-mode streaming.
+    let args = vec!["her", "test", "--recursive", "--line-numbers-only"]; // simple match baseline
+    let expected_exit_code = 0;
+    let expected_screen_output = ["3\n4\n"]; // sanity subset
+    test(&args, expected_exit_code, &expected_screen_output);
+
+    // With context before/after, ensure lines around matches appear.
+    let args = vec!["her", "test", "-B", "1", "-A", "1"]; // print neighbor lines
+    let expected_exit_code = 0;
+    let expected_screen_output = [
+        "test/longfile.txt:17:soothed by an espadrille and a fetishist, still makes a truce with her\n",
+        "test/longfile.txt:18:from an unseemly gypsy, buy an expensive gift for her a fetishist with\n",
+        "test/longfile.txt:19:a philosopher, and takes a peek at the dark side of her dilettante.\n",
+    ];
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn colored_context_windows() {
+    // Ensure context headers are colored and matched text is highlighted.
+    let args = vec!["her", "test", "--include", "long*.txt", "-B", "1", "-A", "1", "--color=always"];
+    let expected_exit_code = 0;
+    let expected_screen_output = [
+        "\u{1b}[35mtest/longfile.txt:17:\u{1b}[0m",
+        "\u{1b}[1;31mher\u{1b}[0m",
+        "\u{1b}[35mtest/longfile.txt:18:\u{1b}[0m",
+    ];
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn quiet_with_context_no_output() {
+    // Quiet mode should suppress output even with context flags, but return success on match.
+    let args = vec!["her", "test", "--include", "long*.txt", "-B", "1", "-A", "1", "--quiet"];
+    let expected_exit_code = 0;
+    let expected_screen_output: [&str; 0] = [];
+    test(&args, expected_exit_code, &expected_screen_output);
 }

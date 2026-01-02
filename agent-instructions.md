@@ -19,5 +19,7 @@ These instructions are for coding agents (e.g., GitHub Copilot, Cline, Kilo Code
 - When in doubt, choose clarity over brevity.
 - When making changes update the `CHANGELOG.md` section for the version as it is
   currently set.
+- Do not included in the `CHANGELOG.md` any dates for versions.
 - Include in the `CHANGELOG.md` only the changes that are visible/relevant to an
   end user.
+- Specify which changes in the `CHANGELOG.md` are breaking changes.

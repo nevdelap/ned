@@ -161,8 +161,13 @@ fn process_file(
     file_name: &Option<String>,
     source: &mut Source,
 ) -> NedResult<bool> {
-    let content: String;
-    {
+    let re = parameters
+        .regex
+        .clone()
+        .expect("Bug, already checked parameters.");
+
+    if let Some(mut replacement) = parameters.replace.clone() {
+        // Replacements operate on whole files; read complete content.
         let read: &mut dyn Read = match source {
             Source::Stdin(read) => read,
             Source::File(file) => file,
@@ -171,37 +176,23 @@ fn process_file(
         };
         let mut buffer = Vec::new();
         let _ = read.read_to_end(&mut buffer)?;
-        match String::from_utf8(buffer) {
-            Ok(ref parsed) => {
-                content = parsed.to_string();
-            }
+        let mut content = match String::from_utf8(buffer) {
+            Ok(parsed) => parsed,
             Err(err) => {
-                if parameters.ignore_non_utf8 {
-                    return Ok(false);
-                } else {
-                    return Err(NedError::from(err));
-                }
+                if parameters.ignore_non_utf8 { return Ok(false); } else { return Err(NedError::from(err)); }
             }
-        }
-    }
-
-    let re = parameters
-        .regex
-        .clone()
-        .expect("Bug, already checked parameters.");
-
-    if let Some(mut replacement) = parameters.replace.clone() {
+        };
         if parameters.colors {
             replacement = paint_red_bold(&replacement);
         }
         if parameters.case_replacements {
             replacement = replace_case_escape_sequences_with_special_strings(&replacement);
         }
-        let (content, found_matches) = replace(parameters, &re, &content, &replacement);
-        let content = if parameters.case_replacements {
-            replace_case_with_special_strings(&content)
+        let (new_content, found_matches) = replace(parameters, &re, &content, &replacement);
+        content = if parameters.case_replacements {
+            replace_case_with_special_strings(&new_content)
         } else {
-            content
+            new_content
         };
         if parameters.stdout {
             if !parameters.quiet {
@@ -231,56 +222,138 @@ fn process_file(
         }
         Ok(found_matches)
     } else if parameters.file_names_only {
-        let found_matches = re.is_match(&content);
-        if found_matches ^ parameters.no_match {
-            write_file_name_and_line_number(output, parameters, file_name, None)?;
+        // Prefer streaming for line-mode; read whole file only for whole-files patterns.
+        let read: &mut dyn Read = match source {
+            Source::Stdin(read) => read,
+            Source::File(file) => file,
+            #[cfg(test)]
+            Source::Cursor(cursor) => cursor,
+        };
+        if parameters.whole_files {
+            let mut buffer = Vec::new();
+            let _ = read.read_to_end(&mut buffer)?;
+            match String::from_utf8(buffer) {
+                Ok(content) => {
+                    let found_matches = re.is_match(&content);
+                    if found_matches ^ parameters.no_match {
+                        write_file_name_and_line_number(output, parameters, file_name, None)?;
+                    }
+                    Ok(found_matches)
+                }
+                Err(err) => {
+                    if parameters.ignore_non_utf8 { Ok(false) } else { Err(NedError::from(err)) }
+                }
+            }
+        } else {
+            use std::io::BufRead;
+            let mut buf = std::io::BufReader::new(read);
+            let mut line = String::new();
+            let mut found_matches = false;
+            loop {
+                line.truncate(0);
+                let n = buf.read_line(&mut line)?;
+                if n == 0 { break; }
+                let text = if line.ends_with('\n') { &line[..line.len()-1] } else { &line };
+                if is_match_with_number_skip_backwards(parameters, &re, text) {
+                    found_matches = true;
+                    if parameters.quiet { break; }
+                }
+            }
+            if found_matches ^ parameters.no_match {
+                write_file_name_and_line_number(output, parameters, file_name, None)?;
+            }
+            Ok(found_matches)
         }
-        Ok(found_matches)
     } else if !parameters.whole_files {
+        // Stream line-mode: build context windows on the fly using before/after counters.
+        use std::collections::{HashSet, VecDeque};
+        use std::io::BufRead;
+
+        let read: &mut dyn Read = match source {
+            Source::Stdin(read) => read,
+            Source::File(file) => file,
+            #[cfg(test)]
+            Source::Cursor(cursor) => cursor,
+        };
+        let mut buf = std::io::BufReader::new(read);
+        let mut line = String::new();
+        let mut line_number: usize = 0;
         let mut found_matches = false;
-        let context_map = make_context_map(parameters, &re, &content);
-        for (index, line) in content.lines().enumerate() {
-            let line_number = index + 1;
-            found_matches |= process_text(
-                output,
-                parameters,
-                &re,
-                file_name,
-                Some(line_number),
-                line,
-                Some(&context_map),
-            )?;
-            if parameters.quiet && found_matches {
-                break;
+        let mut after_remaining: usize = 0;
+        let mut before_buf: VecDeque<(usize, String)> = VecDeque::new();
+        let mut printed: HashSet<usize> = HashSet::new();
+
+        loop {
+            line.truncate(0);
+            let n = buf.read_line(&mut line)?;
+            if n == 0 { break; }
+            line_number += 1;
+            let text = if line.ends_with('\n') { &line[..line.len()-1] } else { &line };
+
+            if parameters.quiet && !parameters.limit_matches() && parameters.group.is_none() {
+                if re.is_match(text) { return Ok(true); }
+            }
+
+            let this_line_matches = is_match_with_number_skip_backwards(parameters, &re, text);
+
+            if this_line_matches {
+                // Print before-context lines not yet printed.
+                if parameters.context_before > 0 {
+                    for (ln, ctx) in before_buf.iter() {
+                        if !printed.contains(ln) {
+                            write_line(output, parameters, file_name, Some(*ln), ctx)?;
+                            printed.insert(*ln);
+                        }
+                    }
+                }
+                after_remaining = parameters.context_after;
+                // Print the matched line via existing logic (colors, groups, matches-only etc.).
+                found_matches |= process_text(
+                    output,
+                    parameters,
+                    &re,
+                    file_name,
+                    Some(line_number),
+                    text,
+                    None,
+                )?;
+                printed.insert(line_number);
+                if parameters.quiet && found_matches { break; }
+            } else if after_remaining > 0 {
+                write_line(output, parameters, file_name, Some(line_number), text)?;
+                printed.insert(line_number);
+                after_remaining -= 1;
+            } else if parameters.no_match {
+                // Show unmatched lines when --no-match is specified.
+                write_line(output, parameters, file_name, Some(line_number), text)?;
+            }
+
+            // Maintain before buffer window.
+            if parameters.context_before > 0 {
+                before_buf.push_back((line_number, text.to_string()));
+                while before_buf.len() > parameters.context_before { before_buf.pop_front(); }
             }
         }
         Ok(found_matches)
     } else {
+        // Whole-file processing (match/replace operate on complete content).
+        let read: &mut dyn Read = match source {
+            Source::Stdin(read) => read,
+            Source::File(file) => file,
+            #[cfg(test)]
+            Source::Cursor(cursor) => cursor,
+        };
+        let mut buffer = Vec::new();
+        let _ = read.read_to_end(&mut buffer)?;
+        let content = match String::from_utf8(buffer) {
+            Ok(parsed) => parsed,
+            Err(err) => {
+                if parameters.ignore_non_utf8 { return Ok(false); } else { return Err(NedError::from(err)); }
+            }
+        };
         let found_matches = process_text(output, parameters, &re, file_name, None, &content, None)?;
         Ok(found_matches)
     }
-}
-
-/// Returns a vector whose capacity equals the number of lines in the file, and whose
-/// value is a boolean that indicates whether or not that line should be shown given
-/// the -C --context, -B --before, and -A --after options specified in the parameters.
-fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> Vec<bool> {
-    let match_map: Vec<bool> = content
-        .lines()
-        .map(|line| is_match_with_number_skip_backwards(parameters, re, line))
-        .collect();
-    let mut context_map = match_map.clone();
-    for line in 0..context_map.len() {
-        if match_map[line] {
-            // We can't use std::cmp::max() for this test because the indices are unsigned.
-            let start = line.saturating_sub(parameters.context_before);
-            let end = std::cmp::min(match_map.len(), line + parameters.context_after + 1);
-            for item in context_map.iter_mut().take(end).skip(start) {
-                *item = true;
-            }
-        }
-    }
-    context_map
 }
 
 fn is_match_with_number_skip_backwards(parameters: &Parameters, re: &Regex, text: &str) -> bool {

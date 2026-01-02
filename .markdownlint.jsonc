@@ -13,6 +13,9 @@
     "strict": false,
     "tables": false
   },
+  "MD024": {
+    "siblings_only": true
+  },
   "MD029": {
     "style": "ordered"
   },
