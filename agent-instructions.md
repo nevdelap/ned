@@ -1,6 +1,6 @@
 # Agent Guidance
 
-These instructions are for coding agents (e.g., GitHub Copilot, Cline) working in this repository.
+These instructions are for coding agents (e.g., GitHub Copilot, Cline, Kilo Code) working in this repository.
 
 - Do not abbreviate unnecessarily: prefer `component` over `comp`, `filename` over `fname`.
 - Avoid single-letter variable names unless explicitly requested.
@@ -10,3 +10,5 @@ These instructions are for coding agents (e.g., GitHub Copilot, Cline) working i
 - Add brief, helpful comments only where intent is non-obvious; avoid noisy commentary.
 - Follow platform nuances (e.g., symlink handling) using runtime checks rather than assumptions.
 - When in doubt, choose clarity over brevity.
+- When making changes update the `CHANGELOG.md` section for the version as it is currently set.
+- Include in the `CHANGELOG.md` only the changes that are visible/relevant to an end user.

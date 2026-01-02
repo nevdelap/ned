@@ -20,7 +20,6 @@
 
 use crate::ned_error::NedResult;
 use getopts::{Matches, Options};
-use shell_words;
 use std::env;
 
 pub struct OptionsWithDefaults {

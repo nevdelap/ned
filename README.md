@@ -123,20 +123,35 @@ There is NO WARRANTY, to the extent permitted by law.
 
 ### Environment Details (`NED_DEFAULTS`)
 
-- Shell-style parsing: `NED_DEFAULTS` is parsed using POSIX shell-style splitting. Quotes (`'"`), escapes (`\`), and grouping are respected, so quoted segments remain a single argument.
-- No shell expansion: pathname expansion (`*`, `?`) and variable substitution are not performed; the content is only split. Pass patterns quoted if you need to prevent your shell from expanding when setting the variable.
+- Shell-style parsing: `NED_DEFAULTS` is parsed using POSIX shell-style
+  splitting. Quotes (`'"`), escapes (`\`), and grouping are respected, so quoted
+  segments remain a single argument.
+- No shell expansion: pathname expansion (`*`, `?`) and variable substitution
+  are not performed; the content is only split. Pass patterns quoted if you need
+  to prevent your shell from expanding when setting the variable.
 - Examples:
   - `NED_DEFAULTS="-u -R --exclude '*.bk' --exclude-dir .git --colors always"`
   - `NED_DEFAULTS='--include "*.txt" --colors auto'`
-- Values with spaces: Use quotes inside `NED_DEFAULTS` to keep spaces, e.g., `NED_DEFAULTS='--replace "some value"'`.
-- Fish/Windows note: If your shell inserts ASCII RS (`\u001E`) characters when setting variables unquoted, they are normalized to spaces; prefer quoting the assignment: `set -x NED_DEFAULTS "-u -R"`.
+- Values with spaces: Use quotes inside `NED_DEFAULTS` to keep spaces, e.g.,
+  `NED_DEFAULTS='--replace "some value"'`.
+- Fish/Windows note: If your shell inserts ASCII RS (`\u001E`) characters when
+  setting variables unquoted, they are normalized to spaces; prefer quoting the
+  assignment: `set -x NED_DEFAULTS "-u -R"`.
 
 ### Windows Notes (Colors and Symlinks)
 
-- Color modes: `--colors=auto` emits color only when stdout is a terminal; `--colors=always` forces color even through pipes; `--colors=never` disables color.
-- Terminal support: Modern Windows terminals (Windows Terminal, PowerShell, VS Code) support ANSI colors reliably. Git Bash may render ANSI escapes inconsistently; use `--colors=never` or run tests in PowerShell/Windows Terminal.
+- Color modes: `--colors=auto` emits color only when stdout is a terminal;
+  `--colors=always` forces color even through pipes; `--colors=never` disables
+  color.
+- Terminal support: Modern Windows terminals (Windows Terminal, PowerShell, VS
+  Code) support ANSI colors reliably. Git Bash may render ANSI escapes
+  inconsistently; use `--colors=never` or run tests in PowerShell/Windows
+  Terminal.
 - `less` integration: Use `less -R` to preserve ANSI colors when paging output.
-- Symlink behavior: `--follow` is long-only and ignored on Windows. On Windows, symlink handling depends on filesystem and runner settings; tests adapt to runtime semantics (treat symlinks as files only if the platform exposes them that way).
+- Symlink behavior: `--follow` is long-only and ignored on Windows. On Windows,
+  symlink handling depends on filesystem and runner settings; tests adapt to
+  runtime semantics (treat symlinks as files only if the platform exposes them
+  that way).
 
 ## I.A.Q. (Infrequently Asked Questions)
 
