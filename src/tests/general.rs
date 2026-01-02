@@ -1517,7 +1517,7 @@ fn env_defaults_shell_parsing() {
     }
 
     // 1) Colors from NED_DEFAULTS (shell-style parsing of simple flags)
-    let (exit_code, out) = run_with_defaults(&["accidentally.*hand", "test"], "--colors always");
+    let (exit_code, out) = run_with_defaults(&["accidentally.*hand", "test"], "--colors=always");
     assert_eq!(exit_code, 0);
     assert!(out.contains(
         "\u{1b}[35mtest/file1.txt:1:\u{1b}[0mThe \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans AN ESCAPE from a cream puff the placid widow. A slovenly\n"
