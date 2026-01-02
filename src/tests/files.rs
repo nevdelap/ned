@@ -91,6 +91,27 @@ fn no_recursion_follow() {
 }
 
 #[test]
+fn no_recursion_short_l_does_not_follow() {
+    // Regression: ensure '-l' does NOT behave like '--follow'.
+    // Expected set matches non-follow behavior (conditional symlink inclusion).
+    let test_path = Path::new("test");
+    let mut expected_file_names = vec![
+        test_path.join("file1.txt"),
+        test_path.join("file9.txt"),
+        test_path.join("longfile.txt"),
+    ];
+    if fs::symlink_metadata(test_path.join("file8.txt"))
+        .map(|m| m.file_type().is_file())
+        .unwrap_or(false)
+    {
+        expected_file_names.insert(1, test_path.join("file8.txt"));
+    }
+    test("pattern -l test", &expected_file_names);
+    // A leading ./ results in the same normalised relative paths.
+    test("pattern -l ./test", &expected_file_names);
+}
+
+#[test]
 fn no_recursion_follow_all() {
     let test_path = Path::new("test");
     let expected_file_names = vec![

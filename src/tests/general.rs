@@ -381,6 +381,16 @@ fn basic_match_line_numbers_only() {
 }
 
 #[test]
+fn basic_match_line_numbers_only_short_flag() {
+    // Regression: ensure '-l' maps to --line-numbers-only (not --follow)
+    let args = vec!["accidentally", "test", "-l"];
+    let expected_exit_code = 0;
+    let expected_screen_output = ["1\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
 fn basic_match_no_file_names() {
     let args = vec!["accidentally", "test", "--no-filenames"];
     let expected_exit_code = 0;
@@ -447,6 +457,16 @@ fn basic_match_file_names_only_no_match_whole_files() {
 #[test]
 fn basic_match_line_numbers_only_no_match() {
     let args = vec!["secretly", "test/dir1", "--line-numbers-only", "--no-match"];
+    let expected_exit_code = 0;
+    let expected_screen_output = ["1\n2\n3\n4\n5\n6\n1\n2\n3\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn basic_match_line_numbers_only_no_match_short_flag() {
+    // Regression: short '-l' with '--no-match' prints only non-matching line numbers
+    let args = vec!["secretly", "test/dir1", "-l", "--no-match"];
     let expected_exit_code = 0;
     let expected_screen_output = ["1\n2\n3\n4\n5\n6\n1\n2\n3\n"];
 
