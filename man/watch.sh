@@ -1,0 +1,4 @@
+#!/bin/sh
+while true; do
+  man ./ned.1
+done

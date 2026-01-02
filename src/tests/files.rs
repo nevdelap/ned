@@ -25,6 +25,7 @@ use crate::opts::make_opts;
 use crate::parameters::get_parameters;
 use std::env;
 use std::path::{Path, PathBuf};
+use std::fs;
 
 // These tests are not running `ned` to find a pattern in the test files, they
 // are simulating so to test `Files`. To compare the results of running `ned` to
@@ -40,8 +41,14 @@ fn no_recursion() {
         test_path.join("file9.txt"),
         test_path.join("longfile.txt"),
     ];
-    if cfg!(windows) {
-        // Windows presents the symlink as a regular file.
+    // On some Windows environments (e.g. GitHub Actions), symlinks may
+    // be real files or true symlinks depending on checkout settings.
+    // Match the runtime filesystem semantics by checking the entry type
+    // without following the link (same as WalkDir does).
+    if fs::symlink_metadata(test_path.join("file8.txt"))
+        .map(|m| m.file_type().is_file())
+        .unwrap_or(false)
+    {
         expected_file_names.insert(1, test_path.join("file8.txt"));
     }
     test("pattern test", &expected_file_names);
@@ -58,8 +65,12 @@ fn no_recursion_all() {
         test_path.join("file9.txt"),
         test_path.join("longfile.txt"),
     ];
-    if cfg!(windows) {
-        // Windows presents the symlink as a regular file.
+    // Include the symlink only if the filesystem exposes it as a
+    // regular file without following it (platform/checkout dependent).
+    if fs::symlink_metadata(test_path.join("file8.txt"))
+        .map(|m| m.file_type().is_file())
+        .unwrap_or(false)
+    {
         expected_file_names.insert(2, test_path.join("file8.txt"));
     }
     test("pattern --all test", &expected_file_names);
@@ -110,8 +121,12 @@ fn recursion() {
         test_path.join("file9.txt"),
         test_path.join("longfile.txt"),
     ];
-    if cfg!(windows) {
-        // Windows presents the symlink as a regular file.
+    // Include the symlink only if the filesystem exposes it as a
+    // regular file without following it (platform/checkout dependent).
+    if fs::symlink_metadata(test_path.join("file8.txt"))
+        .map(|m| m.file_type().is_file())
+        .unwrap_or(false)
+    {
         expected_file_names.insert(7, test_path.join("file8.txt"));
     }
     test("pattern --recursive test", &expected_file_names);
@@ -138,8 +153,12 @@ fn recursion_all() {
         test_path.join("file9.txt"),
         test_path.join("longfile.txt"),
     ];
-    if cfg!(windows) {
-        // Windows presents the symlink as a regular file.
+    // Include the symlink only if the filesystem exposes it as a
+    // regular file without following it (platform/checkout dependent).
+    if fs::symlink_metadata(test_path.join("file8.txt"))
+        .map(|m| m.file_type().is_file())
+        .unwrap_or(false)
+    {
         expected_file_names.insert(10, test_path.join("file8.txt"));
     }
     test("pattern --recursive --all test", &expected_file_names);
@@ -210,8 +229,12 @@ fn exclude_files() {
         test_path.join("file9.txt"),
         test_path.join("longfile.txt"),
     ];
-    if cfg!(windows) {
-        // Windows presents the symlink as a regular file.
+    // Include the symlink only if the filesystem exposes it as a
+    // regular file without following it (platform/checkout dependent).
+    if fs::symlink_metadata(test_path.join("file8.txt"))
+        .map(|m| m.file_type().is_file())
+        .unwrap_or(false)
+    {
         expected_file_names.insert(6, test_path.join("file8.txt"));
     }
     test(args, &expected_file_names);
@@ -230,8 +253,12 @@ fn exclude_directory() {
         test_path.join("file9.txt"),
         test_path.join("longfile.txt"),
     ];
-    if cfg!(windows) {
-        // Windows presents the symlink as a regular file.
+    // Include the symlink only if the filesystem exposes it as a
+    // regular file without following it (platform/checkout dependent).
+    if fs::symlink_metadata(test_path.join("file8.txt"))
+        .map(|m| m.file_type().is_file())
+        .unwrap_or(false)
+    {
         expected_file_names.insert(5, test_path.join("file8.txt"));
     }
     test(args, &expected_file_names);

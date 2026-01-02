@@ -2,7 +2,7 @@
 # Compare the help and man texts. Most of the middle
 # should be identical because it is in the same order.
 clear
-cargo run -- --help > /tmp/help.txt
-man ./ned.1 > /tmp/man.txt
+cargo run -- --help >/tmp/help.txt
+man ./ned.1 >/tmp/man.txt
 ned '\s' -r '' /tmp/help.txt /tmp/man.txt
 git diff --color-words=. -w /tmp/help.txt /tmp/man.txt

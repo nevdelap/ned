@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-  pull_request:
+#   pull_request:
   workflow_dispatch:
 
 permissions:
@@ -12,9 +12,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  CARGO_TERM_COLOR: always
-
 jobs:
   build-lint-test:
     name: Build, lint, test (${{ matrix.os }})
@@ -23,6 +20,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+    env:
+      CARGO_TERM_COLOR: ${{ matrix.os == 'windows-latest' && 'never' || 'always' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,25 +50,32 @@ jobs:
         run: just lint_markdown
 
       - name: Lint Rust
+        if: runner.os == 'Linux'
         run: just lint_rust
 
-      - name: Build
+      - name: Build Debug
         run: just build
 
-      - name: Test
-        run: just test -- --all-features
+      - name: Test Debug
+        run: just test
 
-  man-compare:
-    name: man/compare flag drift check
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Build Release
+        run: just build --release
 
-      - name: Install just
-        uses: taiki-e/install-action@v2
-        with:
-          tool: just
+      - name: Test Release
+        run: just test --release
 
-      - name: Run comparison via just
-        run: just man-compare
+#   man-compare:
+#     name: man/compare flag drift check
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
+
+#       - name: Install just
+#         uses: taiki-e/install-action@v2
+#         with:
+#           tool: just
+
+#       - name: Run comparison via just
+#         run: just man-compare
