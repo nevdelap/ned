@@ -44,38 +44,36 @@ impl Files {
         }
     }
 
-    /// Normalize relative paths (remove ./ and normalize ../) without
-    /// converting symlinks to the path they point to.
-    fn normalize_relative_paths(input_path: PathBuf) -> std::io::Result<PathBuf> {
+    /// Normalize relative paths (remove `./` and fold `../` lexically) without
+    /// resolving symlinks. This performs purely lexical normalization so that
+    /// entries like `./test/../test/file` are rendered as `test/file`.
+    fn normalize_relative_paths(input_path: PathBuf) -> PathBuf {
         let mut components: Vec<Component> = Vec::new();
         for component in input_path.components() {
             match component {
                 Component::CurDir => {
-                    // Ignore `./`
-                    continue;
+                    // Skip `.`
                 }
                 Component::ParentDir => {
-                    // Resolve `../` by popping the last normal component
-                    if let Some(last_component) = components.last() {
-                        if *last_component != Component::ParentDir {
+                    // Pop a normal component if present; otherwise retain `..`
+                    match components.last() {
+                        Some(Component::Normal(_)) => {
                             components.pop();
-                            continue;
                         }
+                        _ => components.push(component),
                     }
-                    // If there's no preceding component to pop, keep `..`
-                    components.push(component);
                 }
-                _ => {
-                    // Keep normal components
-                    components.push(component);
-                }
+                // Only push lexical components; directories/files appear as Normal
+                Component::Normal(_) => components.push(component),
+                // Preserve other component types verbatim for safety
+                _ => components.push(component),
             }
         }
-        let mut output_path = PathBuf::new();
+        let mut out = PathBuf::new();
         for component in components {
-            output_path.push(component.as_os_str());
+            out.push(component.as_os_str());
         }
-        Ok(output_path)
+        out
     }
 }
 
@@ -118,10 +116,9 @@ impl Iterator for Files {
                                         .iter()
                                         .any(|pattern| pattern.matches(file_name));
                                 if included_file && !excluded_file && (all || !hidden) {
-                                    return Some(Box::new(
-                                        Self::normalize_relative_paths(entry.path().to_path_buf())
-                                            .ok()?,
-                                    ));
+                                    return Some(Box::new(Self::normalize_relative_paths(
+                                        entry.path().to_path_buf(),
+                                    )));
                                 }
                             }
                         }
