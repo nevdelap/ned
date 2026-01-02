@@ -30,7 +30,6 @@ getopts = "0.2.*"
 glob = "0.3.*"
 atty = "0.2.*"
 regex = "1.11.*"
-time = "0.3.*"
 walkdir = "2.5.*"
 
 [profile.release]

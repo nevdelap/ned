@@ -237,7 +237,7 @@ fn exclude_directory() {
     test(args, &expected_file_names);
 }
 
-fn test(args: &str, expected_file_names: &Vec<PathBuf>) {
+fn test(args: &str, expected_file_names: &[PathBuf]) {
     let args = args
         .split_whitespace()
         .map(|arg| arg.to_string())

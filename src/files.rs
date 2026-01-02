@@ -32,7 +32,7 @@ pub struct Files {
 
 impl Files {
     pub fn new(parameters: &Parameters, glob: &str) -> Files {
-        let mut walkdir = WalkDir::new(&glob)
+        let mut walkdir = WalkDir::new(glob)
             .follow_links(parameters.follow)
             .sort_by(|a, b| a.file_name().cmp(b.file_name()));
         if !parameters.recursive {

@@ -1,0 +1,46 @@
+{
+  "MD003": {
+    "style": "atx"
+  },
+  "MD004": {
+    "style": "dash"
+  },
+  "MD013": {
+    "code_blocks": false,
+    // This somehow has issues with lines containing inline code. To be investigated.
+    "line_length": 200,
+    "stern": false,
+    "strict": false,
+    "tables": false
+  },
+  "MD029": {
+    "style": "ordered"
+  },
+  "MD033": {
+    "allowed_elements": [
+      "br" // For line breaks in tables.
+    ]
+  },
+  "MD035": {
+    // This is the format mdformat does, which is not configurable.
+    "style": "______________________________________________________________________"
+  },
+  "MD044": {
+    "names": [
+      "dbt", // Name.
+      "DBT_" // Usages in env vars.
+    ]
+  },
+  "MD046": {
+    "style": "fenced"
+  },
+  "MD048": {
+    "style": "backtick"
+  },
+  "MD049": {
+    "style": "asterisk"
+  },
+  "MD050": {
+    "style": "asterisk"
+  }
+}

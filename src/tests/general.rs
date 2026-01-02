@@ -20,7 +20,6 @@
 
 /// Just a few general tests. The specifics are tested in the other test files.
 use crate::ned;
-use std;
 
 #[test]
 fn basic_match() {
@@ -1480,6 +1479,6 @@ fn fix_output_for_windows(part: &str) -> String {
     // Is sufficient for current requirements as I make tests
     // written on Linux work on Windows. Future tests will
     // be written to work on both platforms .
-    part.replace("/", &std::path::MAIN_SEPARATOR.to_string())
+    part.replace("/", std::path::MAIN_SEPARATOR_STR)
         .replace("\r", "")
 }

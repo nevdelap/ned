@@ -18,13 +18,6 @@
 // 02110-1301, USA.
 //
 
-extern crate nu_ansi_term;
-extern crate getopts;
-extern crate glob;
-extern crate regex;
-extern crate time;
-extern crate walkdir;
-
 mod colors;
 mod files;
 mod ned_error;
@@ -79,11 +72,7 @@ fn ned(output: &mut dyn Write, args: &[String]) -> NedResult<i32> {
     }
 
     if parameters.help {
-        let _ = writeln!(
-            output,
-            "\n{}",
-            usage_full(options_with_defaults.get_opts())
-        );
+        let _ = writeln!(output, "\n{}", usage_full(options_with_defaults.get_opts()));
         process::exit(0);
     }
 
@@ -271,11 +260,7 @@ fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> Vec<b
     for line in 0..context_map.len() {
         if match_map[line] {
             // We can't use std::cmp::max() for this test because the indices are unsigned.
-            let start = if line >= parameters.context_before {
-                line - parameters.context_before
-            } else {
-                0usize
-            };
+            let start = line.saturating_sub(parameters.context_before);
             let end = std::cmp::min(match_map.len(), line + parameters.context_after + 1);
             for item in context_map.iter_mut().take(end).skip(start) {
                 *item = true;
@@ -615,7 +600,8 @@ fn color_matches_with_number_skip_backwards(
     text: &str,
 ) -> (String, bool) {
     if parameters.colors {
-        let (new_text, found_matches) = replace(parameters, re, text, paint_red_bold("$0").as_str());
+        let (new_text, found_matches) =
+            replace(parameters, re, text, paint_red_bold("$0").as_str());
         (new_text, found_matches)
     } else {
         let found_matches = is_match_with_number_skip_backwards(parameters, re, text);
@@ -625,7 +611,8 @@ fn color_matches_with_number_skip_backwards(
 
 fn color_matches_all(parameters: &Parameters, re: &Regex, text: &str) -> String {
     if parameters.colors {
-        re.replace_all(text, paint_red_bold("$0").as_str()).into_owned()
+        re.replace_all(text, paint_red_bold("$0").as_str())
+            .into_owned()
     } else {
         text.to_string()
     }
@@ -633,5 +620,9 @@ fn color_matches_all(parameters: &Parameters, re: &Regex, text: &str) -> String 
 
 /// Color the whole text if --colors has been specified.
 fn color(parameters: &Parameters, text: &str) -> String {
-    if parameters.colors { paint_red_bold(text) } else { text.to_string() }
+    if parameters.colors {
+        paint_red_bold(text)
+    } else {
+        text.to_string()
+    }
 }

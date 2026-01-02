@@ -19,9 +19,6 @@
 //
 
 use crate::opts::PROGRAM;
-use getopts;
-use glob;
-use regex;
 use std::error;
 use std::fmt;
 use std::io::{self, ErrorKind, Write};
@@ -40,7 +37,9 @@ impl fmt::Display for StringError {
 }
 
 impl error::Error for StringError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> { None }
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        None
+    }
 }
 
 #[derive(Debug)]

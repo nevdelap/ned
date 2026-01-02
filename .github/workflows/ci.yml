@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-lint-test:
+    name: Build, lint, test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Rust (stable)
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install just
+        uses: taiki-e/install-action@v2
+        with:
+          tool: just
+
+      - name: Format Markdown
+        if: runner.os == 'Linux'
+        run: just format_markdown
+
+      - name: Format Rust
+        if: runner.os == 'Linux'
+        run: just format_rust
+
+      - name: Lint Markdown
+        if: runner.os == 'Linux'
+        run: just lint_markdown
+
+      - name: Lint Rust
+        run: just lint_rust
+
+      - name: Build
+        run: just build
+
+      - name: Test
+        run: just test -- --all-features
+
+  man-compare:
+    name: man/compare flag drift check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install just
+        uses: taiki-e/install-action@v2
+        with:
+          tool: just
+
+      - name: Run comparison via just
+        run: just man-compare

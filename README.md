@@ -1,5 +1,8 @@
 # `ned`
 
+[![CI](https://github.com/nevdelap/ned/actions/workflows/ci.yml/badge.svg)](https://github.com/nevdelap/ned/actions/workflows/ci.yml)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+
 ![ned Screenshot](https://github.com/nevdelap/ned/blob/master/img/nedScreenshot.png)
 
 ## `ned` Usage
@@ -120,7 +123,7 @@ There is NO WARRANTY, to the extent permitted by law.
 
 ## I.A.Q. (Infrequently Asked Questions)
 
-**_Why isn't \U working? (or \L, \I, \F)_**
+***Why isn't \\U working? (or \\L, \\I, \\F)***
 
 Because case replacing is off by default to not waste cycles when you're not
 doing it, since that is most of the time, generally. See the help: (as of
@@ -134,8 +137,8 @@ v1.2.0)
                         replacement.
 ```
 
-**_Why do I get errors like ned: /path/file invalid utf-8 sequence of 1 bytes
-from index 25?_**
+***Why do I get errors like ned: /path/file invalid utf-8 sequence of 1 bytes
+from index 25?***
 
 Because, by default, `ned` reads everything unless you tell it not to read it.
 If you want it to always ignore non-ASCII, non-UTF-8 files, you can put this in
@@ -148,7 +151,7 @@ NED_DEFAULTS. See the help:
                         the --exclude option should be preferred.
 ```
 
-**_Why don't the tests pass in Git Bash?_**
+***Why don't the tests pass in Git Bash?***
 
 Git Bash may not render ANSI color escape sequences reliably. If colored output
 causes failures, run the tests in cmd.exe, PowerShell, or Windows Terminal.
@@ -471,8 +474,8 @@ ned -w '\n.*dog.*\n.*dog.*\n.*dog.*\n' -r '\n'
 **Replace changing case.**
 
 'big dog' and 'smelly dog' replaced with 'BIG! dog' and 'SMELLY! dog'. Available
-case replacements: \U - uppercase, \L - lowercase, \I - initial uppercase (title
-case), \F - first uppercase (sentence case).
+case replacements: \\U - uppercase, \\L - lowercase, \\I - initial uppercase (title
+case), \\F - first uppercase (sentence case).
 
 ```bash
 ned ' ([a-z]+) dog' --case-replacements -r '\U$1\E! dog' --stdout .
