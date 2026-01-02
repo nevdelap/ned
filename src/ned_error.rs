@@ -40,9 +40,7 @@ impl fmt::Display for StringError {
 }
 
 impl error::Error for StringError {
-    fn cause(&self) -> Option<&dyn error::Error> {
-        None
-    }
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> { None }
 }
 
 #[derive(Debug)]
@@ -114,7 +112,7 @@ impl fmt::Display for NedError {
 }
 
 impl error::Error for NedError {
-    fn cause(&self) -> Option<&dyn error::Error> {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match *self {
             NedError::FromUtf8(ref err) => Some(err),
             NedError::GetOpts(ref err) => Some(err),
@@ -129,21 +127,11 @@ impl error::Error for NedError {
 pub type NedResult<T> = Result<T, NedError>;
 
 pub fn stderr_write_err(err: &dyn error::Error) {
-    io::stderr()
-        .write_all(&format!("{}: {}\n", PROGRAM, err.to_string()).into_bytes())
-        .expect("Can't write to stderr!");
+    let mut e = io::stderr();
+    let _ = writeln!(e, "{}: {}", PROGRAM, err);
 }
 
 pub fn stderr_write_file_err(path_buf: &path::Path, err: &dyn error::Error) {
-    io::stderr()
-        .write_all(
-            &format!(
-                "{}: {} {}\n",
-                PROGRAM,
-                path_buf.to_string_lossy(),
-                err.to_string()
-            )
-            .into_bytes(),
-        )
-        .expect("Can't write to stderr!");
+    let mut e = io::stderr();
+    let _ = writeln!(e, "{}: {} {}", PROGRAM, path_buf.to_string_lossy(), err);
 }

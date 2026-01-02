@@ -18,10 +18,9 @@
 // 02110-1301, USA.
 //
 
-extern crate ansi_term;
+extern crate nu_ansi_term;
 extern crate getopts;
 extern crate glob;
-extern crate libc;
 extern crate regex;
 extern crate time;
 extern crate walkdir;
@@ -43,8 +42,8 @@ use crate::opts::{make_opts, usage_brief, usage_full, usage_version};
 use crate::parameters::{get_parameters, Parameters};
 use crate::source::Source;
 #[cfg(target_os = "windows")]
-use ansi_term::enable_ansi_support;
-use ansi_term::Colour::{Purple, Red};
+use nu_ansi_term::enable_ansi_support;
+use nu_ansi_term::Color::{Purple, Red};
 use regex::{Captures, Match, Regex};
 use std::collections::HashMap;
 use std::fs::OpenOptions;
@@ -61,8 +60,8 @@ fn main() {
     let exit_code = match ned(&mut output, &env::args().skip(1).collect::<Vec<String>>()) {
         Ok(exit_code) => exit_code,
         Err(err) => {
-            let _ = stderr()
-                .write_all(&format!("{}\n{}\n\n", usage_brief(), err.to_string()).into_bytes());
+            let mut e = stderr();
+            let _ = writeln!(e, "{}\n{}\n", usage_brief(), err);
             1
         }
     };
@@ -75,19 +74,22 @@ fn ned(output: &mut dyn Write, args: &[String]) -> NedResult<i32> {
     let parameters = get_parameters(&options_with_defaults)?;
 
     if parameters.version {
-        let _ = output.write_all(&format!("\n{}\n", usage_version()).into_bytes());
+        let _ = writeln!(output, "\n{}", usage_version());
         process::exit(0);
     }
 
     if parameters.help {
-        let _ = output.write_all(
-            &format!("\n{}\n", usage_full(options_with_defaults.get_opts())).into_bytes(),
+        let _ = writeln!(
+            output,
+            "\n{}",
+            usage_full(options_with_defaults.get_opts())
         );
         process::exit(0);
     }
 
     if parameters.regex.is_none() {
-        let _ = stderr().write_all(&format!("\n{}\n\n", usage_brief()).into_bytes());
+        let mut e = stderr();
+        let _ = write!(e, "\n{}\n\n", usage_brief());
         process::exit(1);
     }
 
@@ -96,10 +98,10 @@ fn ned(output: &mut dyn Write, args: &[String]) -> NedResult<i32> {
         match enable_ansi_support() {
             Ok(_) => {}
             Err(_) => {
-                let _ = stderr().write_all(
-                    &"Sadly, colors are not supported in this terminal. ansi_term colors are not supported in Git Bash or Cygwin Terminal. Colors are supported in cmd.exe, PowerShell, the OS X terminal, and all Linux terminals.\n\n"
-                        .to_string()
-                        .into_bytes(),
+                let mut e = stderr();
+                let _ = write!(
+                    e,
+                    "Sadly, colors are not supported in this terminal. ANSI colors may not be supported in Git Bash or Cygwin Terminal. Colors are supported in cmd.exe, PowerShell, macOS Terminal, and most Linux terminals.\n\n"
                 );
                 process::exit(1);
             }
@@ -202,7 +204,7 @@ fn process_file(
         if parameters.stdout {
             if !parameters.quiet {
                 write_file_name_and_line_number(output, parameters, file_name, None)?;
-                output.write_all(&content.into_bytes())?;
+                output.write_all(content.as_bytes())?;
             }
         } else {
             // It's not a single match in test.
@@ -212,7 +214,7 @@ fn process_file(
                 Source::File(ref mut file) => {
                     if found_matches {
                         file.seek(SeekFrom::Start(0))?;
-                        let bytes = &content.into_bytes();
+                        let bytes = content.as_bytes();
                         file.write_all(bytes)?;
                         file.set_len(bytes.len() as u64)?;
                     }
@@ -220,7 +222,7 @@ fn process_file(
                 #[cfg(test)]
                 Source::Cursor(ref mut cursor) => {
                     cursor.seek(SeekFrom::Start(0))?;
-                    cursor.write_all(&content.into_bytes())?;
+                    cursor.write_all(content.as_bytes())?;
                 }
                 _ => {}
             }
@@ -261,11 +263,10 @@ fn process_file(
 /// value is a boolean that indicates whether or not that line should be shown given
 /// the -C --context, -B --before, and -A --after options specified in the parameters.
 fn make_context_map(parameters: &Parameters, re: &Regex, content: &str) -> Vec<bool> {
-    let lines = content.lines().map(str::to_string).collect::<Vec<String>>();
-    let mut match_map = Vec::<bool>::with_capacity(lines.len());
-    for line in lines {
-        match_map.push(is_match_with_number_skip_backwards(parameters, re, &line));
-    }
+    let match_map: Vec<bool> = content
+        .lines()
+        .map(|line| is_match_with_number_skip_backwards(parameters, re, line))
+        .collect();
     let mut context_map = match_map.clone();
     for line in 0..context_map.len() {
         if match_map[line] {
@@ -344,6 +345,10 @@ fn process_text(
     Ok(false)
 }
 
+fn paint_red_bold(text: &str) -> String {
+    Red.bold().paint(text).to_string()
+}
+
 /// Do a replace_all() or a find_iter() taking into account which of --number, --skip, and
 /// --backwards have been specified.
 fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> (String, bool) {
@@ -362,14 +367,10 @@ fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> (S
             if parameters.include_match(index, count) {
                 found_matches = true;
                 let this_replace = re.replace(_match.as_str(), replace).into_owned();
-                new_text = format!(
-                    "{}{}{}",
-                    // find_iter guarantees that start and end
-                    // are at a Unicode code point boundary.
-                    unsafe { &new_text.get_unchecked(0.._match.start()) },
-                    this_replace,
-                    unsafe { &new_text.get_unchecked(_match.end()..new_text.len()) }
-                );
+                // find_iter guarantees that start and end are at a Unicode code point boundary.
+                let prefix = &new_text[0.._match.start()];
+                let suffix = &new_text[_match.end()..];
+                new_text = format!("{}{}{}", prefix, this_replace, suffix);
             }
         }
     };
@@ -467,7 +468,7 @@ fn write_line(
     if !parameters.quiet {
         write_file_name_and_line_number(output, parameters, file_name, line_number)?;
         if !parameters.line_numbers_only && !parameters.quiet {
-            output.write_all(&text.to_string().into_bytes())?;
+            output.write_all(text.as_bytes())?;
             write_newline_if_replaced_text_ends_with_newline(output, text)?;
         }
     }
@@ -505,7 +506,7 @@ fn write_groups(
                         )?;
                         wrote_file_name = true;
                     }
-                    output.write_all(&text.to_string().into_bytes())?;
+                    output.write_all(text.as_bytes())?;
                 } else {
                     break;
                 }
@@ -513,7 +514,7 @@ fn write_groups(
         }
     }
     if !parameters.quiet && found_matches {
-        output.write_all(&"\n".to_string().into_bytes())?;
+        output.write_all(b"\n")?;
     }
     Ok(found_matches)
 }
@@ -541,14 +542,14 @@ fn write_matches(
             }
             let text = color(parameters, &text[_match.start().._match.end()]);
             if !parameters.quiet {
-                output.write_all(&text.to_string().into_bytes())?;
+                output.write_all(text.as_bytes())?;
             } else {
                 return Ok(found_matches);
             }
         }
     }
     if file_name_written {
-        output.write_all(&"\n".to_string().into_bytes())?;
+        output.write_all(b"\n")?;
     }
     Ok(found_matches)
 }
@@ -590,7 +591,7 @@ fn write_file_name_and_line_number(
             if parameters.colors {
                 location = Purple.paint(location).to_string();
             }
-            output.write_all(&location.into_bytes())?;
+            output.write_all(location.as_bytes())?;
         }
     }
     Ok(())
@@ -601,7 +602,7 @@ fn write_newline_if_replaced_text_ends_with_newline(
     text: &str,
 ) -> NedResult<()> {
     if !text.ends_with('\n') {
-        output.write_all(&"\n".to_string().into_bytes())?;
+        output.write_all(b"\n")?;
     }
     Ok(())
 }
@@ -613,23 +614,18 @@ fn color_matches_with_number_skip_backwards(
     re: &Regex,
     text: &str,
 ) -> (String, bool) {
-    let (new_text, found_matches) = replace(
-        parameters,
-        re,
-        text,
-        Red.bold().paint("$0").to_string().as_str(),
-    );
     if parameters.colors {
+        let (new_text, found_matches) = replace(parameters, re, text, paint_red_bold("$0").as_str());
         (new_text, found_matches)
     } else {
+        let found_matches = is_match_with_number_skip_backwards(parameters, re, text);
         (text.to_string(), found_matches)
     }
 }
 
 fn color_matches_all(parameters: &Parameters, re: &Regex, text: &str) -> String {
     if parameters.colors {
-        re.replace_all(text, Red.bold().paint("$0").to_string().as_str())
-            .into_owned()
+        re.replace_all(text, paint_red_bold("$0").as_str()).into_owned()
     } else {
         text.to_string()
     }
@@ -637,9 +633,5 @@ fn color_matches_all(parameters: &Parameters, re: &Regex, text: &str) -> String 
 
 /// Color the whole text if --colors has been specified.
 fn color(parameters: &Parameters, text: &str) -> String {
-    if parameters.colors {
-        Red.bold().paint(text).to_string()
-    } else {
-        text.to_string()
-    }
+    if parameters.colors { paint_red_bold(text) } else { text.to_string() }
 }

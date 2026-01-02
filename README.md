@@ -150,16 +150,15 @@ NED_DEFAULTS. See the help:
 
 **_Why don't the tests pass in Git Bash?_**
 
-Git Bash does not support colored output using ansi_term. Run the tests in
-cmd.exe on Windows.
+Git Bash may not render ANSI color escape sequences reliably. If colored output
+causes failures, run the tests in cmd.exe, PowerShell, or Windows Terminal.
 
 ## Building `ned`
 
 ### Machine Setup To Build `ned`
 
-- Install Rust as per: <https://www.rust-lang.org/en-US/install.html>
-- (Windows) Install Visual Studio Build Tools 2017 as per:
-  <https://www.visualstudio.com/downloads/>
+- Install `rustup` as per: <https://rust-lang.org/tools/install/> or as per your
+  system's preferred method.
 
 ### To Build For The Current Platform
 

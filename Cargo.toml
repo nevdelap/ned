@@ -25,10 +25,10 @@ authors = ["Nev Delap <nevdelap@gmail.com>"]
 edition = "2021"
 
 [dependencies]
-ansi_term = "0.12.*"
+nu-ansi-term = "0.50.*"
 getopts = "0.2.*"
 glob = "0.3.*"
-libc = "0.2.*"
+atty = "0.2.*"
 regex = "1.11.*"
 time = "0.3.*"
 walkdir = "2.5.*"
