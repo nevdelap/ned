@@ -26,7 +26,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Rust (stable)
+      - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
 
       - name: Cache cargo
@@ -64,6 +64,50 @@ jobs:
 
       - name: Test Release
         run: just test --release
+
+  cargo-deny:
+    name: Dependency policy checks (cargo-deny)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-deny
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-deny
+
+      - name: Run cargo-deny checks
+        run: |
+          cargo deny check
+
+  msrv:
+    name: MSRV build, lint, test (ubuntu)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Rust (MSRV)
+        uses: dtolnay/rust-toolchain@v1.72.0
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build (MSRV)
+        run: cargo build --all-targets
+
+      - name: Clippy (MSRV)
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Test (MSRV)
+        run: cargo test
 
 #   man-compare:
 #     name: man/compare flag drift check
