@@ -151,10 +151,10 @@ fn process_file(
     let content: String;
     {
         let read: &mut dyn Read = match source {
-            Source::Stdin(ref mut read) => read,
-            Source::File(ref mut file) => file,
+            Source::Stdin(read) => read,
+            Source::File(file) => file,
             #[cfg(test)]
-            Source::Cursor(ref mut cursor) => cursor,
+            Source::Cursor(cursor) => cursor,
         };
         let mut buffer = Vec::new();
         let _ = read.read_to_end(&mut buffer)?;
@@ -200,7 +200,7 @@ fn process_file(
             #[allow(clippy::single_match)]
             match source {
                 // A better way???
-                Source::File(ref mut file) => {
+                Source::File(file) => {
                     if found_matches {
                         file.seek(SeekFrom::Start(0))?;
                         let bytes = content.as_bytes();
@@ -209,7 +209,7 @@ fn process_file(
                     }
                 }
                 #[cfg(test)]
-                Source::Cursor(ref mut cursor) => {
+                Source::Cursor(cursor) => {
                     cursor.seek(SeekFrom::Start(0))?;
                     cursor.write_all(content.as_bytes())?;
                 }
@@ -551,7 +551,7 @@ fn write_file_name_and_line_number(
     if !parameters.quiet {
         let mut location = "".to_string();
         if !parameters.no_file_names && !parameters.line_numbers_only {
-            if let Some(ref file_name) = file_name {
+            if let Some(file_name) = file_name {
                 location.push_str(file_name);
             }
         }
