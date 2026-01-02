@@ -24,8 +24,8 @@ use crate::options_with_defaults::OptionsWithDefaults;
 use crate::opts::make_opts;
 use crate::parameters::get_parameters;
 use std::env;
-use std::path::{Path, PathBuf};
 use std::fs;
+use std::path::{Path, PathBuf};
 
 // These tests are not running `ned` to find a pattern in the test files, they
 // are simulating so to test `Files`. To compare the results of running `ned` to
@@ -228,11 +228,13 @@ fn recursion_follow_all() {
 #[test]
 fn include_files() {
     let test_path = Path::new("test");
-    let expected_file_names = vec![test_path
-        .join("dir1")
-        .join("dir4")
-        .join("dir5")
-        .join("file7.txt")];
+    let expected_file_names = vec![
+        test_path
+            .join("dir1")
+            .join("dir4")
+            .join("dir5")
+            .join("file7.txt"),
+    ];
     test("pattern -R test --include file7*", &expected_file_names);
 }
 

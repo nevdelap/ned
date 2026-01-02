@@ -29,18 +29,18 @@ mod source;
 mod tests;
 
 use crate::files::Files;
-use crate::ned_error::{stderr_write_file_err, NedError, NedResult};
+use crate::ned_error::{NedError, NedResult, stderr_write_file_err};
 use crate::options_with_defaults::OptionsWithDefaults;
 use crate::opts::{make_opts, usage_brief, usage_full, usage_version};
-use crate::parameters::{get_parameters, Parameters};
+use crate::parameters::{Parameters, get_parameters};
 use crate::source::Source;
+use nu_ansi_term::Color::{Purple, Red};
 #[cfg(target_os = "windows")]
 use nu_ansi_term::enable_ansi_support;
-use nu_ansi_term::Color::{Purple, Red};
 use regex::{Captures, Match, Regex};
 use std::collections::HashMap;
 use std::fs::OpenOptions;
-use std::io::{stderr, stdin, stdout, Read, Seek, SeekFrom, Write};
+use std::io::{Read, Seek, SeekFrom, Write, stderr, stdin, stdout};
 use std::iter::Iterator;
 use std::string::String;
 use std::{env, process};

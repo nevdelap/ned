@@ -1,0 +1,9 @@
+[licenses]
+unused-allowed-license = "deny"
+unused-license-exception = "deny"
+allow = [
+  "MIT",
+  "Apache-2.0",
+]
+exceptions = [{ name = "ned", allow = ["GPL-3.0-or-later"] }]
+confidence-threshold = 0.8

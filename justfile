@@ -81,9 +81,14 @@ lint: format
     just lint_shell
     just lint_rust
 
-# Run the test suite
+# Run the test suite.
 test *args="":
     cargo test {{args}}
+
+# Run cargo deny check.
+deny_check:
+    cargo install cargo-deny
+    cargo deny check
 
 # Do a debug build.
 build *args="":

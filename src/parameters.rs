@@ -24,6 +24,7 @@ use crate::options_with_defaults::OptionsWithDefaults;
 use glob::Pattern;
 use regex::Regex;
 use std::collections::HashMap;
+use std::io::IsTerminal;
 use std::iter::Iterator;
 use std::str::FromStr;
 
@@ -165,8 +166,7 @@ pub fn get_parameters(options_with_defaults: &OptionsWithDefaults) -> NedResult<
     let stdin = globs.is_empty();
     let stdout = stdin || options_with_defaults.opt_present("stdout");
     let replace = convert_escapes(options_with_defaults.opt_str("replace"));
-    // Detect if stdout is a TTY using atty for cross-platform correctness.
-    let isatty = atty::is(atty::Stream::Stdout);
+    let isatty = std::io::stdout().is_terminal();
 
     let c = options_with_defaults.opt_present("c");
     let mut colors = parse_opt_str(options_with_defaults, "colors", None)?;
