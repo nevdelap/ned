@@ -101,6 +101,10 @@ build *args="":
 release *args="":
     cargo build {{args}}
 
+# Show help.
+ned_help:
+    cargo run -- --help
+
 # Compare man page flags vs README (if desired)
 man-compare:
     man/compare.sh

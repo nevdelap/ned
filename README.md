@@ -97,12 +97,14 @@ Options:
     -h, --help          Print this help and exit.
 
 Environment:
-    NED_DEFAULTS        ned options added to the program's arguments. Is
-                        a space delimited list of options and is not first
-                        interpreted by a shell, so quotes are not required
-                        around arguments. For example:
+    NED_DEFAULTS        ned options added to the program's arguments. Arguments
+                        are parsed using POSIX shell-style splitting: quotes and
+                        escapes are respected, so quoted segments remain a single
+                        argument. No shell expansion occurs (wildcards and variables
+                        are not expanded). ASCII RS (U+001E) is normalized to spaces.
+                        Example:
 
-                        NED_DEFAULTS="-u -R --exclude *.bk --exclude-dir .git"
+                        NED_DEFAULTS="-u -R --exclude '*.bk' --exclude-dir .git --colors always"
 Exit codes:
     0                   matches found/replaced
     1                   no matches
