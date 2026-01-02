@@ -3,7 +3,7 @@
 [![CI](https://github.com/nevdelap/ned/actions/workflows/ci.yml/badge.svg)](https://github.com/nevdelap/ned/actions/workflows/ci.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
-![ned Screenshot](https://github.com/nevdelap/ned/blob/master/img/nedScreenshot.png)
+![ned Screenshot](img/nedScreenshot.png)
 
 ## `ned` Usage
 
