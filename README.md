@@ -70,7 +70,7 @@ Options:
     -A, --after LINES   Show LINES lines after each matching line. Use without
                         -w/--whole-files.
     -R, --recursive     Recurse.
-    -l, --follow        Follow symlinks. (Ignored on Windows.)
+        --follow        Follow symlinks. (Ignored on Windows.)
         --include GLOB  Match only files that match GLOB.
         --exclude GLOB  Skip files matching GLOB.
         --exclude-dir GLOB
