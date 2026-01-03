@@ -22,8 +22,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Install Just
         uses: taiki-e/install-action@v2
@@ -179,8 +177,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Install Rust Toolchain (Linux musl)
         uses: dtolnay/rust-toolchain@stable
@@ -230,8 +226,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Install Rust Toolchain (Windows GNU)
         uses: dtolnay/rust-toolchain@stable
@@ -276,8 +270,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Download Artifact (Windows GNU)
         uses: actions/download-artifact@v4
@@ -299,11 +291,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Fetch master branch for lint diffs
-        run: git fetch origin master
 
       - name: Install Rust Toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -329,8 +316,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Install Rust Toolchain (MSRV)
         uses: dtolnay/rust-toolchain@1.85.0
@@ -380,8 +365,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Download Artifact (Linux GNU)
         uses: actions/download-artifact@v4
