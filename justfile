@@ -122,7 +122,7 @@ tag_release:
     if [ -z "$version" ]; then \
         echo "Version not found in Cargo.toml"; exit 1; \
     fi; \
-    tag="release-$version"; \
+    tag="release.$version"; \
     git tag --force "$tag"; \
     git push --force origin "$tag"
 

@@ -20,7 +20,7 @@
 
 [package]
 name = "ned"
-version = "2.0.0"
+version = "2.0.0-draft"
 authors = ["Nev Delap <nevdelap@gmail.com>"]
 edition = "2024"
 rust-version = "1.85"
