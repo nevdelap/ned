@@ -20,14 +20,13 @@
 
 use crate::ned_error::stderr_write_err;
 use crate::parameters::Parameters;
-use std::iter::IntoIterator;
 use std::path::Component;
 use std::path::PathBuf;
 use walkdir::{IntoIter, WalkDir};
 
 pub struct Files {
     parameters: Parameters,
-    walkdir: Box<IntoIter>,
+    walkdir: IntoIter,
 }
 
 impl Files {
@@ -40,7 +39,7 @@ impl Files {
         }
         Files {
             parameters: parameters.clone(),
-            walkdir: Box::new(walkdir.into_iter()),
+            walkdir: walkdir.into_iter(),
         }
     }
 
@@ -78,9 +77,9 @@ impl Files {
 }
 
 impl Iterator for Files {
-    type Item = Box<PathBuf>;
+    type Item = PathBuf;
 
-    fn next(&mut self) -> Option<Box<PathBuf>> {
+    fn next(&mut self) -> Option<PathBuf> {
         loop {
             match self.walkdir.next() {
                 Some(entry) => match entry {
@@ -116,9 +115,9 @@ impl Iterator for Files {
                                         .iter()
                                         .any(|pattern| pattern.matches(file_name));
                                 if included_file && !excluded_file && (all || !hidden) {
-                                    return Some(Box::new(Self::normalize_relative_paths(
+                                    return Some(Self::normalize_relative_paths(
                                         entry.path().to_path_buf(),
-                                    )));
+                                    ));
                                 }
                             }
                         }
