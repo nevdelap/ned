@@ -30,7 +30,7 @@ jobs:
         with:
           tool: just
 
-      - name: Extract Cargo Version via Just (Docker)
+      - name: Extract Cargo Version
         id: version
         shell: bash
         run: |
@@ -94,7 +94,7 @@ jobs:
         run: |
           ./target/debug/ned --version | grep -q "ned ${{ needs.version.outputs.version }}"
 
-      - name: Run Check Debug (Windows)
+      - name: Run Check Debug (Windows MSVC)
         if: runner.os == 'Windows'
         shell: powershell
         run: |
@@ -106,7 +106,7 @@ jobs:
         if: runner.os != 'Windows'
         run: just build --release
 
-      - name: Build Release (Windows MSVC static CRT)
+      - name: Build Release (Windows MSVC)
         if: runner.os == 'Windows'
         shell: powershell
         env:
@@ -122,7 +122,7 @@ jobs:
         run: |
           ./target/release/ned --version | grep -q "ned ${{ needs.version.outputs.version }}"
 
-      - name: Run Check Release (Windows)
+      - name: Run Check Release (Windows MSVC)
         if: runner.os == 'Windows'
         shell: powershell
         run: |
@@ -131,7 +131,6 @@ jobs:
           if (-not ($out -like "*ned ${{ needs.version.outputs.version }}*")) { Write-Error "Version substring not found: $out"; exit 1 }
 
       - name: Strip Release Binary (Linux GNU)
-        # Standardize capitalization in step names
         if: runner.os == 'Linux'
         run: |
           strip target/release/ned
@@ -141,7 +140,7 @@ jobs:
         run: |
           strip -x target/release/ned
 
-      - name: Strip Release Binary (Windows)
+      - name: Strip Release Binary (Windows MSVC)
         if: runner.os == 'Windows'
         shell: powershell
         run: |
@@ -164,7 +163,7 @@ jobs:
           path: target/release/ned
           if-no-files-found: error
 
-      - name: Upload Release Artifact (Windows)
+      - name: Upload Release Artifact (Windows MSVC)
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
@@ -183,7 +182,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install Rust Toolchain (musl target)
+      - name: Install Rust Toolchain (Linux musl)
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-unknown-linux-musl
@@ -202,21 +201,21 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y musl-tools
 
-      - name: Build Release (musl)
+      - name: Build Release (Linux musl)
         env:
           RUSTFLAGS: -C target-feature=+crt-static
         run: |
           just build --release --target x86_64-unknown-linux-musl
 
-      - name: Run Check (musl)
+      - name: Run Check (Linux musl)
         run: |
           ./target/x86_64-unknown-linux-musl/release/ned --version | grep -q "ned ${{ needs.version.outputs.version }}"
 
-      - name: Strip Release Binary (musl)
+      - name: Strip Release Binary (Linux musl)
         run: |
           strip target/x86_64-unknown-linux-musl/release/ned
 
-      - name: Upload Release Artifact (musl)
+      - name: Upload Release Artifact (Linux musl)
         uses: actions/upload-artifact@v4
         with:
           name: ned-linux-musl-${{ needs.version.outputs.version }}
@@ -234,7 +233,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install Rust Toolchain (Windows GNU target)
+      - name: Install Rust Toolchain (Windows GNU)
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-pc-windows-gnu
@@ -270,7 +269,7 @@ jobs:
           if-no-files-found: error
 
   windows-gnu-verify:
-    name: Verify Windows GNU Artifact (Windows)
+    name: Verify Windows GNU Artifact (Windows GNU)
     needs: [version, windows-gnu-cross]
     runs-on: windows-latest
     timeout-minutes: 5
@@ -286,7 +285,7 @@ jobs:
           name: ned-windows-gnu-${{ needs.version.outputs.version }}.exe
           path: dist/windows-gnu
 
-      - name: Run Check (Windows GNU on Windows)
+      - name: Run Check (Windows GNU)
         shell: powershell
         run: |
           $out = (& 'dist\windows-gnu\ned.exe' --version)
@@ -402,7 +401,7 @@ jobs:
           name: ned-macos-${{ needs.version.outputs.version }}
           path: dist/macos
 
-      - name: Download Artifact (Windows)
+      - name: Download Artifact (Windows MSVC)
         uses: actions/download-artifact@v4
         with:
           name: ned-windows-${{ needs.version.outputs.version }}
