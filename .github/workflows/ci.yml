@@ -222,7 +222,7 @@ jobs:
     name: Build (Windows GNU, x86_64-pc-windows-gnu)
     needs: [version]
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
