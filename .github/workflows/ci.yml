@@ -91,12 +91,12 @@ jobs:
       - name: Test Debug
         run: just test
 
-      - name: Version Debug (non-Windows)
+      - name: Run Check Debug (non-Windows)
         if: runner.os != 'Windows'
         run: |
           ./target/debug/ned --version | grep -q "ned ${{ needs.version.outputs.version }}"
 
-      - name: Version Debug (Windows)
+      - name: Run Check Debug (Windows)
         if: runner.os == 'Windows'
         shell: powershell
         run: |
@@ -119,19 +119,18 @@ jobs:
       - name: Test Release
         run: just test --release
 
-      - name: Version Release (non-Windows)
+      - name: Run Check Release (non-Windows)
         if: runner.os != 'Windows'
         run: |
           ./target/release/ned --version | grep -q "ned ${{ needs.version.outputs.version }}"
 
-      - name: Version Release (Windows)
+      - name: Run Check Release (Windows)
         if: runner.os == 'Windows'
         shell: powershell
         run: |
           $out = (& 'target\release\ned.exe' --version)
           Write-Host $out
           if (-not ($out -like "*ned ${{ needs.version.outputs.version }}*")) { Write-Error "Version substring not found: $out"; exit 1 }
-
 
       - name: Strip Release Binary (Linux GNU)
         # Standardize capitalization in step names
@@ -213,6 +212,10 @@ jobs:
         run: |
           just build --release --target x86_64-unknown-linux-musl
 
+      - name: Run Check (musl)
+        run: |
+          ./target/x86_64-unknown-linux-musl/release/ned --version | grep -q "ned ${{ needs.version.outputs.version }}"
+
       - name: Strip Release Binary (musl)
         run: |
           strip target/x86_64-unknown-linux-musl/release/ned
@@ -253,6 +256,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y mingw-w64
 
+      - name: Install binutils (for strings)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y binutils
+
       - name: Build Release (Windows GNU)
         env:
           RUSTFLAGS: -C target-feature=+crt-static
@@ -269,6 +277,30 @@ jobs:
           name: ned-windows-gnu-${{ needs.version.outputs.version }}.exe
           path: target/x86_64-pc-windows-gnu/release/ned.exe
           if-no-files-found: error
+
+  windows-gnu-verify:
+    name: Verify Windows GNU Artifact (Windows)
+    needs: [version, windows-gnu-cross]
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download Artifact (Windows GNU)
+        uses: actions/download-artifact@v4
+        with:
+          name: ned-windows-gnu-${{ needs.version.outputs.version }}.exe
+          path: dist/windows-gnu
+
+      - name: Run Check (Windows GNU on Windows)
+        shell: powershell
+        run: |
+          $out = (& 'dist\windows-gnu\ned.exe' --version)
+          Write-Host $out
+          if (-not ($out -like "*ned ${{ needs.version.outputs.version }}*")) { Write-Error "Version substring not found: $out"; exit 1 }
 
   cargo-deny:
     name: Check Dependency Policy
@@ -327,7 +359,7 @@ jobs:
       - name: Test (MSRV)
         run: cargo test
 
-      - name: Version Check (MSRV)
+      - name: Run Check (MSRV)
         run: |
           version=$(grep -E '^version\s*=\s*"' Cargo.toml | head -n1 | sed -E 's/.*"([^"]+)".*/\1/')
           ./target/debug/ned --version | grep -q "ned $version"
