@@ -9,9 +9,11 @@ SHFMT_IMAGE := "mvdan/shfmt:latest"
 # Default target shows available recipes.
 default: help
 
+# Show help.
 help:
     @just --list
 
+# Install the pre-push git hook.
 install:
     @if [ ! -f .git/hooks/pre-push ]; then mkdir -p .git/hooks && cd .git/hooks/ && ln -f -s ../../scripts/pre-push.sh pre-push; fi
 
