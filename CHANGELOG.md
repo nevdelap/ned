@@ -13,7 +13,7 @@
 
 ## Changed
 
-- Release now includes artifacts for Linux (GNU & musl), macOS, and Windows
+- Releases now include artifacts for Linux (GNU & musl), macOS, and Windows
   (Microsoft Visual C++ (MSVC) Toolchain & GNU/MinGW-w64 + GCC Toolchain).
 
 - Dependencies' versions updated. Most importantly for the `regex` crate. See
@@ -23,6 +23,10 @@
 - Line-mode context with `-A/-B/-C` options streams more efficiently, reducing
   memory usage and improving performance on large files; quiet modes
   short-circuit earlier for faster runs.
+
+- Broken pipe handling: when the output stream is closed (e.g., piping to
+  `head`), the program short-circuits immediately and exits with status `0`
+  without flushing, avoiding extra work and spurious errors.
 
 - Environment defaults (`NED_DEFAULTS`) now support quoted/escaped values via
   POSIX shell-style splitting; shell expansion and globbing is not performed.
