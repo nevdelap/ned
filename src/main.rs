@@ -129,7 +129,7 @@ fn process_files(output: &mut dyn Write, parameters: &Parameters) -> NedResult<b
                     .open(path_buf.as_path())
                 {
                     Ok(file) => {
-                        let mut source = Source::File(Box::new(file));
+                        let mut source = Source::File(file);
                         let file_name = &Some(path_buf.as_path().to_string_lossy().to_string());
                         found_matches |=
                             match process_file(output, parameters, file_name, &mut source) {

@@ -25,7 +25,7 @@ use std::io::Read;
 
 pub enum Source {
     Stdin(Box<dyn Read>),
-    File(Box<File>),
+    File(File),
     #[cfg(test)]
     Cursor(Box<Cursor<Vec<u8>>>),
 }
