@@ -339,21 +339,6 @@ jobs:
           version=$(grep -E '^version\s*=\s*"' Cargo.toml | head -n1 | sed -E 's/.*"([^"]+)".*/\1/')
           ./target/debug/ned --version | grep -q "ned $version"
 
-#   man-compare:
-#     name: man/compare flag drift check
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v4
-
-#       - name: Install just
-#         uses: taiki-e/install-action@v2
-#         with:
-#           tool: just
-
-#       - name: Run comparison via just
-#         run: just man-compare
-
   publish-release:
     name: Publish GitHub Release (Attach Artifacts)
     runs-on: ubuntu-latest

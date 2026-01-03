@@ -47,3 +47,4 @@
   - Clarified `NED_DEFAULTS` parsing (quoted/escaped values; no expansion) with
     examples.
   - Color modes and platform notes (Windows), `less -R`, and symlink behavior.
+- Man page removed as a maintenance burden. Use `--help`.

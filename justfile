@@ -28,7 +28,7 @@ format_toml:
         taplo format "${changed_files[@]}"; \
     fi
 
-# Format shell scripts in `scripts/` and `man/` using shfmt.
+# Format shell scripts in `scripts/` using shfmt.
 format_shell:
     mapfile -t changed_files < <(git diff --name-only --diff-filter=AMR origin/master -- '*.sh'); \
     if [ ${#changed_files[@]} -gt 0 ]; then \
@@ -64,7 +64,7 @@ lint_toml:
         taplo check "${changed_files[@]}"; \
     fi
 
-# Lint shell scripts in `scripts/` and `man/` with ShellCheck.
+# Lint shell scripts in `scripts/` with ShellCheck.
 lint_shell:
     mapfile -t changed_files < <(git diff --name-only --diff-filter=AMR origin/master -- '*.sh'); \
     if [ ${#changed_files[@]} -gt 0 ]; then \
@@ -129,7 +129,3 @@ tag_release:
 # Show help.
 ned_help:
     cargo run -- --help
-
-# Compare man page flags vs README (if desired)
-man-compare:
-    man/compare.sh

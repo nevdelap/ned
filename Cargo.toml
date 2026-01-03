@@ -30,8 +30,8 @@ license = "GPL-3.0-or-later"
 nu-ansi-term = "0.50.*"
 getopts = "0.2.*"
 glob = "0.3.*"
-# regex is exact to match links to documentation in the README.md, in the --help
-# output, and in the man page.
+# regex is exact to match links to documentation in the README.md and in the
+# --help output.
 regex = "1.12.2"
 walkdir = "2.5.*"
 supports-color = "3.0.*"
