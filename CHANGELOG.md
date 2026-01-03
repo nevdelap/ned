@@ -1,6 +1,6 @@
-# Changelog
+# Change Log
 
-## 2.0.0
+## This is a work in progress.
 
 ### Breaking Changes
 
@@ -12,6 +12,9 @@
   spaces may behave differently; quote values containing spaces.
 
 ### Changed
+
+- Release now includes artifacts for Linux (GNU & musl), macOS, and Windows
+  (Microsoft Visual C++ (MSVC) Toolchain & GNU/MinGW-w64 + GCC Toolchain).
 
 - Dependencies' versions updated. Most importantly for the `regex` crate. See
   the [latest syntax documentation for supported regular
