@@ -43,6 +43,14 @@ use std::io::{Read, Seek, SeekFrom, Write, stderr, stdin, stdout};
 use std::iter::Iterator;
 use std::string::String;
 use std::{env, process};
+use tempfile::NamedTempFile;
+
+fn write_in_place(file: &mut std::fs::File, bytes: &[u8]) -> NedResult<()> {
+    file.seek(SeekFrom::Start(0))?;
+    file.write_all(bytes)?;
+    file.set_len(bytes.len() as u64)?;
+    Ok(())
+}
 
 fn main() {
     // Output is passed here so that tests can
@@ -211,10 +219,35 @@ fn process_file(
                 // A better way???
                 Source::File(file) => {
                     if found_matches {
-                        file.seek(SeekFrom::Start(0))?;
                         let bytes = content.as_bytes();
-                        file.write_all(bytes)?;
-                        file.set_len(bytes.len() as u64)?;
+                        // Write to a temp file in the same directory and atomically replace.
+                        if let Some(file_name) = file_name.as_ref() {
+                            let orig_path = std::path::Path::new(file_name);
+                            let parent = orig_path.parent().unwrap_or(std::path::Path::new("."));
+                            match NamedTempFile::new_in(parent) {
+                                Ok(mut tmp) => {
+                                    tmp.write_all(bytes)?;
+                                    tmp.flush()?;
+                                    if let Ok(meta) = std::fs::metadata(orig_path) {
+                                        let _ = std::fs::set_permissions(tmp.path(), meta.permissions());
+                                    }
+                                    match tmp.persist(orig_path) {
+                                        Ok(_persisted_file) => {}
+                                        Err(_err) => {
+                                            // Graceful fallback: modify original file in-place if atomic persist fails.
+                                            write_in_place(file, bytes)?;
+                                        }
+                                    }
+                                }
+                                Err(_err) => {
+                                    // Graceful fallback: if temp file creation fails (e.g., non-writable dir), write in-place.
+                                    write_in_place(file, bytes)?;
+                                }
+                            }
+                        } else {
+                            // Fallback if path is unavailable (shouldn't happen for regular files).
+                            write_in_place(file, bytes)?;
+                        }
                     }
                 }
                 #[cfg(test)]

@@ -1604,3 +1604,56 @@ fn quiet_with_context_no_output() {
     let expected_screen_output: [&str; 0] = [];
     test(&args, expected_exit_code, &expected_screen_output);
 }
+
+#[test]
+fn atomic_replace_writes_file() {
+    use std::fs;
+    let dir = tempfile::tempdir().unwrap();
+    let file_path = dir.path().join("atomic_a.txt");
+    fs::write(&file_path, "hello accidentally world\n").unwrap();
+
+    let args: Vec<String> = vec![
+        "accidentally".to_string(),
+        file_path.to_string_lossy().into_owned(),
+        "--replace".to_string(),
+        "outstandingly".to_string(),
+    ];
+    let mut screen_output: Vec<u8> = vec![];
+    let exit_code = crate::ned(&mut screen_output, &args).unwrap();
+    assert_eq!(exit_code, 0);
+    let content = fs::read_to_string(&file_path).unwrap();
+    assert_eq!(content, "hello outstandingly world\n");
+}
+
+#[cfg(unix)]
+#[test]
+fn atomic_replace_persist_failure_fallback_in_place() {
+    use std::fs;
+    use std::os::unix::fs::PermissionsExt;
+    let dir = tempfile::tempdir().unwrap();
+    let file_path = dir.path().join("atomic_b.txt");
+    fs::write(&file_path, "accidentally\n").unwrap();
+
+    let mut dperms = fs::metadata(dir.path()).unwrap().permissions();
+    dperms.set_mode(0o555);
+    fs::set_permissions(dir.path(), dperms.clone()).unwrap();
+    let mut fperms = fs::metadata(&file_path).unwrap().permissions();
+    fperms.set_mode(0o644);
+    fs::set_permissions(&file_path, fperms.clone()).unwrap();
+
+    let args: Vec<String> = vec![
+        "accidentally".to_string(),
+        file_path.to_string_lossy().into_owned(),
+        "--replace".to_string(),
+        "outstandingly".to_string(),
+    ];
+    let mut screen_output: Vec<u8> = vec![];
+    let exit_code = crate::ned(&mut screen_output, &args).unwrap();
+    assert_eq!(exit_code, 0);
+    let content = fs::read_to_string(&file_path).unwrap();
+    assert_eq!(content, "outstandingly\n");
+
+    let mut dperms_restore = dperms;
+    dperms_restore.set_mode(0o755);
+    let _ = fs::set_permissions(dir.path(), dperms_restore);
+}

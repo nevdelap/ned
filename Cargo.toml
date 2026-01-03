@@ -36,6 +36,7 @@ regex = "1.12.2"
 walkdir = "2.5.*"
 supports-color = "3.0.*"
 shell-words = "1.1.*"
+tempfile = "3.24.*"
 
 [profile.release]
 lto = true
