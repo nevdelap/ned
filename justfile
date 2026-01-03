@@ -1,6 +1,7 @@
 set shell := ["bash", "-uc"]
 set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
 
+ACTIONLINT_IMAGE := "docker.io/rhysd/actionlint:latest"
 MARKDOWNLINT_IMAGE := "ghcr.io/igorshubovych/markdownlint-cli:latest"
 SHELLCHECK_IMAGE := "koalaman/shellcheck:latest"
 SHFMT_IMAGE := "mvdan/shfmt:latest"
@@ -32,7 +33,7 @@ format_toml:
 format_shell:
     mapfile -t changed_files < <(git diff --name-only --diff-filter=AMR origin/master -- '*.sh'); \
     if [ ${#changed_files[@]} -gt 0 ]; then \
-        docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd)":/work -w /work {{ SHFMT_IMAGE }} -w -i 2 "${changed_files[@]}"; \
+        docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd)":/workdir -w /workdir {{ SHFMT_IMAGE }} -w -i 2 "${changed_files[@]}"; \
     fi
 
 # Format Rust code; fail if it changed anything.
@@ -51,11 +52,8 @@ format: install
 lint_markdown:
     mapfile -t changed_files < <(git diff --name-only --diff-filter=AMR origin/master -- '*.md'); \
     if [ ${#changed_files[@]} -gt 0 ]; then \
-        prefixed=(); \
-        for f in "${changed_files[@]}"; do prefixed+=( "/workdir/$f" ); done; \
-        docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd)":/workdir {{ MARKDOWNLINT_IMAGE }} "${prefixed[@]}"; \
+        docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd)":/workdir -w /workdir {{ MARKDOWNLINT_IMAGE }} "${changed_files[@]}"; \
     fi
-
 
 # Lint TOML files.
 lint_toml:
@@ -68,9 +66,14 @@ lint_toml:
 lint_shell:
     mapfile -t changed_files < <(git diff --name-only --diff-filter=AMR origin/master -- '*.sh'); \
     if [ ${#changed_files[@]} -gt 0 ]; then \
-        prefixed=(); \
-        for f in "${changed_files[@]}"; do prefixed+=( "/code/$f" ); done; \
-        docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd)":/code {{ SHELLCHECK_IMAGE }} "${prefixed[@]}"; \
+        docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd)":/workdir -w /workdir {{ SHELLCHECK_IMAGE }} "${changed_files[@]}"; \
+    fi
+
+# Lint GitHub Actions workflows with actionlint.
+lint_actions:
+    mapfile -t changed_files < <(git diff --name-only --diff-filter=AMR origin/master -- '.github/workflows/*.yml' '.github/workflows/*.yaml'); \
+    if [ ${#changed_files[@]} -gt 0 ]; then \
+        docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd)":/workdir -w /workdir {{ ACTIONLINT_IMAGE }} "${changed_files[@]}"; \
     fi
 
 # Lint with clippy and deny warnings, fail if it finds anything.
@@ -82,6 +85,7 @@ lint: format
     just lint_markdown
     just lint_toml
     just lint_shell
+    just lint_actions
     just lint_rust
 
 # Run the test suite.
@@ -94,7 +98,7 @@ build *args="":
 
 # Get version from Cargo.toml
 get_version:
-    @docker run --rm -v "$(pwd)":/work -w /work docker.io/mikefarah/yq:4 '.package.version' Cargo.toml
+    @docker run --rm -v "$(pwd)":/workdir -w /workdir docker.io/mikefarah/yq:4 '.package.version' Cargo.toml
 
 # After tests, verify `ned --version` matches Cargo.toml (debug)
 version_check_debug:
