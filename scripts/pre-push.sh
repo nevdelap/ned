@@ -7,6 +7,8 @@ if [ -n "$(git status --porcelain)" ]; then
   exit 1
 fi
 just lint
+just audit
+just deny_check
 just build
 just test
 just build --release

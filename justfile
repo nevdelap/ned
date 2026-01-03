@@ -111,6 +111,11 @@ version_check_debug:
 version_check_release:
     cargo run --release -- --version | grep -q "ned $(just get_version)"
 
+# Run cargo audit.
+audit:
+    cargo install cargo-audit
+    cargo audit
+
 # Run cargo deny check.
 deny_check:
     cargo install cargo-deny
