@@ -101,6 +101,23 @@ build *args="":
 release *args="":
     cargo build {{args}}
 
+# Create and push a git tag based on Cargo.toml version.
+tag_release:
+    set -euo pipefail
+    if [ -n "$(git status --porcelain)" ]; then \
+        echo $'\033[31;1mModified or untracked unignored files:\033[22m'; \
+        git status --porcelain | cut -c4- | sed 's/^/  - /'; \
+        echo -n $'\033[0m'; \
+        exit 1; \
+    fi
+    version=$(sed -n 's/^version[[:space:]]*=[[:space:]]*"\(.*\)".*/\1/p' Cargo.toml | head -n1); \
+    if [ -z "$version" ]; then \
+        echo "Version not found in Cargo.toml"; exit 1; \
+    fi; \
+    tag="release-$version"; \
+    echo git tag --force "$tag"; \
+    echo git push --force origin "$tag"
+
 # Show help.
 ned_help:
     cargo run -- --help
