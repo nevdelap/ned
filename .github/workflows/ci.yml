@@ -16,6 +16,7 @@ jobs:
   build-lint-test:
     name: Build, Lint, Test (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -25,9 +26,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Set Up Rust
+      - name: Fetch master branch for lint diffs (Linux)
+        if: runner.os == 'Linux'
+        run: git fetch origin master
+
+      - name: Install Rust Toolchain
         uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
 
       - name: Cache Cargo
         uses: Swatinem/rust-cache@v2
@@ -37,21 +46,19 @@ jobs:
         with:
           tool: just
 
-      - name: Format Markdown
+      - name: Install uv (Linux)
         if: runner.os == 'Linux'
-        run: just format_markdown
+        uses: astral-sh/setup-uv@v3
 
-      - name: Format Rust
+      - name: Install taplo (Linux)
         if: runner.os == 'Linux'
-        run: just format_rust
+        uses: taiki-e/install-action@v2
+        with:
+          tool: taplo
 
-      - name: Lint Markdown
+      - name: Lint & Format (Linux)
         if: runner.os == 'Linux'
-        run: just lint_markdown
-
-      - name: Lint Rust
-        if: runner.os == 'Linux'
-        run: just lint_rust
+        run: just lint
 
       - name: Build Debug
         run: just build
@@ -65,15 +72,108 @@ jobs:
       - name: Test Release
         run: just test --release
 
-  cargo-deny:
-    name: Check Dependency Policy
+      - name: Strip Release Binary (Linux GNU)
+        # Standardize capitalization in step names
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y binutils
+          strip target/release/ned
+
+      - name: Strip Release Binary (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          strip -x target/release/ned
+
+      - name: Strip Release Binary (Windows)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          choco install llvm -y
+          & 'C:\Program Files\LLVM\bin\llvm-strip.exe' -s target\release\ned.exe
+
+      - name: Upload Release Artifact (Linux GNU)
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ned-linux-gnu
+          path: target/release/ned
+          if-no-files-found: error
+
+      - name: Upload Release Artifact (macOS)
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ned-macos
+          path: target/release/ned
+          if-no-files-found: error
+
+      - name: Upload Release Artifact (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ned-windows
+          path: target\release\ned.exe
+          if-no-files-found: error
+
+  musl-build:
+    name: Build (musl, x86_64-unknown-linux-musl)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Set Up Rust
+      - name: Install Rust Toolchain (musl target)
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-musl
+          components: rustfmt, clippy
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install musl Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y musl-tools binutils
+
+      - name: Build Release (musl)
+        env:
+          RUSTFLAGS: -C target-feature=+crt-static
+        run: |
+          cargo build --release --target x86_64-unknown-linux-musl
+
+      - name: Strip Release Binary (musl)
+        run: |
+          strip target/x86_64-unknown-linux-musl/release/ned
+
+      - name: Upload Release Artifact (musl)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ned-linux-musl
+          path: target/x86_64-unknown-linux-musl/release/ned
+          if-no-files-found: error
+
+  cargo-deny:
+    name: Check Dependency Policy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch master branch for lint diffs
+        run: git fetch origin master
+
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
 
       - name: Cache Cargo
         uses: Swatinem/rust-cache@v2
@@ -83,21 +183,26 @@ jobs:
         with:
           tool: cargo-deny
 
-      - name: Run cargo-deny check
+      - name: Run cargo-deny Check
         run: |
           cargo deny check
 
   msrv:
-    name: Minimum Supported Rust Version Build, Lint, Test (ubuntu)
+    name: Minimum Supported Rust Version Build, Lint, Test (Ubuntu)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Set Up Rust (MSRV)
+      - name: Install Rust Toolchain (MSRV)
         uses: dtolnay/rust-toolchain@1.85.0
+        with:
+          components: rustfmt, clippy
 
-      - name: Cache cargo
+      - name: Cache Cargo
         uses: Swatinem/rust-cache@v2
 
       - name: Build (MSRV)
@@ -123,3 +228,73 @@ jobs:
 
 #       - name: Run comparison via just
 #         run: just man-compare
+
+  publish-release:
+    name: Publish GitHub Release (Attach Artifacts)
+    runs-on: ubuntu-latest
+    needs: [build-lint-test, musl-build]
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download Artifact (Linux GNU)
+        uses: actions/download-artifact@v4
+        with:
+          name: ned-linux-gnu
+          path: dist/linux-gnu
+
+      - name: Download Artifact (Linux musl)
+        uses: actions/download-artifact@v4
+        with:
+          name: ned-linux-musl
+          path: dist/linux-musl
+
+      - name: Download Artifact (macOS)
+        uses: actions/download-artifact@v4
+        with:
+          name: ned-macos
+          path: dist/macos
+
+      - name: Download Artifact (Windows)
+        uses: actions/download-artifact@v4
+        with:
+          name: ned-windows
+          path: dist/windows
+
+      - name: Prepare Asset Names
+        run: |
+          mkdir -p dist
+          mv dist/linux-gnu/ned dist/ned-linux-gnu
+          mv dist/linux-musl/ned dist/ned-linux-musl
+          mv dist/macos/ned dist/ned-macos
+          mv dist/windows/ned.exe dist/ned-windows.exe
+
+      - name: Generate SHA256 Checksums
+        run: |
+          cd dist
+          sha256sum ned-linux-gnu > ned-linux-gnu.sha256
+          sha256sum ned-linux-musl > ned-linux-musl.sha256
+          sha256sum ned-macos > ned-macos.sha256
+          sha256sum ned-windows.exe > ned-windows.exe.sha256
+          sha256sum ned-linux-gnu ned-linux-musl ned-macos ned-windows.exe > SHA256SUMS
+
+      - name: Create Release and Upload Assets
+        uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
+        with:
+          files: |
+            dist/ned-linux-gnu
+            dist/ned-linux-musl
+            dist/ned-macos
+            dist/ned-windows.exe
+            dist/ned-linux-gnu.sha256
+            dist/ned-linux-musl.sha256
+            dist/ned-macos.sha256
+            dist/ned-windows.exe.sha256
+            dist/SHA256SUMS
+          generate_release_notes: true
