@@ -100,12 +100,12 @@ impl From<String> for NedError {
 impl fmt::Display for NedError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            NedError::FromUtf8(ref err) => write!(f, "{}", err),
-            NedError::GetOpts(ref err) => write!(f, "{}", err),
-            NedError::GlobPattern(ref err) => write!(f, "{}", err),
-            NedError::Io(ref err) => write!(f, "{}", err),
-            NedError::ParameterError(ref err) => write!(f, "{}", err),
-            NedError::Regex(ref err) => write!(f, "{}", err),
+            NedError::FromUtf8(ref err) => write!(f, "{err}"),
+            NedError::GetOpts(ref err) => write!(f, "{err}"),
+            NedError::GlobPattern(ref err) => write!(f, "{err}"),
+            NedError::Io(ref err) => write!(f, "{err}"),
+            NedError::ParameterError(ref err) => write!(f, "{err}"),
+            NedError::Regex(ref err) => write!(f, "{err}"),
         }
     }
 }
@@ -127,10 +127,10 @@ pub type NedResult<T> = Result<T, NedError>;
 
 pub fn stderr_write_err(err: &dyn error::Error) {
     let mut e = io::stderr();
-    let _ = writeln!(e, "{}: {}", PROGRAM, err);
+    let _ = writeln!(e, "{PROGRAM}: {err}");
 }
 
 pub fn stderr_write_file_err(path_buf: &path::Path, err: &dyn error::Error) {
     let mut e = io::stderr();
-    let _ = writeln!(e, "{}: {} {}", PROGRAM, path_buf.to_string_lossy(), err);
+    let _ = writeln!(e, "{PROGRAM}: {} {err}", path_buf.to_string_lossy());
 }

@@ -33,7 +33,7 @@ impl OptionsWithDefaults {
         let default_vec: Vec<String> = match env::var("NED_DEFAULTS") {
             Ok(s) => {
                 // Normalize ASCII RS and apply POSIX shell-style splitting.
-                let s = s.replace("\u{1e}", " ");
+                let s = s.replace('\u{1e}', " ");
                 shell_words::split(&s).map_err(|e| e.to_string())?
             }
             Err(_) => vec![],
@@ -58,7 +58,7 @@ impl OptionsWithDefaults {
     ) -> NedResult<OptionsWithDefaults> {
         let default_vec: Vec<String> = match defaults {
             Some(s) => {
-                let s = s.replace("\u{1e}", " ");
+                let s = s.replace('\u{1e}', " ");
                 shell_words::split(&s).map_err(|e| e.to_string())?
             }
             None => vec![],

@@ -290,7 +290,7 @@ fn exclude_directory() {
 fn test(args: &str, expected_file_names: &[PathBuf]) {
     let args = args
         .split_whitespace()
-        .map(|arg| arg.to_string())
+        .map(std::string::ToString::to_string)
         .collect::<Vec<String>>();
 
     unsafe { env::set_var("NED_DEFAULTS", "") };

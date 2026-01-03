@@ -30,6 +30,7 @@ use std::str::FromStr;
 use supports_color::Stream;
 
 #[derive(Clone)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct Parameters {
     pub all: bool,
     pub backwards: bool,
@@ -95,6 +96,7 @@ impl Parameters {
     }
 }
 
+#[allow(clippy::too_many_lines)]
 pub fn get_parameters(options_with_defaults: &OptionsWithDefaults) -> NedResult<Parameters> {
     // -C --context takes precedence over -B --before and -A --after.
     let mut context_before =
@@ -266,16 +268,16 @@ fn add_regex_flags_to_pattern(
     options_with_defaults: &OptionsWithDefaults,
     pattern: &str,
 ) -> String {
-    let mut regex_flags = "".to_string();
+    let mut regex_flags = String::new();
     for option in &["i", "s", "m", "x"] {
         if options_with_defaults.opt_present(option) {
             regex_flags.push_str(option);
         }
     }
-    if !regex_flags.is_empty() {
-        format!("(?{}){}", &regex_flags, &pattern)
-    } else {
+    if regex_flags.is_empty() {
         pattern.to_string()
+    } else {
+        format!("(?{regex_flags}){pattern}")
     }
 }
 
@@ -290,7 +292,7 @@ fn parse_opt_str<T: FromStr>(
         value = v;
     // ...or it exists without a value, in which case we assume it is empty string...
     } else if options_with_defaults.opt_present(option) {
-        value = "".to_string();
+        value = String::new();
     } else {
         return Ok(default);
     }
@@ -298,7 +300,7 @@ fn parse_opt_str<T: FromStr>(
     match value.trim().parse::<T>() {
         Ok(value) => Ok(Some(value)),
         Err(_) => Err(NedError::ParameterError(StringError {
-            err: format!("invalid value for --{} option", option),
+            err: format!("invalid value for --{option} option"),
         })),
     }
 }

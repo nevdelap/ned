@@ -81,7 +81,7 @@ lint_actions:
 
 # Lint with clippy and deny warnings, fail if it finds anything.
 lint_rust *args="":
-    cargo clippy --all-targets --all-features -- -D warnings {{args}}
+    cargo clippy --all-targets --all-features -- -D warnings -D clippy::pedantic {{args}}
 
 # Run all linting steps.
 lint: format

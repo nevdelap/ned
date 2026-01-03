@@ -97,7 +97,7 @@ fn ned(output: &mut dyn Write, args: &[String]) -> NedResult<i32> {
     }
 
     let found_matches = process_files(output, &parameters)?;
-    Ok(if found_matches { 0 } else { 1 })
+    Ok(i32::from(!found_matches))
 }
 
 #[cfg(test)]
@@ -127,14 +127,14 @@ fn ned_with_defaults(
     }
 
     let found_matches = process_files(output, &parameters)?;
-    Ok(if found_matches { 0 } else { 1 })
+    Ok(i32::from(!found_matches))
 }
 
 fn process_files(output: &mut dyn Write, parameters: &Parameters) -> NedResult<bool> {
     let mut found_matches = false;
     if parameters.stdin {
         let mut source = Source::Stdin(Box::new(stdin()));
-        found_matches = process_file(output, parameters, &None, &mut source)?;
+        found_matches = process_file(output, parameters, None, &mut source)?;
     } else {
         for glob in &parameters.globs {
             for path_buf in &mut Files::new(parameters, glob) {
@@ -145,20 +145,21 @@ fn process_files(output: &mut dyn Write, parameters: &Parameters) -> NedResult<b
                 {
                     Ok(file) => {
                         let mut source = Source::File(file);
-                        let file_name = &Some(path_buf.as_path().to_string_lossy().to_string());
+                        let file_name_string = path_buf.as_path().to_string_lossy().to_string();
+                        let file_name = Some(file_name_string);
                         found_matches |=
-                            match process_file(output, parameters, file_name, &mut source) {
+                            match process_file(output, parameters, file_name.as_ref(), &mut source)
+                            {
                                 Ok(found_matches) => found_matches,
                                 Err(err) => {
                                     if err.io_error_kind() == Some(std::io::ErrorKind::BrokenPipe) {
                                         // Propagate BrokenPipe so top-level can short-circuit.
                                         return Err(err);
-                                    } else {
-                                        stderr_write_file_err(&path_buf, &err);
-                                        false
                                     }
+                                    stderr_write_file_err(&path_buf, &err);
+                                    false
                                 }
-                            }
+                            };
                     }
                     Err(err) => stderr_write_file_err(&path_buf, &err),
                 }
@@ -173,10 +174,11 @@ fn process_files(output: &mut dyn Write, parameters: &Parameters) -> NedResult<b
     Ok(found_matches)
 }
 
+#[allow(clippy::too_many_lines)]
 fn process_file(
     output: &mut dyn Write,
     parameters: &Parameters,
-    file_name: &Option<String>,
+    file_name: Option<&String>,
     source: &mut Source,
 ) -> NedResult<bool> {
     let re = parameters
@@ -199,9 +201,8 @@ fn process_file(
             Err(err) => {
                 if parameters.ignore_non_utf8 {
                     return Ok(false);
-                } else {
-                    return Err(NedError::from(err));
                 }
+                return Err(NedError::from(err));
             }
         };
         if parameters.colors {
@@ -230,7 +231,7 @@ fn process_file(
                     if found_matches {
                         let bytes = content.as_bytes();
                         // Write to a temp file in the same directory and atomically replace.
-                        if let Some(file_name) = file_name.as_ref() {
+                        if let Some(file_name) = file_name {
                             let orig_path = std::path::Path::new(file_name);
                             let parent = orig_path.parent().unwrap_or(std::path::Path::new("."));
                             match NamedTempFile::new_in(parent) {
@@ -371,7 +372,7 @@ fn process_file(
             if this_line_matches {
                 // Print before-context lines not yet printed.
                 if parameters.context_before > 0 {
-                    for (ln, ctx) in before_buf.iter() {
+                    for (ln, ctx) in &before_buf {
                         if !printed.contains(ln) {
                             write_line(output, parameters, file_name, Some(*ln), ctx)?;
                             printed.insert(*ln);
@@ -426,9 +427,8 @@ fn process_file(
             Err(err) => {
                 if parameters.ignore_non_utf8 {
                     return Ok(false);
-                } else {
-                    return Err(NedError::from(err));
                 }
+                return Err(NedError::from(err));
             }
         };
         let found_matches = process_text(output, parameters, &re, file_name, None, &content, None)?;
@@ -451,7 +451,7 @@ fn process_text(
     output: &mut dyn Write,
     parameters: &Parameters,
     re: &Regex,
-    file_name: &Option<String>,
+    file_name: Option<&String>,
     line_number: Option<usize>,
     text: &str,
     context_map: Option<&Vec<bool>>,
@@ -500,31 +500,31 @@ fn paint_red_bold(text: &str) -> String {
     Color::Red.bold().paint(text).to_string()
 }
 
-/// Do a replace_all() or a find_iter() taking into account which of --number, --skip, and
+/// Do a `replace_all()` or a `find_iter()` taking into account which of --number, --skip, and
 /// --backwards have been specified.
 fn replace(parameters: &Parameters, re: &Regex, text: &str, replace: &str) -> (String, bool) {
     let mut found_matches = false;
     let mut new_text;
-    if !parameters.limit_matches() {
-        found_matches = re.is_match(text);
-        new_text = re.replace_all(text, replace).into_owned()
-    } else {
+    if parameters.limit_matches() {
         new_text = text.to_string();
         let start_end_byte_indices = re.find_iter(text).collect::<Vec<Match>>();
         let count = start_end_byte_indices.len();
         // Walk it backwards so that replacements don't invalidate indices.
-        for (rev_index, &_match) in start_end_byte_indices.iter().rev().enumerate() {
+        for (rev_index, &m) in start_end_byte_indices.iter().rev().enumerate() {
             let index = count - rev_index - 1;
             if parameters.include_match(index, count) {
                 found_matches = true;
-                let this_replace = re.replace(_match.as_str(), replace).into_owned();
+                let this_replace = re.replace(m.as_str(), replace).into_owned();
                 // find_iter guarantees that start and end are at a Unicode code point boundary.
-                let prefix = &new_text[0.._match.start()];
-                let suffix = &new_text[_match.end()..];
-                new_text = format!("{}{}{}", prefix, this_replace, suffix);
+                let prefix = &new_text[0..m.start()];
+                let suffix = &new_text[m.end()..];
+                new_text = format!("{prefix}{this_replace}{suffix}");
             }
         }
-    };
+    } else {
+        found_matches = re.is_match(text);
+        new_text = re.replace_all(text, replace).into_owned();
+    }
     (new_text, found_matches)
 }
 
@@ -558,8 +558,8 @@ fn replace_case_with_special_strings(str: &str) -> String {
     let mut last_end = 0;
     let mut last_case_escape = &CaseEscape::End;
 
-    for _match in Regex::new(r"--ned(U|L|I|F|E)ned--").unwrap().find_iter(str) {
-        let (start, end) = (_match.start(), _match.end());
+    for m in Regex::new(r"--ned(U|L|I|F|E)ned--").unwrap().find_iter(str) {
+        let (start, end) = (m.start(), m.end());
         let piece = &str[last_end..start];
         let case_escape = &str[start + 5..end - 5];
         // It must be there because the definition of escapes matches the regex, so unwrap.
@@ -612,7 +612,7 @@ fn title_case(str: &str) -> String {
 fn write_line(
     output: &mut dyn Write,
     parameters: &Parameters,
-    file_name: &Option<String>,
+    file_name: Option<&String>,
     line_number: Option<usize>,
     text: &str,
 ) -> NedResult<()> {
@@ -630,7 +630,7 @@ fn write_groups(
     output: &mut dyn Write,
     parameters: &Parameters,
     re: &Regex,
-    file_name: &Option<String>,
+    file_name: Option<&String>,
     line_number: Option<usize>,
     text: &str,
     group: &str,
@@ -640,27 +640,21 @@ fn write_groups(
     let captures = re.captures_iter(text).collect::<Vec<Captures>>();
     for (index, capture) in captures.iter().enumerate() {
         if parameters.include_match(index, captures.len()) {
-            let _match = match group.trim().parse::<usize>() {
+            let match_item = match group.trim().parse::<usize>() {
                 Ok(index) => capture.get(index),
                 Err(_) => capture.name(group),
             };
-            if let Some(_match) = _match {
+            if let Some(m) = match_item {
                 found_matches = true;
-                if !parameters.quiet {
-                    let text = color_matches_all(parameters, re, _match.as_str());
-                    if !wrote_file_name {
-                        write_file_name_and_line_number(
-                            output,
-                            parameters,
-                            file_name,
-                            line_number,
-                        )?;
-                        wrote_file_name = true;
-                    }
-                    output.write_all(text.as_ref().as_bytes())?;
-                } else {
+                if parameters.quiet {
                     break;
                 }
+                let text = color_matches_all(parameters, re, m.as_str());
+                if !wrote_file_name {
+                    write_file_name_and_line_number(output, parameters, file_name, line_number)?;
+                    wrote_file_name = true;
+                }
+                output.write_all(text.as_ref().as_bytes())?;
             }
         }
     }
@@ -676,7 +670,7 @@ fn write_matches(
     output: &mut dyn Write,
     parameters: &Parameters,
     re: &Regex,
-    file_name: &Option<String>,
+    file_name: Option<&String>,
     line_number: Option<usize>,
     text: &str,
 ) -> NedResult<bool> {
@@ -684,19 +678,18 @@ fn write_matches(
     let mut file_name_written = false;
     let start_end_byte_indices = re.find_iter(text).collect::<Vec<Match>>();
     let count = start_end_byte_indices.len();
-    for (index, &_match) in start_end_byte_indices.iter().enumerate() {
+    for (index, &m) in start_end_byte_indices.iter().enumerate() {
         if parameters.include_match(index, count) {
             found_matches = true;
             if !file_name_written {
                 write_file_name_and_line_number(output, parameters, file_name, line_number)?;
                 file_name_written = true;
             }
-            let colored = color(parameters, &text[_match.start().._match.end()]);
-            if !parameters.quiet {
-                output.write_all(colored.as_ref().as_bytes())?;
-            } else {
+            let colored = color(parameters, &text[m.start()..m.end()]);
+            if parameters.quiet {
                 return Ok(found_matches);
             }
+            output.write_all(colored.as_ref().as_bytes())?;
         }
     }
     if file_name_written {
@@ -711,11 +704,11 @@ fn write_matches(
 fn write_file_name_and_line_number(
     output: &mut dyn Write,
     parameters: &Parameters,
-    file_name: &Option<String>,
+    file_name: Option<&String>,
     line_number: Option<usize>,
 ) -> NedResult<()> {
     if !parameters.quiet {
-        let mut location = "".to_string();
+        let mut location = String::new();
         if !parameters.no_file_names && !parameters.line_numbers_only {
             if let Some(file_name) = file_name {
                 location.push_str(file_name);

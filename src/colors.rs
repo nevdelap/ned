@@ -34,12 +34,11 @@ impl FromStr for Colors {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "" => Ok(Colors::Auto),
-            "auto" => Ok(Colors::Auto),
+            "" | "auto" => Ok(Colors::Auto),
             "always" => Ok(Colors::Always),
             "never" => Ok(Colors::Never),
             _ => Err(StringError {
-                err: format!("invalid colors option {}", s),
+                err: format!("invalid colors option {s}"),
             }),
         }
     }

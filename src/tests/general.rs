@@ -1475,7 +1475,7 @@ fn recursive_match_line_numbers_only_no_match() {
 fn test(args: &[&str], expected_exit_code: i32, expected_screen_output: &[&str]) {
     let args: Vec<String> = args
         .iter()
-        .map(|arg| arg.to_string())
+        .map(std::string::ToString::to_string)
         .collect::<Vec<String>>();
     // Allow tests that expect no output (empty expected_screen_output) with a success exit code.
 
@@ -1488,17 +1488,14 @@ fn test(args: &[&str], expected_exit_code: i32, expected_screen_output: &[&str])
     if expected_screen_output.is_empty() {
         assert!(
             screen_output.is_empty(),
-            "Expected no output, got: {:?}",
-            screen_output
+            "Expected no output, got: {screen_output}"
         );
     } else {
-        for part in expected_screen_output.iter() {
+        for part in expected_screen_output {
             let part = fix_output_for_windows(part);
             assert!(
                 screen_output.contains(&part),
-                "Expected output missing. Looking for: {:?}\nActual output: {:?}",
-                part,
-                screen_output
+                "Expected output missing. Looking for: {part}\nActual output: {screen_output}"
             );
         }
     }
@@ -1511,14 +1508,14 @@ fn fix_output_for_windows(part: &str) -> String {
     // be written to work on both platforms .
     // Normalize Windows backslashes to forward slashes for comparison,
     // and strip CR to make outputs consistent across platforms.
-    part.replace("\\", "/").replace("\r", "")
+    part.replace('\\', "/").replace('\r', "")
 }
 
 #[test]
 fn env_defaults_shell_parsing() {
     // Local helper to run ned with provided defaults string to avoid global env changes.
     fn run_with_defaults(args: &[&str], defaults: &str) -> (i32, String) {
-        let args: Vec<String> = args.iter().map(|a| a.to_string()).collect();
+        let args: Vec<String> = args.iter().map(std::string::ToString::to_string).collect();
         let mut screen_output: Vec<u8> = vec![];
         let exit_code = crate::ned_with_defaults(&mut screen_output, &args, Some(defaults))
             .expect("ned_with_defaults should succeed");
@@ -1684,6 +1681,6 @@ fn broken_pipe_stops_immediately() {
         Err(err) => {
             assert_eq!(err.io_error_kind(), Some(std::io::ErrorKind::BrokenPipe));
         }
-        Ok(code) => panic!("Expected BrokenPipe error, got Ok({})", code),
+        Ok(code) => panic!("Expected BrokenPipe error, got Ok({code})"),
     }
 }

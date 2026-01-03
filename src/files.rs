@@ -20,8 +20,7 @@
 
 use crate::ned_error::stderr_write_err;
 use crate::parameters::Parameters;
-use std::path::Component;
-use std::path::PathBuf;
+use std::path::{Component, Path, PathBuf};
 use walkdir::{IntoIter, WalkDir};
 
 pub struct Files {
@@ -46,7 +45,7 @@ impl Files {
     /// Normalize relative paths (remove `./` and fold `../` lexically) without
     /// resolving symlinks. This performs purely lexical normalization so that
     /// entries like `./test/../test/file` are rendered as `test/file`.
-    fn normalize_relative_paths(input_path: PathBuf) -> PathBuf {
+    fn normalize_relative_paths(input_path: &Path) -> PathBuf {
         let mut components: Vec<Component> = Vec::new();
         for component in input_path.components() {
             match component {
@@ -62,8 +61,6 @@ impl Files {
                         _ => components.push(component),
                     }
                 }
-                // Only push lexical components; directories/files appear as Normal
-                Component::Normal(_) => components.push(component),
                 // Preserve other component types verbatim for safety
                 _ => components.push(component),
             }
@@ -115,16 +112,13 @@ impl Iterator for Files {
                                         .iter()
                                         .any(|pattern| pattern.matches(file_name));
                                 if included_file && !excluded_file && (all || !hidden) {
-                                    return Some(Self::normalize_relative_paths(
-                                        entry.path().to_path_buf(),
-                                    ));
+                                    return Some(Self::normalize_relative_paths(entry.path()));
                                 }
                             }
                         }
                     }
                     Err(err) => {
                         stderr_write_err(&err);
-                        continue;
                     }
                 },
                 None => {
