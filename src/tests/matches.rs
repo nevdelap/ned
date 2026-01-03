@@ -742,6 +742,113 @@ bogus_file.txt:7:would want to read it.
     );
 }
 
+// Coverage for `--matches-only` combined with context flags (line-mode).
+#[test]
+fn only_matches_with_context_line_mode() {
+    let input = "\
+foo
+bar is baz
+qux
+";
+    let pattern = "is";
+    let args = "--matches-only --context 1";
+    let expected_found_matches = true;
+    let expected_screen_output = "\
+bogus_file.txt:1:foo
+bogus_file.txt:2:is
+bogus_file.txt:3:qux
+";
+    let expected_file_content = &input;
+
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
+}
+
+#[test]
+fn only_matches_with_before_line_mode() {
+    let input = "\
+foo
+bar is baz
+qux
+";
+    let pattern = "is";
+    let args = "--matches-only --before 1";
+    let expected_found_matches = true;
+    let expected_screen_output = "\
+bogus_file.txt:1:foo
+bogus_file.txt:2:is
+";
+    let expected_file_content = &input;
+
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
+}
+
+#[test]
+fn only_matches_with_after_line_mode() {
+    let input = "\
+foo
+bar is baz
+qux
+";
+    let pattern = "is";
+    let args = "--matches-only --after 1";
+    let expected_found_matches = true;
+    let expected_screen_output = "\
+bogus_file.txt:2:is
+bogus_file.txt:3:qux
+";
+    let expected_file_content = &input;
+
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
+}
+
+#[test]
+fn only_matches_with_context_quiet_mode() {
+    let input = "\
+foo
+bar is baz
+qux
+";
+    let pattern = "is";
+    let args = "--matches-only --context 1";
+    let expected_found_matches = true;
+    let expected_screen_output = "\
+bogus_file.txt:1:foo
+bogus_file.txt:2:is
+bogus_file.txt:3:qux
+";
+    let expected_file_content = &input;
+
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
+}
+
 #[test]
 fn show_unmatched_lines_oriented_whole_files_quiet_and_not_quiet() {
     let input = "

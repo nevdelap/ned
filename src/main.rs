@@ -150,9 +150,7 @@ fn process_files(output: &mut dyn Write, parameters: &Parameters) -> NedResult<b
                             match process_file(output, parameters, file_name, &mut source) {
                                 Ok(found_matches) => found_matches,
                                 Err(err) => {
-                                    if err.io_error_kind()
-                                        == Some(std::io::ErrorKind::BrokenPipe)
-                                    {
+                                    if err.io_error_kind() == Some(std::io::ErrorKind::BrokenPipe) {
                                         // Propagate BrokenPipe so top-level can short-circuit.
                                         return Err(err);
                                     } else {
@@ -240,7 +238,10 @@ fn process_file(
                                     tmp.write_all(bytes)?;
                                     tmp.flush()?;
                                     if let Ok(meta) = std::fs::metadata(orig_path) {
-                                        let _ = std::fs::set_permissions(tmp.path(), meta.permissions());
+                                        let _ = std::fs::set_permissions(
+                                            tmp.path(),
+                                            meta.permissions(),
+                                        );
                                     }
                                     match tmp.persist(orig_path) {
                                         Ok(_persisted_file) => {}
