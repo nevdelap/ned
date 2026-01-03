@@ -3,8 +3,9 @@ set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
 
 ACTIONLINT_IMAGE := "docker.io/rhysd/actionlint:latest"
 MARKDOWNLINT_IMAGE := "ghcr.io/igorshubovych/markdownlint-cli:latest"
-SHELLCHECK_IMAGE := "koalaman/shellcheck:latest"
-SHFMT_IMAGE := "mvdan/shfmt:latest"
+SHELLCHECK_IMAGE := "koalaman/shellcheck:stable"
+SHFMT_IMAGE := "mvdan/shfmt:v3"
+YQ_IMAGE := "docker.io/mikefarah/yq:latest"
 
 # Default target shows available recipes.
 default: help
@@ -100,7 +101,7 @@ build *args="":
 
 # Get version from Cargo.toml
 get_version:
-    @docker run --rm -v "$(pwd)":/workdir -w /workdir docker.io/mikefarah/yq:4 '.package.version' Cargo.toml
+    @docker run --rm -v "$(pwd)":/workdir -w /workdir {{ YQ_IMAGE }} '.package.version' Cargo.toml
 
 # After tests, verify `ned --version` matches Cargo.toml (debug)
 version_check_debug:
