@@ -91,6 +91,19 @@ jobs:
       - name: Test Debug
         run: just test
 
+      - name: Version Debug (non-Windows)
+        if: runner.os != 'Windows'
+        run: |
+          ./target/debug/ned --version | grep -q "ned ${{ needs.version.outputs.version }}"
+
+      - name: Version Debug (Windows)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $out = (& 'target\debug\ned.exe' --version)
+          Write-Host $out
+          if (-not ($out -like "*ned ${{ needs.version.outputs.version }}*")) { Write-Error "Version substring not found: $out"; exit 1 }
+
       - name: Build Release
         if: runner.os != 'Windows'
         run: just build --release
@@ -101,10 +114,23 @@ jobs:
         env:
           RUSTFLAGS: -C target-feature=+crt-static
         run: |
-          cargo build --release
+          just build --release
 
       - name: Test Release
         run: just test --release
+
+      - name: Version Release (non-Windows)
+        if: runner.os != 'Windows'
+        run: |
+          ./target/release/ned --version | grep -q "ned ${{ needs.version.outputs.version }}"
+
+      - name: Version Release (Windows)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $out = (& 'target\release\ned.exe' --version)
+          Write-Host $out
+          if (-not ($out -like "*ned ${{ needs.version.outputs.version }}*")) { Write-Error "Version substring not found: $out"; exit 1 }
 
 
       - name: Strip Release Binary (Linux GNU)
@@ -171,6 +197,11 @@ jobs:
       - name: Cache Cargo
         uses: Swatinem/rust-cache@v2
 
+      - name: Install Just
+        uses: taiki-e/install-action@v2
+        with:
+          tool: just
+
       - name: Install musl Tools
         run: |
           sudo apt-get update
@@ -180,7 +211,7 @@ jobs:
         env:
           RUSTFLAGS: -C target-feature=+crt-static
         run: |
-          cargo build --release --target x86_64-unknown-linux-musl
+          just build --release --target x86_64-unknown-linux-musl
 
       - name: Strip Release Binary (musl)
         run: |
@@ -212,6 +243,11 @@ jobs:
       - name: Cache Cargo
         uses: Swatinem/rust-cache@v2
 
+      - name: Install Just
+        uses: taiki-e/install-action@v2
+        with:
+          tool: just
+
       - name: Install MinGW (mingw-w64)
         run: |
           sudo apt-get update
@@ -221,7 +257,7 @@ jobs:
         env:
           RUSTFLAGS: -C target-feature=+crt-static
         run: |
-          cargo build --release --target x86_64-pc-windows-gnu
+          just build --release --target x86_64-pc-windows-gnu
 
       - name: Strip Release Binary (Windows GNU)
         run: |
@@ -290,6 +326,11 @@ jobs:
 
       - name: Test (MSRV)
         run: cargo test
+
+      - name: Version Check (MSRV)
+        run: |
+          version=$(grep -E '^version\s*=\s*"' Cargo.toml | head -n1 | sed -E 's/.*"([^"]+)".*/\1/')
+          ./target/debug/ned --version | grep -q "ned $version"
 
 #   man-compare:
 #     name: man/compare flag drift check

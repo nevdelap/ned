@@ -88,22 +88,26 @@ lint: format
 test *args="":
     cargo test {{args}}
 
-# Run cargo deny check.
-deny_check:
-    cargo install cargo-deny
-    cargo deny check
-
-# Do a debug build.
+# Build the project.
 build *args="":
-    cargo build {{args}}
-
-# Do a release build.
-release *args="":
     cargo build {{args}}
 
 # Get version from Cargo.toml
 get_version:
     @docker run --rm -v "$(pwd)":/work -w /work docker.io/mikefarah/yq:4 '.package.version' Cargo.toml
+
+# After tests, verify `ned --version` matches Cargo.toml (debug)
+version_check_debug:
+    cargo run -- --version | grep -q "ned $(just get_version)"
+
+# After tests, verify `ned --version` matches Cargo.toml (release)
+version_check_release:
+    cargo run --release -- --version | grep -q "ned $(just get_version)"
+
+# Run cargo deny check.
+deny_check:
+    cargo install cargo-deny
+    cargo deny check
 
 # Create and push a git tag based on Cargo.toml version.
 tag_release:
