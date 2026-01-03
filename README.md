@@ -547,7 +547,7 @@ ned -w '(\s*\n)+' -r '\n' .
 ned -w '(\s*\n?)*$' -r '' .
 ```
 
-**Unident tables and lists in XHTML files, ignoring the .git directory.**
+**Unindent tables and lists in XHTML files, ignoring the .git directory.**
 
 ```bash
 ned -R --include '*.htm' --exclude-dir '.git'    (</?(table|col|tbody|tr|th|td|ol|ul|li)[^>]*>)' -r '$1'
