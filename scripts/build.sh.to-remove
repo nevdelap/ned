@@ -1,0 +1,21 @@
+#!/bin/sh
+# Run from the project root.
+set -eu
+
+rustup target add x86_64-unknown-linux-musl
+cargo test
+cargo test --release
+cargo build --release --target x86_4-unknown-linux-musl || cargo build --release --target x86_64-unknown-linux-musl
+
+# Extract version from Cargo.toml
+version=$(sed -n 's/^version[[:space:]]*=[[:space:]]*"\(.*\)".*/\1/p' Cargo.toml | head -n1)
+if [ -z "$version" ]; then
+  echo "Version not found in Cargo.toml" >&2
+  exit 1
+fi
+
+# Write artifacts with version in filename
+gzip --stdout target/x86_64-unknown-linux-musl/release/ned >"artifacts/ned.${version}.64-bit.musl.linux.gz"
+gzip --stdout man/ned.1 >"artifacts/ned.1.${version}.gz"
+
+echo "Artifacts written to ./artifacts: ned.${version}.64-bit.musl.linux.gz, ned.1.${version}.gz"

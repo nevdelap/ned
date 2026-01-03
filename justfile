@@ -101,6 +101,10 @@ build *args="":
 release *args="":
     cargo build {{args}}
 
+# Get version from Cargo.toml
+get_version:
+    @docker run --rm -v "$(pwd)":/work -w /work docker.io/mikefarah/yq:4 '.package.version' Cargo.toml
+
 # Create and push a git tag based on Cargo.toml version.
 tag_release:
     set -euo pipefail
@@ -110,13 +114,13 @@ tag_release:
         echo -n $'\033[0m'; \
         exit 1; \
     fi
-    version=$(sed -n 's/^version[[:space:]]*=[[:space:]]*"\(.*\)".*/\1/p' Cargo.toml | head -n1); \
+    version=$(just get_version); \
     if [ -z "$version" ]; then \
         echo "Version not found in Cargo.toml"; exit 1; \
     fi; \
     tag="release-$version"; \
-    echo git tag --force "$tag"; \
-    echo git push --force origin "$tag"
+    git tag --force "$tag"; \
+    git push --force origin "$tag"
 
 # Show help.
 ned_help:
