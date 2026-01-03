@@ -1657,3 +1657,33 @@ fn atomic_replace_persist_failure_fallback_in_place() {
     dperms_restore.set_mode(0o755);
     let _ = fs::set_permissions(dir.path(), dperms_restore);
 }
+
+#[test]
+fn broken_pipe_stops_immediately() {
+    use std::io::{self, Write};
+
+    struct BrokenPipeWriter;
+    impl Write for BrokenPipeWriter {
+        fn write(&mut self, _buf: &[u8]) -> io::Result<usize> {
+            Err(io::Error::from(io::ErrorKind::BrokenPipe))
+        }
+        fn flush(&mut self) -> io::Result<()> {
+            Err(io::Error::from(io::ErrorKind::BrokenPipe))
+        }
+    }
+
+    let args: Vec<String> = vec![
+        "--stdout".to_string(),
+        "accidentally".to_string(),
+        "test".to_string(),
+    ];
+
+    let mut out = BrokenPipeWriter;
+    let result = crate::ned(&mut out, &args);
+    match result {
+        Err(err) => {
+            assert_eq!(err.io_error_kind(), Some(std::io::ErrorKind::BrokenPipe));
+        }
+        Ok(code) => panic!("Expected BrokenPipe error, got Ok({})", code),
+    }
+}

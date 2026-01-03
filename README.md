@@ -109,6 +109,12 @@ Exit codes:
     0                   matches found/replaced
     1                   no matches
 
+Broken pipe behavior:
+  When the downstream consumer closes the pipe early (BrokenPipe/EPIPE),
+  `ned` stops immediately and exits without printing an error message. This
+  avoids cluttering pipelines (e.g., `ned ... | head`) and wasting work when
+  the receiver is gone. The exit code is `0` in this case.
+
 Quiet:
     When -q/--quiet is specified, ned tests for matches and returns an exit
     code of 0, if a match is found in ANY file. Quiet matches will only read

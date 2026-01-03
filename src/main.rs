@@ -57,16 +57,23 @@ fn main() {
     // call ned() directly to read the output
     // that would go to stdout.
     let mut output = stdout();
-    let exit_code = match ned(&mut output, &env::args().skip(1).collect::<Vec<String>>()) {
-        Ok(exit_code) => exit_code,
-        Err(err) => {
-            let mut e = stderr();
-            let _ = writeln!(e, "{}\n{}\n", usage_brief(), err);
-            1
+    match ned(&mut output, &env::args().skip(1).collect::<Vec<String>>()) {
+        Ok(exit_code) => {
+            let _ = output.flush();
+            process::exit(exit_code)
         }
-    };
-    let _ = output.flush();
-    process::exit(exit_code)
+        Err(err) => {
+            if err.io_error_kind() == Some(std::io::ErrorKind::BrokenPipe) {
+                // Stop immediately on BrokenPipe to avoid extra work/flushes.
+                process::exit(0)
+            } else {
+                let mut e = stderr();
+                let _ = writeln!(e, "{}\n{}\n", usage_brief(), err);
+                let _ = output.flush();
+                process::exit(1)
+            }
+        }
+    }
 }
 
 fn ned(output: &mut dyn Write, args: &[String]) -> NedResult<i32> {
@@ -143,11 +150,15 @@ fn process_files(output: &mut dyn Write, parameters: &Parameters) -> NedResult<b
                             match process_file(output, parameters, file_name, &mut source) {
                                 Ok(found_matches) => found_matches,
                                 Err(err) => {
-                                    if err.io_error_kind() == Some(std::io::ErrorKind::BrokenPipe) {
-                                        break;
+                                    if err.io_error_kind()
+                                        == Some(std::io::ErrorKind::BrokenPipe)
+                                    {
+                                        // Propagate BrokenPipe so top-level can short-circuit.
+                                        return Err(err);
+                                    } else {
+                                        stderr_write_file_err(&path_buf, &err);
+                                        false
                                     }
-                                    stderr_write_file_err(&path_buf, &err);
-                                    false
                                 }
                             }
                     }
