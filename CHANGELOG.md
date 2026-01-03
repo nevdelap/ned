@@ -1,8 +1,8 @@
 # Change Log
 
-## This is a work in progress.
+**This is a work in progress.**
 
-### Breaking Changes
+## Breaking Changes
 
 - Short-flag duplication fixed: `-l` now maps exclusively to
   `--line-numbers-only`; `--follow` is long-only (no short flag). Scripts
@@ -11,7 +11,7 @@
   (POSIX shell-style splitting). Unquoted values that previously split on
   spaces may behave differently; quote values containing spaces.
 
-### Changed
+## Changed
 
 - Release now includes artifacts for Linux (GNU & musl), macOS, and Windows
   (Microsoft Visual C++ (MSVC) Toolchain & GNU/MinGW-w64 + GCC Toolchain).
@@ -41,7 +41,7 @@
 - Quiet matching short-circuits earlier and avoids reading unnecessary files,
   improving performance on large trees.
 
-### Documentation
+## Documentation
 
 - `README.md` and man page updated:
   - Clarified `NED_DEFAULTS` parsing (quoted/escaped values; no expansion) with

@@ -46,8 +46,6 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-    env:
-      CARGO_TERM_COLOR: ${{ matrix.os == 'windows-latest' && 'never' || 'always' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -136,8 +134,6 @@ jobs:
         # Standardize capitalization in step names
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get update
-          sudo apt-get install -y binutils
           strip target/release/ned
 
       - name: Strip Release Binary (macOS)
@@ -204,7 +200,7 @@ jobs:
       - name: Install musl Tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y musl-tools binutils
+          sudo apt-get install -y musl-tools
 
       - name: Build Release (musl)
         env:
@@ -255,11 +251,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y mingw-w64
-
-      - name: Install binutils (for strings)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y binutils
 
       - name: Build Release (Windows GNU)
         env:
