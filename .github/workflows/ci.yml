@@ -57,7 +57,7 @@ jobs:
       - name: Install Rust Toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          components: rustfmt, clippy
+          components: rustfmt, clippy, rust-src
 
       - name: Cache Cargo
         uses: Swatinem/rust-cache@v2
@@ -109,8 +109,10 @@ jobs:
         shell: powershell
         env:
           RUSTFLAGS: -C target-feature=+crt-static
+          # Allow using nightly-only flags. build-std is currently nightly-only.
+          RUSTC_BOOTSTRAP: 1
         run: |
-          just build --release
+          just build -Z build-std --target x86_64-win7-windows-msvc --release
 
       - name: Test Release
         run: just test --release
@@ -124,7 +126,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: powershell
         run: |
-          $out = (& 'target\release\ned.exe' --version)
+          $out = (& 'target\x86_64-win7-windows-msvc\release\ned.exe' --version)
           Write-Host $out
           if (-not ($out -like "*ned ${{ needs.version.outputs.version }}*")) { Write-Error "Version substring not found: $out"; exit 1 }
 
@@ -143,7 +145,7 @@ jobs:
         shell: powershell
         run: |
           choco install llvm -y
-          & 'C:\Program Files\LLVM\bin\llvm-strip.exe' -s target\release\ned.exe
+          & 'C:\Program Files\LLVM\bin\llvm-strip.exe' -s target\x86_64-win7-windows-msvc\release\ned.exe
 
       - name: Upload Release Artifact (Linux GNU)
         if: runner.os == 'Linux'
@@ -166,7 +168,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ned-windows-${{ needs.version.outputs.version }}
-          path: target\release\ned.exe
+          path: target\x86_64-win7-windows-msvc\release\ned.exe
           if-no-files-found: error
 
   musl-build:
