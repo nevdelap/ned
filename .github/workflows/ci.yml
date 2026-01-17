@@ -43,7 +43,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: windows-latest
+            target: x86_64-win7-windows-msvc
+            extra_cargo_args: -Zbuild-std
+          - os: macos-latest
+            target: aarch64-apple-darwin
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+
+    env:
+      # Allow using nightly-only cargo flags. build-std is currently nightly-only.
+      RUSTC_BOOTSTRAP: 1
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -82,27 +94,27 @@ jobs:
         run: just lint
 
       - name: Build Debug
-        run: just build
+        run: just build ${{ matrix.extra_cargo_args }} --target ${{ matrix.target }}
 
       - name: Test Debug
-        run: just test
+        run: just test ${{ matrix.extra_cargo_args }} --target ${{ matrix.target }}
 
       - name: Run Check Debug (non-Windows)
         if: runner.os != 'Windows'
         run: |
-          ./target/debug/ned --version | grep -q "ned ${{ needs.version.outputs.version }}"
+          ./target/${{matrix.target}}/debug/ned --version | grep -q "ned ${{ needs.version.outputs.version }}"
 
       - name: Run Check Debug (Windows MSVC)
         if: runner.os == 'Windows'
         shell: powershell
         run: |
-          $out = (& 'target\debug\ned.exe' --version)
+          $out = (& 'target\${{matrix.target}}\debug\ned.exe' --version)
           Write-Host $out
           if (-not ($out -like "*ned ${{ needs.version.outputs.version }}*")) { Write-Error "Version substring not found: $out"; exit 1 }
 
       - name: Build Release
         if: runner.os != 'Windows'
-        run: just build --release
+        run: just build ${{ matrix.extra_cargo_args }} --target ${{ matrix.target }} --release
 
       - name: Build Release (Windows MSVC)
         if: runner.os == 'Windows'
@@ -112,47 +124,47 @@ jobs:
           # Allow using nightly-only flags. build-std is currently nightly-only.
           RUSTC_BOOTSTRAP: 1
         run: |
-          just build -Z build-std --target x86_64-win7-windows-msvc --release
+          just build ${{ matrix.extra_cargo_args }} --target ${{ matrix.target }} --release
 
       - name: Test Release
-        run: just test --release
+        run: just test ${{ matrix.extra_cargo_args }} --target ${{ matrix.target }} --release
 
       - name: Run Check Release (non-Windows)
         if: runner.os != 'Windows'
         run: |
-          ./target/release/ned --version | grep -q "ned ${{ needs.version.outputs.version }}"
+          ./target/${{matrix.target}}/release/ned --version | grep -q "ned ${{ needs.version.outputs.version }}"
 
       - name: Run Check Release (Windows MSVC)
         if: runner.os == 'Windows'
         shell: powershell
         run: |
-          $out = (& 'target\x86_64-win7-windows-msvc\release\ned.exe' --version)
+          $out = (& 'target\${{matrix.target}}\release\ned.exe' --version)
           Write-Host $out
           if (-not ($out -like "*ned ${{ needs.version.outputs.version }}*")) { Write-Error "Version substring not found: $out"; exit 1 }
 
       - name: Strip Release Binary (Linux GNU)
         if: runner.os == 'Linux'
         run: |
-          strip target/release/ned
+          strip target/${{matrix.target}}/release/ned
 
       - name: Strip Release Binary (macOS)
         if: runner.os == 'macOS'
         run: |
-          strip -x target/release/ned
+          strip -x target/${{matrix.target}}/release/ned
 
       - name: Strip Release Binary (Windows MSVC)
         if: runner.os == 'Windows'
         shell: powershell
         run: |
           choco install llvm -y
-          & 'C:\Program Files\LLVM\bin\llvm-strip.exe' -s target\x86_64-win7-windows-msvc\release\ned.exe
+          & 'C:\Program Files\LLVM\bin\llvm-strip.exe' -s target\${{matrix.target}}\release\ned.exe
 
       - name: Upload Release Artifact (Linux GNU)
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@v4
         with:
           name: ned-linux-gnu-${{ needs.version.outputs.version }}
-          path: target/release/ned
+          path: target/${{matrix.target}}/release/ned
           if-no-files-found: error
 
       - name: Upload Release Artifact (macOS)
@@ -160,7 +172,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ned-macos-${{ needs.version.outputs.version }}
-          path: target/release/ned
+          path: target/${{matrix.target}}/release/ned
           if-no-files-found: error
 
       - name: Upload Release Artifact (Windows MSVC)
@@ -168,7 +180,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ned-windows-${{ needs.version.outputs.version }}
-          path: target\x86_64-win7-windows-msvc\release\ned.exe
+          path: target\${{matrix.target}}\release\ned.exe
           if-no-files-found: error
 
   musl-build:
