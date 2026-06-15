@@ -1,3 +1,7 @@
+> ### I have archived `ned`. What I have used him for for many years - automated bulk editing - is now done by Claude. `ned` has been put out of work, and since he has not _needed_ any updates for years and the rare ones I did only very minor, I don't anticipate any future updates. Thank you `ned` for you service.
+
+<br>
+
 # `ned`
 
 ![ned Screenshot](https://github.com/nevdelap/ned/blob/master/img/nedScreenshot.png)
