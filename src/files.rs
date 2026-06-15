@@ -1,7 +1,7 @@
 //
 // ned, https://github.com/nevdelap/ned, files.rs
 //
-// Copyright 2016-2024 Nev Delap (nevdelap at gmail)
+// Copyright 2016-2026 Nev Delap (nevdelap at gmail)
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -20,19 +20,17 @@
 
 use crate::ned_error::stderr_write_err;
 use crate::parameters::Parameters;
-use std::iter::IntoIterator;
-use std::path::Component;
-use std::path::PathBuf;
+use std::path::{Component, Path, PathBuf};
 use walkdir::{IntoIter, WalkDir};
 
 pub struct Files {
     parameters: Parameters,
-    walkdir: Box<IntoIter>,
+    walkdir: IntoIter,
 }
 
 impl Files {
     pub fn new(parameters: &Parameters, glob: &str) -> Files {
-        let mut walkdir = WalkDir::new(&glob)
+        let mut walkdir = WalkDir::new(glob)
             .follow_links(parameters.follow)
             .sort_by(|a, b| a.file_name().cmp(b.file_name()));
         if !parameters.recursive {
@@ -40,49 +38,45 @@ impl Files {
         }
         Files {
             parameters: parameters.clone(),
-            walkdir: Box::new(walkdir.into_iter()),
+            walkdir: walkdir.into_iter(),
         }
     }
 
-    /// Normalize relative paths (remove ./ and normalize ../) without
-    /// converting symlinks to the path they point to.
-    fn normalize_relative_paths(input_path: PathBuf) -> std::io::Result<PathBuf> {
+    /// Normalize relative paths (remove `./` and fold `../` lexically) without
+    /// resolving symlinks. This performs purely lexical normalization so that
+    /// entries like `./test/../test/file` are rendered as `test/file`.
+    fn normalize_relative_paths(input_path: &Path) -> PathBuf {
         let mut components: Vec<Component> = Vec::new();
         for component in input_path.components() {
             match component {
                 Component::CurDir => {
-                    // Ignore `./`
-                    continue;
+                    // Skip `.`
                 }
                 Component::ParentDir => {
-                    // Resolve `../` by popping the last normal component
-                    if let Some(last_component) = components.last() {
-                        if *last_component != Component::ParentDir {
+                    // Pop a normal component if present; otherwise retain `..`
+                    match components.last() {
+                        Some(Component::Normal(_)) => {
                             components.pop();
-                            continue;
                         }
+                        _ => components.push(component),
                     }
-                    // If there's no preceding component to pop, keep `..`
-                    components.push(component);
                 }
-                _ => {
-                    // Keep normal components
-                    components.push(component);
-                }
+                // Preserve other component types verbatim for safety
+                _ => components.push(component),
             }
         }
-        let mut output_path = PathBuf::new();
+        let mut out = PathBuf::new();
         for component in components {
-            output_path.push(component.as_os_str());
+            out.push(component.as_os_str());
         }
-        Ok(output_path)
+        out
     }
 }
 
 impl Iterator for Files {
-    type Item = Box<PathBuf>;
+    type Item = PathBuf;
 
-    fn next(&mut self) -> Option<Box<PathBuf>> {
+    fn next(&mut self) -> Option<PathBuf> {
         loop {
             match self.walkdir.next() {
                 Some(entry) => match entry {
@@ -118,17 +112,13 @@ impl Iterator for Files {
                                         .iter()
                                         .any(|pattern| pattern.matches(file_name));
                                 if included_file && !excluded_file && (all || !hidden) {
-                                    return Some(Box::new(
-                                        Self::normalize_relative_paths(entry.path().to_path_buf())
-                                            .ok()?,
-                                    ));
+                                    return Some(Self::normalize_relative_paths(entry.path()));
                                 }
                             }
                         }
                     }
                     Err(err) => {
                         stderr_write_err(&err);
-                        continue;
                     }
                 },
                 None => {

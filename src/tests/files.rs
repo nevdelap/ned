@@ -1,7 +1,7 @@
 //
 // ned, https://github.com/nevdelap/ned, tests/files.rs
 //
-// Copyright 2016-2024 Nev Delap (nevdelap at gmail)
+// Copyright 2016-2026 Nev Delap (nevdelap at gmail)
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@ use crate::options_with_defaults::OptionsWithDefaults;
 use crate::opts::make_opts;
 use crate::parameters::get_parameters;
 use std::env;
+use std::fs;
 use std::path::{Path, PathBuf};
 
 // These tests are not running `ned` to find a pattern in the test files, they
@@ -40,8 +41,14 @@ fn no_recursion() {
         test_path.join("file9.txt"),
         test_path.join("longfile.txt"),
     ];
-    if cfg!(windows) {
-        // Windows presents the symlink as a regular file.
+    // On some Windows environments (e.g. GitHub Actions), symlinks may
+    // be real files or true symlinks depending on checkout settings.
+    // Match the runtime filesystem semantics by checking the entry type
+    // without following the link (same as WalkDir does).
+    if fs::symlink_metadata(test_path.join("file8.txt"))
+        .map(|m| m.file_type().is_file())
+        .unwrap_or(false)
+    {
         expected_file_names.insert(1, test_path.join("file8.txt"));
     }
     test("pattern test", &expected_file_names);
@@ -58,8 +65,12 @@ fn no_recursion_all() {
         test_path.join("file9.txt"),
         test_path.join("longfile.txt"),
     ];
-    if cfg!(windows) {
-        // Windows presents the symlink as a regular file.
+    // Include the symlink only if the filesystem exposes it as a
+    // regular file without following it (platform/checkout dependent).
+    if fs::symlink_metadata(test_path.join("file8.txt"))
+        .map(|m| m.file_type().is_file())
+        .unwrap_or(false)
+    {
         expected_file_names.insert(2, test_path.join("file8.txt"));
     }
     test("pattern --all test", &expected_file_names);
@@ -77,6 +88,27 @@ fn no_recursion_follow() {
     test("pattern --follow test", &expected_file_names);
     // A leading ./ results in the same normalised relative paths.
     test("pattern --follow ./test", &expected_file_names);
+}
+
+#[test]
+fn no_recursion_short_l_does_not_follow() {
+    // Regression: ensure '-l' does NOT behave like '--follow'.
+    // Expected set matches non-follow behavior (conditional symlink inclusion).
+    let test_path = Path::new("test");
+    let mut expected_file_names = vec![
+        test_path.join("file1.txt"),
+        test_path.join("file9.txt"),
+        test_path.join("longfile.txt"),
+    ];
+    if fs::symlink_metadata(test_path.join("file8.txt"))
+        .map(|m| m.file_type().is_file())
+        .unwrap_or(false)
+    {
+        expected_file_names.insert(1, test_path.join("file8.txt"));
+    }
+    test("pattern -l test", &expected_file_names);
+    // A leading ./ results in the same normalised relative paths.
+    test("pattern -l ./test", &expected_file_names);
 }
 
 #[test]
@@ -110,8 +142,12 @@ fn recursion() {
         test_path.join("file9.txt"),
         test_path.join("longfile.txt"),
     ];
-    if cfg!(windows) {
-        // Windows presents the symlink as a regular file.
+    // Include the symlink only if the filesystem exposes it as a
+    // regular file without following it (platform/checkout dependent).
+    if fs::symlink_metadata(test_path.join("file8.txt"))
+        .map(|m| m.file_type().is_file())
+        .unwrap_or(false)
+    {
         expected_file_names.insert(7, test_path.join("file8.txt"));
     }
     test("pattern --recursive test", &expected_file_names);
@@ -138,8 +174,12 @@ fn recursion_all() {
         test_path.join("file9.txt"),
         test_path.join("longfile.txt"),
     ];
-    if cfg!(windows) {
-        // Windows presents the symlink as a regular file.
+    // Include the symlink only if the filesystem exposes it as a
+    // regular file without following it (platform/checkout dependent).
+    if fs::symlink_metadata(test_path.join("file8.txt"))
+        .map(|m| m.file_type().is_file())
+        .unwrap_or(false)
+    {
         expected_file_names.insert(10, test_path.join("file8.txt"));
     }
     test("pattern --recursive --all test", &expected_file_names);
@@ -188,11 +228,13 @@ fn recursion_follow_all() {
 #[test]
 fn include_files() {
     let test_path = Path::new("test");
-    let expected_file_names = vec![test_path
-        .join("dir1")
-        .join("dir4")
-        .join("dir5")
-        .join("file7.txt")];
+    let expected_file_names = vec![
+        test_path
+            .join("dir1")
+            .join("dir4")
+            .join("dir5")
+            .join("file7.txt"),
+    ];
     test("pattern -R test --include file7*", &expected_file_names);
 }
 
@@ -210,8 +252,12 @@ fn exclude_files() {
         test_path.join("file9.txt"),
         test_path.join("longfile.txt"),
     ];
-    if cfg!(windows) {
-        // Windows presents the symlink as a regular file.
+    // Include the symlink only if the filesystem exposes it as a
+    // regular file without following it (platform/checkout dependent).
+    if fs::symlink_metadata(test_path.join("file8.txt"))
+        .map(|m| m.file_type().is_file())
+        .unwrap_or(false)
+    {
         expected_file_names.insert(6, test_path.join("file8.txt"));
     }
     test(args, &expected_file_names);
@@ -230,17 +276,21 @@ fn exclude_directory() {
         test_path.join("file9.txt"),
         test_path.join("longfile.txt"),
     ];
-    if cfg!(windows) {
-        // Windows presents the symlink as a regular file.
+    // Include the symlink only if the filesystem exposes it as a
+    // regular file without following it (platform/checkout dependent).
+    if fs::symlink_metadata(test_path.join("file8.txt"))
+        .map(|m| m.file_type().is_file())
+        .unwrap_or(false)
+    {
         expected_file_names.insert(5, test_path.join("file8.txt"));
     }
     test(args, &expected_file_names);
 }
 
-fn test(args: &str, expected_file_names: &Vec<PathBuf>) {
+fn test(args: &str, expected_file_names: &[PathBuf]) {
     let args = args
         .split_whitespace()
-        .map(|arg| arg.to_string())
+        .map(std::string::ToString::to_string)
         .collect::<Vec<String>>();
 
     unsafe { env::set_var("NED_DEFAULTS", "") };

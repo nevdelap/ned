@@ -1,7 +1,7 @@
 //
 // ned, https://github.com/nevdelap/ned, source.rs
 //
-// Copyright 2016-2024 Nev Delap (nevdelap at gmail)
+// Copyright 2016-2026 Nev Delap (nevdelap at gmail)
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@ use std::io::Read;
 
 pub enum Source {
     Stdin(Box<dyn Read>),
-    File(Box<File>),
+    File(File),
     #[cfg(test)]
     Cursor(Box<Cursor<Vec<u8>>>),
 }

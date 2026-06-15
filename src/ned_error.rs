@@ -1,7 +1,7 @@
 //
 // ned, https://github.com/nevdelap/ned, ned_error.rs
 //
-// Copyright 2016-2024 Nev Delap (nevdelap at gmail)
+// Copyright 2016-2026 Nev Delap (nevdelap at gmail)
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,9 +19,6 @@
 //
 
 use crate::opts::PROGRAM;
-use getopts;
-use glob;
-use regex;
 use std::error;
 use std::fmt;
 use std::io::{self, ErrorKind, Write};
@@ -40,7 +37,7 @@ impl fmt::Display for StringError {
 }
 
 impl error::Error for StringError {
-    fn cause(&self) -> Option<&dyn error::Error> {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         None
     }
 }
@@ -103,18 +100,18 @@ impl From<String> for NedError {
 impl fmt::Display for NedError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            NedError::FromUtf8(ref err) => write!(f, "{}", err),
-            NedError::GetOpts(ref err) => write!(f, "{}", err),
-            NedError::GlobPattern(ref err) => write!(f, "{}", err),
-            NedError::Io(ref err) => write!(f, "{}", err),
-            NedError::ParameterError(ref err) => write!(f, "{}", err),
-            NedError::Regex(ref err) => write!(f, "{}", err),
+            NedError::FromUtf8(ref err) => write!(f, "{err}"),
+            NedError::GetOpts(ref err) => write!(f, "{err}"),
+            NedError::GlobPattern(ref err) => write!(f, "{err}"),
+            NedError::Io(ref err) => write!(f, "{err}"),
+            NedError::ParameterError(ref err) => write!(f, "{err}"),
+            NedError::Regex(ref err) => write!(f, "{err}"),
         }
     }
 }
 
 impl error::Error for NedError {
-    fn cause(&self) -> Option<&dyn error::Error> {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match *self {
             NedError::FromUtf8(ref err) => Some(err),
             NedError::GetOpts(ref err) => Some(err),
@@ -129,21 +126,11 @@ impl error::Error for NedError {
 pub type NedResult<T> = Result<T, NedError>;
 
 pub fn stderr_write_err(err: &dyn error::Error) {
-    io::stderr()
-        .write_all(&format!("{}: {}\n", PROGRAM, err.to_string()).into_bytes())
-        .expect("Can't write to stderr!");
+    let mut e = io::stderr();
+    let _ = writeln!(e, "{PROGRAM}: {err}");
 }
 
 pub fn stderr_write_file_err(path_buf: &path::Path, err: &dyn error::Error) {
-    io::stderr()
-        .write_all(
-            &format!(
-                "{}: {} {}\n",
-                PROGRAM,
-                path_buf.to_string_lossy(),
-                err.to_string()
-            )
-            .into_bytes(),
-        )
-        .expect("Can't write to stderr!");
+    let mut e = io::stderr();
+    let _ = writeln!(e, "{PROGRAM}: {} {err}", path_buf.to_string_lossy());
 }

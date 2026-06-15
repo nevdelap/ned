@@ -1,7 +1,7 @@
 //
 // ned, https://github.com/nevdelap/ned, tests/matches.rs
 //
-// Copyright 2016-2024 Nev Delap (nevdelap at gmail)
+// Copyright 2016-2026 Nev Delap (nevdelap at gmail)
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -253,7 +253,7 @@ would want to read it.
     let pattern = r"^\nThis.*read it.\n$";
     let args = "--whole-files --single";
     let expected_found_matches = true;
-    let expected_screen_output = &format!("bogus_file.txt:\n{}", input);
+    let expected_screen_output = &format!("bogus_file.txt:\n{input}");
     let expected_file_content = &input;
 
     test(
@@ -305,7 +305,7 @@ would want to read it.
     let pattern = r"\A\nThis(.|[\n])+read it.\n\z";
     let args = "--whole-files --multiline";
     let expected_found_matches = true;
-    let expected_screen_output = &format!("bogus_file.txt:\n{}", &input);
+    let expected_screen_output = &format!("bogus_file.txt:\n{input}");
     let expected_file_content = &input;
 
     test(
@@ -357,7 +357,7 @@ would want to read it.
     let pattern = r"^multiple(.|[\n])+for$";
     let args = "--whole-files --multiline";
     let expected_found_matches = true;
-    let expected_screen_output = &format!("bogus_file.txt:\n{}", input);
+    let expected_screen_output = &format!("bogus_file.txt:\n{input}");
     let expected_file_content = &input;
 
     test(
@@ -409,7 +409,7 @@ would want to read it.
     let pattern = r"\A\nThis.+read it.\n\z";
     let args = "--whole-files --single --multiline";
     let expected_found_matches = true;
-    let expected_screen_output = &format!("bogus_file.txt:\n{}", input);
+    let expected_screen_output = &format!("bogus_file.txt:\n{input}");
     let expected_file_content = &input;
 
     test(
@@ -729,6 +729,113 @@ bogus_file.txt:1:\n\
 bogus_file.txt:2:This is a test with
 bogus_file.txt:3:multiple lines of very
 bogus_file.txt:7:would want to read it.
+";
+    let expected_file_content = &input;
+
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
+}
+
+// Coverage for `--matches-only` combined with context flags (line-mode).
+#[test]
+fn only_matches_with_context_line_mode() {
+    let input = "\
+foo
+bar is baz
+qux
+";
+    let pattern = "is";
+    let args = "--matches-only --context 1";
+    let expected_found_matches = true;
+    let expected_screen_output = "\
+bogus_file.txt:1:foo
+bogus_file.txt:2:is
+bogus_file.txt:3:qux
+";
+    let expected_file_content = &input;
+
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
+}
+
+#[test]
+fn only_matches_with_before_line_mode() {
+    let input = "\
+foo
+bar is baz
+qux
+";
+    let pattern = "is";
+    let args = "--matches-only --before 1";
+    let expected_found_matches = true;
+    let expected_screen_output = "\
+bogus_file.txt:1:foo
+bogus_file.txt:2:is
+";
+    let expected_file_content = &input;
+
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
+}
+
+#[test]
+fn only_matches_with_after_line_mode() {
+    let input = "\
+foo
+bar is baz
+qux
+";
+    let pattern = "is";
+    let args = "--matches-only --after 1";
+    let expected_found_matches = true;
+    let expected_screen_output = "\
+bogus_file.txt:2:is
+bogus_file.txt:3:qux
+";
+    let expected_file_content = &input;
+
+    test(
+        input,
+        pattern,
+        args,
+        expected_found_matches,
+        expected_screen_output,
+        expected_file_content,
+    );
+}
+
+#[test]
+fn only_matches_with_context_quiet_mode() {
+    let input = "\
+foo
+bar is baz
+qux
+";
+    let pattern = "is";
+    let args = "--matches-only --context 1";
+    let expected_found_matches = true;
+    let expected_screen_output = "\
+bogus_file.txt:1:foo
+bogus_file.txt:2:is
+bogus_file.txt:3:qux
 ";
     let expected_file_content = &input;
 
@@ -1653,7 +1760,7 @@ fn test(
 ) {
     println!("NOT QUIET");
     // The dummy glob argument prevents it from assuming --stdout.
-    let args = format!("{} dummy", args);
+    let args = format!("{args} dummy");
     really_test(
         input,
         pattern,
@@ -1663,7 +1770,7 @@ fn test(
         expected_file_content,
     );
     println!("QUIET");
-    let args = format!("{} --quiet dummy", args);
+    let args = format!("{args} --quiet dummy");
     really_test(
         input,
         pattern,
@@ -1684,7 +1791,7 @@ fn really_test(
 ) {
     let mut args = args
         .split_whitespace()
-        .map(|arg| arg.to_string())
+        .map(std::string::ToString::to_string)
         .collect::<Vec<String>>();
     args.insert(0, pattern.to_string());
     unsafe { env::set_var("NED_DEFAULTS", "") };
@@ -1700,7 +1807,7 @@ fn really_test(
     let found_matches = process_file(
         &mut screen_output,
         &parameters,
-        &Some("bogus_file.txt".to_string()),
+        Some("bogus_file.txt".to_string()).as_ref(),
         &mut file,
     )
     .unwrap();

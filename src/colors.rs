@@ -1,7 +1,7 @@
 //
 // ned, https://github.com/nevdelap/ned, colors.rs
 //
-// Copyright 2016-2024 Nev Delap (nevdelap at gmail)
+// Copyright 2016-2026 Nev Delap (nevdelap at gmail)
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -34,12 +34,11 @@ impl FromStr for Colors {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "" => Ok(Colors::Auto),
-            "auto" => Ok(Colors::Auto),
+            "" | "auto" => Ok(Colors::Auto),
             "always" => Ok(Colors::Always),
             "never" => Ok(Colors::Never),
             _ => Err(StringError {
-                err: format!("invalid colors option {}", s),
+                err: format!("invalid colors option {s}"),
             }),
         }
     }

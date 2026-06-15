@@ -4,7 +4,10 @@
 
 # `ned`
 
-![ned Screenshot](https://github.com/nevdelap/ned/blob/master/img/nedScreenshot.png)
+[![CI](https://github.com/nevdelap/ned/actions/workflows/ci.yml/badge.svg)](https://github.com/nevdelap/ned/actions/workflows/ci.yml)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+
+![ned Screenshot](img/nedScreenshot.png)
 
 ## `ned` Usage
 
@@ -25,7 +28,7 @@ isn't restricted to line oriented editing.
 
 FILEs are ASCII or UTF-8 text files. For regex syntax see:
 
-  https://docs.rs/regex/1.4.6/regex/#syntax
+    https://docs.rs/regex/1.12.2/regex/#syntax
 
 Options:
     -p, --pattern PATTERN
@@ -74,7 +77,7 @@ Options:
     -A, --after LINES   Show LINES lines after each matching line. Use without
                         -w/--whole-files.
     -R, --recursive     Recurse.
-    -l, --follow        Follow symlinks. (Ignored on Windows.)
+        --follow        Follow symlinks. (Ignored on Windows.)
         --include GLOB  Match only files that match GLOB.
         --exclude GLOB  Skip files matching GLOB.
         --exclude-dir GLOB
@@ -98,15 +101,23 @@ Options:
     -h, --help          Print this help and exit.
 
 Environment:
-    NED_DEFAULTS        ned options added to the program's arguments. Is
-                        a space delimited list of options and is not first
-                        interpreted by a shell, so quotes are not required
-                        around arguments. For example:
+    NED_DEFAULTS        ned options added to the program's arguments. Arguments
+                        are parsed using POSIX shell-style splitting: quotes and
+                        escapes are respected, so quoted segments remain a single
+                        argument. No shell expansion occurs (wildcards and variables
+                        are not expanded). ASCII RS (U+001E) is normalized to spaces.
+                        Example:
 
-                        NED_DEFAULTS="-u -R --exclude *.bk --exclude-dir .git"
+                        NED_DEFAULTS="-u -R --exclude '*.bk' --exclude-dir .git --colors always"
 Exit codes:
     0                   matches found/replaced
     1                   no matches
+
+Broken pipe behavior:
+  When the downstream consumer closes the pipe early (BrokenPipe/EPIPE),
+  `ned` stops immediately and exits without printing an error message. This
+  avoids cluttering pipelines (e.g., `ned ... | head`) and wasting work when
+  the receiver is gone. The exit code is `0` in this case.
 
 Quiet:
     When -q/--quiet is specified, ned tests for matches and returns an exit
@@ -114,7 +125,7 @@ Quiet:
     as many files as needed to find a match. Even without this shortcutting
     behaviour, quiet matches are more performant than non-quiet matches.
 
-ned 1.3.3 Copyright (C) 2016-2024 Nev Delap - https://github.com/nevdelap/ned
+ned 2.0.0 Copyright (C) 2016-2026 Nev Delap - https://github.com/nevdelap/ned
 
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it.
@@ -122,9 +133,41 @@ There is NO WARRANTY, to the extent permitted by law.
 
 ```
 
+### Environment Details (`NED_DEFAULTS`)
+
+- Shell-style parsing: `NED_DEFAULTS` is parsed using POSIX shell-style
+  splitting. Quotes (`'"`), escapes (`\`), and grouping are respected, so quoted
+  segments remain a single argument.
+- No shell expansion: pathname expansion (`*`, `?`) and variable substitution
+  are not performed; the content is only split. Pass patterns quoted if you need
+  to prevent your shell from expanding when setting the variable.
+- Examples:
+  - `NED_DEFAULTS="-u -R --exclude '*.bk' --exclude-dir .git --colors always"`
+  - `NED_DEFAULTS='--include "*.txt" --colors auto'`
+- Values with spaces: Use quotes inside `NED_DEFAULTS` to keep spaces, e.g.,
+  `NED_DEFAULTS='--replace "some value"'`.
+- Fish/Windows note: If your shell inserts ASCII RS (`\u001E`) characters when
+  setting variables unquoted, they are normalized to spaces; prefer quoting the
+  assignment: `set -x NED_DEFAULTS "-u -R"`.
+
+### Windows Notes (Colors and Symlinks)
+
+- Color modes: `--colors=auto` emits color only when stdout is a terminal;
+  `--colors=always` forces color even through pipes; `--colors=never` disables
+  color.
+- Terminal support: Modern Windows terminals (Windows Terminal, PowerShell, VS
+  Code) support ANSI colors reliably. Git Bash may render ANSI escapes
+  inconsistently; use `--colors=never` or run tests in PowerShell/Windows
+  Terminal.
+- `less` integration: Use `less -R` to preserve ANSI colors when paging output.
+- Symlink behavior: `--follow` is long-only and ignored on Windows. On Windows,
+  symlink handling depends on filesystem and runner settings; tests adapt to
+  runtime semantics (treat symlinks as files only if the platform exposes them
+  that way).
+
 ## I.A.Q. (Infrequently Asked Questions)
 
-**_Why isn't \U working? (or \L, \I, \F)_**
+***Why isn't \\U working? (or \\L, \\I, \\F)***
 
 Because case replacing is off by default to not waste cycles when you're not
 doing it, since that is most of the time, generally. See the help: (as of
@@ -138,8 +181,8 @@ v1.2.0)
                         replacement.
 ```
 
-**_Why do I get errors like ned: /path/file invalid utf-8 sequence of 1 bytes
-from index 25?_**
+***Why do I get errors like ned: /path/file invalid utf-8 sequence of 1 bytes
+from index 25?***
 
 Because, by default, `ned` reads everything unless you tell it not to read it.
 If you want it to always ignore non-ASCII, non-UTF-8 files, you can put this in
@@ -152,18 +195,17 @@ NED_DEFAULTS. See the help:
                         the --exclude option should be preferred.
 ```
 
-**_Why don't the tests pass in Git Bash?_**
+***Why don't the tests pass in Git Bash?***
 
-Git Bash does not support colored output using ansi_term. Run the tests in
-cmd.exe on Windows.
+Git Bash may not render ANSI color escape sequences reliably. If colored output
+causes failures, run the tests in cmd.exe, PowerShell, or Windows Terminal.
 
 ## Building `ned`
 
 ### Machine Setup To Build `ned`
 
-- Install Rust as per: <https://www.rust-lang.org/en-US/install.html>
-- (Windows) Install Visual Studio Build Tools 2017 as per:
-  <https://www.visualstudio.com/downloads/>
+- Install `rustup` as per: <https://rust-lang.org/tools/install/> or as per your
+  system's preferred method.
 
 ### To Build For The Current Platform
 
@@ -476,8 +518,8 @@ ned -w '\n.*dog.*\n.*dog.*\n.*dog.*\n' -r '\n'
 **Replace changing case.**
 
 'big dog' and 'smelly dog' replaced with 'BIG! dog' and 'SMELLY! dog'. Available
-case replacements: \U - uppercase, \L - lowercase, \I - initial uppercase (title
-case), \F - first uppercase (sentence case).
+case replacements: \\U - uppercase, \\L - lowercase, \\I - initial uppercase (title
+case), \\F - first uppercase (sentence case).
 
 ```bash
 ned ' ([a-z]+) dog' --case-replacements -r '\U$1\E! dog' --stdout .
@@ -509,7 +551,7 @@ ned -w '(\s*\n)+' -r '\n' .
 ned -w '(\s*\n?)*$' -r '' .
 ```
 
-**Unident tables and lists in XHTML files, ignoring the .git directory.**
+**Unindent tables and lists in XHTML files, ignoring the .git directory.**
 
 ```bash
 ned -R --include '*.htm' --exclude-dir '.git'    (</?(table|col|tbody|tr|th|td|ol|ul|li)[^>]*>)' -r '$1'

@@ -1,7 +1,7 @@
 //
 // ned, https://github.com/nevdelap/ned, options_with_defaults.rs
 //
-// Copyright 2016-2024 Nev Delap (nevdelap at gmail)
+// Copyright 2016-2026 Nev Delap (nevdelap at gmail)
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -30,22 +30,42 @@ pub struct OptionsWithDefaults {
 
 impl OptionsWithDefaults {
     pub fn new(opts: Options, args: &[String]) -> NedResult<OptionsWithDefaults> {
+        let default_vec: Vec<String> = match env::var("NED_DEFAULTS") {
+            Ok(s) => {
+                // Normalize ASCII RS and apply POSIX shell-style splitting.
+                let s = s.replace('\u{1e}', " ");
+                shell_words::split(&s).map_err(|e| e.to_string())?
+            }
+            Err(_) => vec![],
+        };
         Ok(OptionsWithDefaults {
             arg_matches: opts.parse(args)?,
-            default_matches: opts.parse(
-                if let Ok(mut default_args) = env::var("NED_DEFAULTS") {
-                    // This replace of ASCII RS character (what the?) is special - it is for
-                    // if when using fish shell someone has done "set NED_DEFAULTS -u -R" rather
-                    // than this "set NED_DEFAULTS '-u -R'" they don't get a cryptic complaint.
-                    default_args = default_args.replace("\u{1e}", " ");
-                    default_args
-                        .split_whitespace()
-                        .map(str::to_string)
-                        .collect::<Vec<String>>()
-                } else {
-                    vec![]
-                },
-            )?,
+            default_matches: opts.parse(default_vec)?,
+            opts,
+        })
+    }
+
+    #[cfg(test)]
+    /// Test-only constructor used to inject a simulated `NED_DEFAULTS` value.
+    /// Applies the same POSIX shell-style splitting (`shell_words::split`) as
+    /// production, while avoiding reads/writes to the process environment.
+    /// This keeps tests isolated and deterministic for defaults parsing.
+    /// Also normalizes ASCII RS (U+001E) to spaces to mirror runtime behavior.
+    pub fn new_with_defaults_string(
+        opts: Options,
+        args: &[String],
+        defaults: Option<&str>,
+    ) -> NedResult<OptionsWithDefaults> {
+        let default_vec: Vec<String> = match defaults {
+            Some(s) => {
+                let s = s.replace('\u{1e}', " ");
+                shell_words::split(&s).map_err(|e| e.to_string())?
+            }
+            None => vec![],
+        };
+        Ok(OptionsWithDefaults {
+            arg_matches: opts.parse(args)?,
+            default_matches: opts.parse(default_vec)?,
             opts,
         })
     }

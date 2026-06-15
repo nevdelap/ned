@@ -1,0 +1,440 @@
+name: CI
+
+on:
+  push:
+#   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  version:
+    name: Extract Version (Linux)
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Just
+        uses: taiki-e/install-action@v2
+        with:
+          tool: just
+
+      - name: Extract Cargo Version
+        id: version
+        shell: bash
+        run: |
+          version=$(just get_version)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+  build-lint-test:
+    name: Build, Lint, Test (${{ matrix.os }})
+    needs: [version]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch master branch for lint diffs (Linux)
+        if: runner.os == 'Linux'
+        run: git fetch origin master
+
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install Just
+        uses: taiki-e/install-action@v2
+        with:
+          tool: just
+
+      - name: Install uv (Linux)
+        if: runner.os == 'Linux'
+        uses: astral-sh/setup-uv@v3
+
+      - name: Install taplo (Linux)
+        if: runner.os == 'Linux'
+        uses: taiki-e/install-action@v2
+        with:
+          tool: taplo
+
+      - name: Lint & Format (Linux)
+        if: runner.os == 'Linux'
+        run: just lint
+
+      - name: Build Debug
+        run: just build
+
+      - name: Test Debug
+        run: just test
+
+      - name: Run Check Debug (non-Windows)
+        if: runner.os != 'Windows'
+        run: |
+          ./target/debug/ned --version | grep -q "ned ${{ needs.version.outputs.version }}"
+
+      - name: Run Check Debug (Windows MSVC)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $out = (& 'target\debug\ned.exe' --version)
+          Write-Host $out
+          if (-not ($out -like "*ned ${{ needs.version.outputs.version }}*")) { Write-Error "Version substring not found: $out"; exit 1 }
+
+      - name: Build Release
+        if: runner.os != 'Windows'
+        run: just build --release
+
+      - name: Build Release (Windows MSVC)
+        if: runner.os == 'Windows'
+        shell: powershell
+        env:
+          RUSTFLAGS: -C target-feature=+crt-static
+        run: |
+          just build --release
+
+      - name: Test Release
+        run: just test --release
+
+      - name: Run Check Release (non-Windows)
+        if: runner.os != 'Windows'
+        run: |
+          ./target/release/ned --version | grep -q "ned ${{ needs.version.outputs.version }}"
+
+      - name: Run Check Release (Windows MSVC)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $out = (& 'target\release\ned.exe' --version)
+          Write-Host $out
+          if (-not ($out -like "*ned ${{ needs.version.outputs.version }}*")) { Write-Error "Version substring not found: $out"; exit 1 }
+
+      - name: Strip Release Binary (Linux GNU)
+        if: runner.os == 'Linux'
+        run: |
+          strip target/release/ned
+
+      - name: Strip Release Binary (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          strip -x target/release/ned
+
+      - name: Strip Release Binary (Windows MSVC)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          choco install llvm -y
+          & 'C:\Program Files\LLVM\bin\llvm-strip.exe' -s target\release\ned.exe
+
+      - name: Upload Release Artifact (Linux GNU)
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ned-linux-gnu-${{ needs.version.outputs.version }}
+          path: target/release/ned
+          if-no-files-found: error
+
+      - name: Upload Release Artifact (macOS)
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ned-macos-${{ needs.version.outputs.version }}
+          path: target/release/ned
+          if-no-files-found: error
+
+      - name: Upload Release Artifact (Windows MSVC)
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ned-windows-${{ needs.version.outputs.version }}
+          path: target\release\ned.exe
+          if-no-files-found: error
+
+  musl-build:
+    name: Build (musl, x86_64-unknown-linux-musl)
+    needs: [version]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust Toolchain (Linux musl)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-musl
+          components: rustfmt, clippy
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install Just
+        uses: taiki-e/install-action@v2
+        with:
+          tool: just
+
+      - name: Install musl Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y musl-tools
+
+      - name: Build Release (Linux musl)
+        env:
+          RUSTFLAGS: -C target-feature=+crt-static
+        run: |
+          just build --release --target x86_64-unknown-linux-musl
+
+      - name: Run Check (Linux musl)
+        run: |
+          ./target/x86_64-unknown-linux-musl/release/ned --version | grep -q "ned ${{ needs.version.outputs.version }}"
+
+      - name: Strip Release Binary (Linux musl)
+        run: |
+          strip target/x86_64-unknown-linux-musl/release/ned
+
+      - name: Upload Release Artifact (Linux musl)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ned-linux-musl-${{ needs.version.outputs.version }}
+          path: target/x86_64-unknown-linux-musl/release/ned
+          if-no-files-found: error
+
+  windows-gnu-cross:
+    name: Build (Windows GNU, x86_64-pc-windows-gnu)
+    needs: [version]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust Toolchain (Windows GNU)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-gnu
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install Just
+        uses: taiki-e/install-action@v2
+        with:
+          tool: just
+
+      - name: Install MinGW (mingw-w64)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mingw-w64
+
+      - name: Build Release (Windows GNU)
+        env:
+          RUSTFLAGS: -C target-feature=+crt-static
+        run: |
+          just build --release --target x86_64-pc-windows-gnu
+
+      - name: Strip Release Binary (Windows GNU)
+        run: |
+          x86_64-w64-mingw32-strip target/x86_64-pc-windows-gnu/release/ned.exe
+
+      - name: Upload Release Artifact (Windows GNU)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ned-windows-gnu-${{ needs.version.outputs.version }}.exe
+          path: target/x86_64-pc-windows-gnu/release/ned.exe
+          if-no-files-found: error
+
+  windows-gnu-verify:
+    name: Verify Windows GNU Artifact (Windows GNU)
+    needs: [version, windows-gnu-cross]
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Artifact (Windows GNU)
+        uses: actions/download-artifact@v4
+        with:
+          name: ned-windows-gnu-${{ needs.version.outputs.version }}.exe
+          path: dist/windows-gnu
+
+      - name: Run Check (Windows GNU)
+        shell: powershell
+        run: |
+          $out = (& 'dist\windows-gnu\ned.exe' --version)
+          Write-Host $out
+          if (-not ($out -like "*ned ${{ needs.version.outputs.version }}*")) { Write-Error "Version substring not found: $out"; exit 1 }
+
+  cargo-audit:
+    name: Audit Security Vulnerabilities
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-audit Package
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-audit
+
+      - name: Run cargo-audit
+        run: |
+          cargo audit
+
+  deny_check:
+    name: Check Dependency Policy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-deny Package
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-deny
+
+      - name: Run cargo-deny Check
+        run: |
+          cargo deny check
+
+  msrv:
+    name: Minimum Supported Rust Version Build, Lint, Test (Ubuntu)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust Toolchain (MSRV)
+        uses: dtolnay/rust-toolchain@1.85.0
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build (MSRV)
+        run: cargo build --all-targets
+
+      - name: Lint (MSRV)
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Test (MSRV)
+        run: cargo test
+
+      - name: Run Check (MSRV)
+        run: |
+          version=$(grep -E '^version\s*=\s*"' Cargo.toml | head -n1 | sed -E 's/.*"([^"]+)".*/\1/')
+          ./target/debug/ned --version | grep -q "ned $version"
+
+  publish-release:
+    name: Publish GitHub Release (Attach Artifacts)
+    runs-on: ubuntu-latest
+    needs: [version, build-lint-test, musl-build, windows-gnu-cross]
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Artifact (Linux GNU)
+        uses: actions/download-artifact@v4
+        with:
+          name: ned-linux-gnu-${{ needs.version.outputs.version }}
+          path: dist/linux-gnu
+
+      - name: Download Artifact (Linux musl)
+        uses: actions/download-artifact@v4
+        with:
+          name: ned-linux-musl-${{ needs.version.outputs.version }}
+          path: dist/linux-musl
+
+      - name: Download Artifact (macOS)
+        uses: actions/download-artifact@v4
+        with:
+          name: ned-macos-${{ needs.version.outputs.version }}
+          path: dist/macos
+
+      - name: Download Artifact (Windows MSVC)
+        uses: actions/download-artifact@v4
+        with:
+          name: ned-windows-${{ needs.version.outputs.version }}
+          path: dist/windows
+
+      - name: Download Artifact (Windows GNU)
+        uses: actions/download-artifact@v4
+        with:
+          name: ned-windows-gnu-${{ needs.version.outputs.version }}.exe
+          path: dist/windows-gnu
+
+      - name: Prepare Asset Names
+        run: |
+          mkdir -p dist
+          mv dist/linux-gnu/ned dist/ned-linux-gnu-${{ needs.version.outputs.version }}
+          mv dist/linux-musl/ned dist/ned-linux-musl-${{ needs.version.outputs.version }}
+          mv dist/macos/ned dist/ned-macos-${{ needs.version.outputs.version }}
+          mv dist/windows/ned.exe dist/ned-windows-${{ needs.version.outputs.version }}.exe
+          mv dist/windows-gnu/ned.exe dist/ned-windows-gnu-${{ needs.version.outputs.version }}.exe
+
+      - name: Generate SHA256 Checksums
+        run: |
+          cd dist
+          sha256sum ned-linux-gnu-${{ needs.version.outputs.version }} > ned-linux-gnu-${{ needs.version.outputs.version }}.sha256
+          sha256sum ned-linux-musl-${{ needs.version.outputs.version }} > ned-linux-musl-${{ needs.version.outputs.version }}.sha256
+          sha256sum ned-macos-${{ needs.version.outputs.version }} > ned-macos-${{ needs.version.outputs.version }}.sha256
+          sha256sum ned-windows-${{ needs.version.outputs.version }}.exe > ned-windows-${{ needs.version.outputs.version }}.exe.sha256
+          sha256sum ned-windows-gnu-${{ needs.version.outputs.version }}.exe > ned-windows-gnu-${{ needs.version.outputs.version }}.exe.sha256
+          sha256sum ned-linux-gnu-${{ needs.version.outputs.version }} ned-linux-musl-${{ needs.version.outputs.version }} ned-macos-${{ needs.version.outputs.version }} ned-windows-${{ needs.version.outputs.version }}.exe ned-windows-gnu-${{ needs.version.outputs.version }}.exe > SHA256SUMS
+
+      - name: Create Release and Upload Assets
+        uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
+        with:
+          files: |
+            dist/ned-linux-gnu-${{ needs.version.outputs.version }}
+            dist/ned-linux-musl-${{ needs.version.outputs.version }}
+            dist/ned-macos-${{ needs.version.outputs.version }}
+            dist/ned-windows-${{ needs.version.outputs.version }}.exe
+            dist/ned-windows-gnu-${{ needs.version.outputs.version }}.exe
+            dist/ned-linux-gnu-${{ needs.version.outputs.version }}.sha256
+            dist/ned-linux-musl-${{ needs.version.outputs.version }}.sha256
+            dist/ned-macos-${{ needs.version.outputs.version }}.sha256
+            dist/ned-windows-${{ needs.version.outputs.version }}.exe.sha256
+            dist/ned-windows-gnu-${{ needs.version.outputs.version }}.exe.sha256
+            dist/SHA256SUMS
+          generate_release_notes: true
+          draft: true

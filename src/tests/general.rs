@@ -1,7 +1,7 @@
 //
 // ned, https://github.com/nevdelap/ned, tests/general.rs
 //
-// Copyright 2016-2024 Nev Delap (nevdelap at gmail)
+// Copyright 2016-2026 Nev Delap (nevdelap at gmail)
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -20,7 +20,6 @@
 
 /// Just a few general tests. The specifics are tested in the other test files.
 use crate::ned;
-use std;
 
 #[test]
 fn basic_match() {
@@ -382,6 +381,16 @@ fn basic_match_line_numbers_only() {
 }
 
 #[test]
+fn basic_match_line_numbers_only_short_flag() {
+    // Regression: ensure '-l' maps to --line-numbers-only (not --follow)
+    let args = vec!["accidentally", "test", "-l"];
+    let expected_exit_code = 0;
+    let expected_screen_output = ["1\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
 fn basic_match_no_file_names() {
     let args = vec!["accidentally", "test", "--no-filenames"];
     let expected_exit_code = 0;
@@ -448,6 +457,16 @@ fn basic_match_file_names_only_no_match_whole_files() {
 #[test]
 fn basic_match_line_numbers_only_no_match() {
     let args = vec!["secretly", "test/dir1", "--line-numbers-only", "--no-match"];
+    let expected_exit_code = 0;
+    let expected_screen_output = ["1\n2\n3\n4\n5\n6\n1\n2\n3\n"];
+
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn basic_match_line_numbers_only_no_match_short_flag() {
+    // Regression: short '-l' with '--no-match' prints only non-matching line numbers
+    let args = vec!["secretly", "test/dir1", "-l", "--no-match"];
     let expected_exit_code = 0;
     let expected_screen_output = ["1\n2\n3\n4\n5\n6\n1\n2\n3\n"];
 
@@ -1456,9 +1475,9 @@ fn recursive_match_line_numbers_only_no_match() {
 fn test(args: &[&str], expected_exit_code: i32, expected_screen_output: &[&str]) {
     let args: Vec<String> = args
         .iter()
-        .map(|arg| arg.to_string())
+        .map(std::string::ToString::to_string)
         .collect::<Vec<String>>();
-    assert!(!expected_screen_output[0].is_empty() || expected_exit_code != 0);
+    // Allow tests that expect no output (empty expected_screen_output) with a success exit code.
 
     let mut screen_output: Vec<u8> = vec![];
 
@@ -1466,11 +1485,18 @@ fn test(args: &[&str], expected_exit_code: i32, expected_screen_output: &[&str])
 
     let screen_output = fix_output_for_windows(&String::from_utf8(screen_output).unwrap());
 
-    for part in expected_screen_output.iter() {
-        let part = fix_output_for_windows(part);
-        if !screen_output.contains(&part) {
-            println!("{:?} not in {:?}", part, screen_output);
-            unreachable!();
+    if expected_screen_output.is_empty() {
+        assert!(
+            screen_output.is_empty(),
+            "Expected no output, got: {screen_output}"
+        );
+    } else {
+        for part in expected_screen_output {
+            let part = fix_output_for_windows(part);
+            assert!(
+                screen_output.contains(&part),
+                "Expected output missing. Looking for: {part}\nActual output: {screen_output}"
+            );
         }
     }
     assert_eq!(exit_code, expected_exit_code);
@@ -1480,6 +1506,181 @@ fn fix_output_for_windows(part: &str) -> String {
     // Is sufficient for current requirements as I make tests
     // written on Linux work on Windows. Future tests will
     // be written to work on both platforms .
-    part.replace("/", &std::path::MAIN_SEPARATOR.to_string())
-        .replace("\r", "")
+    // Normalize Windows backslashes to forward slashes for comparison,
+    // and strip CR to make outputs consistent across platforms.
+    part.replace('\\', "/").replace('\r', "")
+}
+
+#[test]
+fn env_defaults_shell_parsing() {
+    // Local helper to run ned with provided defaults string to avoid global env changes.
+    fn run_with_defaults(args: &[&str], defaults: &str) -> (i32, String) {
+        let args: Vec<String> = args.iter().map(std::string::ToString::to_string).collect();
+        let mut screen_output: Vec<u8> = vec![];
+        let exit_code = crate::ned_with_defaults(&mut screen_output, &args, Some(defaults))
+            .expect("ned_with_defaults should succeed");
+        let out = fix_output_for_windows(&String::from_utf8(screen_output).unwrap());
+        (exit_code, out)
+    }
+
+    // 1) Colors from NED_DEFAULTS (shell-style parsing of simple flags)
+    let (exit_code, out) = run_with_defaults(&["accidentally.*hand", "test"], "--colors=always");
+    assert_eq!(exit_code, 0);
+    assert!(out.contains(
+        "\u{1b}[35mtest/file1.txt:1:\u{1b}[0mThe \u{1b}[1;31maccidentally ghastly hand\u{1b}[0m plans AN ESCAPE from a cream puff the placid widow. A slovenly\n"
+    ));
+
+    // 2) Replacement with spaces from NED_DEFAULTS (quotes respected)
+    let (exit_code, out) = run_with_defaults(
+        &["--stdout", "accidentally", "test"],
+        r"--replace 'out standing'",
+    );
+    assert_eq!(exit_code, 0);
+    assert!(out.contains(
+        "test/file1.txt:\nThe out standing ghastly hand plans AN ESCAPE from a cream puff the placid widow. A slovenly\n"
+    ));
+}
+
+#[test]
+fn streaming_context_windows() {
+    // Verify before/after contexts are emitted correctly in line-mode streaming.
+    let args = vec!["her", "test", "--recursive", "--line-numbers-only"]; // simple match baseline
+    let expected_exit_code = 0;
+    let expected_screen_output = ["3\n4\n"]; // sanity subset
+    test(&args, expected_exit_code, &expected_screen_output);
+
+    // With context before/after, ensure lines around matches appear.
+    let args = vec!["her", "test", "-B", "1", "-A", "1"]; // print neighbor lines
+    let expected_exit_code = 0;
+    let expected_screen_output = [
+        "test/longfile.txt:17:soothed by an espadrille and a fetishist, still makes a truce with her\n",
+        "test/longfile.txt:18:from an unseemly gypsy, buy an expensive gift for her a fetishist with\n",
+        "test/longfile.txt:19:a philosopher, and takes a peek at the dark side of her dilettante.\n",
+    ];
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn colored_context_windows() {
+    // Ensure context headers are colored and matched text is highlighted.
+    let args = vec![
+        "her",
+        "test",
+        "--include",
+        "long*.txt",
+        "-B",
+        "1",
+        "-A",
+        "1",
+        "--color=always",
+    ];
+    let expected_exit_code = 0;
+    let expected_screen_output = [
+        "\u{1b}[35mtest/longfile.txt:17:\u{1b}[0m",
+        "\u{1b}[1;31mher\u{1b}[0m",
+        "\u{1b}[35mtest/longfile.txt:18:\u{1b}[0m",
+    ];
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn quiet_with_context_no_output() {
+    // Quiet mode should suppress output even with context flags, but return success on match.
+    let args = vec![
+        "her",
+        "test",
+        "--include",
+        "long*.txt",
+        "-B",
+        "1",
+        "-A",
+        "1",
+        "--quiet",
+    ];
+    let expected_exit_code = 0;
+    let expected_screen_output: [&str; 0] = [];
+    test(&args, expected_exit_code, &expected_screen_output);
+}
+
+#[test]
+fn atomic_replace_writes_file() {
+    use std::fs;
+    let dir = tempfile::tempdir().unwrap();
+    let file_path = dir.path().join("atomic_a.txt");
+    fs::write(&file_path, "hello accidentally world\n").unwrap();
+
+    let args: Vec<String> = vec![
+        "accidentally".to_string(),
+        file_path.to_string_lossy().into_owned(),
+        "--replace".to_string(),
+        "outstandingly".to_string(),
+    ];
+    let mut screen_output: Vec<u8> = vec![];
+    let exit_code = crate::ned(&mut screen_output, &args).unwrap();
+    assert_eq!(exit_code, 0);
+    let content = fs::read_to_string(&file_path).unwrap();
+    assert_eq!(content, "hello outstandingly world\n");
+}
+
+#[cfg(unix)]
+#[test]
+fn atomic_replace_persist_failure_fallback_in_place() {
+    use std::fs;
+    use std::os::unix::fs::PermissionsExt;
+    let dir = tempfile::tempdir().unwrap();
+    let file_path = dir.path().join("atomic_b.txt");
+    fs::write(&file_path, "accidentally\n").unwrap();
+
+    let mut dperms = fs::metadata(dir.path()).unwrap().permissions();
+    dperms.set_mode(0o555);
+    fs::set_permissions(dir.path(), dperms.clone()).unwrap();
+    let mut fperms = fs::metadata(&file_path).unwrap().permissions();
+    fperms.set_mode(0o644);
+    fs::set_permissions(&file_path, fperms.clone()).unwrap();
+
+    let args: Vec<String> = vec![
+        "accidentally".to_string(),
+        file_path.to_string_lossy().into_owned(),
+        "--replace".to_string(),
+        "outstandingly".to_string(),
+    ];
+    let mut screen_output: Vec<u8> = vec![];
+    let exit_code = crate::ned(&mut screen_output, &args).unwrap();
+    assert_eq!(exit_code, 0);
+    let content = fs::read_to_string(&file_path).unwrap();
+    assert_eq!(content, "outstandingly\n");
+
+    let mut dperms_restore = dperms;
+    dperms_restore.set_mode(0o755);
+    let _ = fs::set_permissions(dir.path(), dperms_restore);
+}
+
+#[test]
+fn broken_pipe_stops_immediately() {
+    use std::io::{self, Write};
+
+    struct BrokenPipeWriter;
+    impl Write for BrokenPipeWriter {
+        fn write(&mut self, _buf: &[u8]) -> io::Result<usize> {
+            Err(io::Error::from(io::ErrorKind::BrokenPipe))
+        }
+        fn flush(&mut self) -> io::Result<()> {
+            Err(io::Error::from(io::ErrorKind::BrokenPipe))
+        }
+    }
+
+    let args: Vec<String> = vec![
+        "--stdout".to_string(),
+        "accidentally".to_string(),
+        "test".to_string(),
+    ];
+
+    let mut out = BrokenPipeWriter;
+    let result = crate::ned(&mut out, &args);
+    match result {
+        Err(err) => {
+            assert_eq!(err.io_error_kind(), Some(std::io::ErrorKind::BrokenPipe));
+        }
+        Ok(code) => panic!("Expected BrokenPipe error, got Ok({code})"),
+    }
 }

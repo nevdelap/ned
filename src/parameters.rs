@@ -1,7 +1,7 @@
 //
 // ned, https://github.com/nevdelap/ned, parameters.rs
 //
-// Copyright 2016-2024 Nev Delap (nevdelap at gmail)
+// Copyright 2016-2026 Nev Delap (nevdelap at gmail)
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,19 +18,19 @@
 // 02110-1301, USA.
 //
 
-extern crate regex;
-
 use crate::colors::Colors;
 use crate::ned_error::{NedError, NedResult, StringError};
 use crate::options_with_defaults::OptionsWithDefaults;
 use glob::Pattern;
-use libc;
 use regex::Regex;
 use std::collections::HashMap;
+use std::io::IsTerminal;
 use std::iter::Iterator;
 use std::str::FromStr;
+use supports_color::Stream;
 
 #[derive(Clone)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct Parameters {
     pub all: bool,
     pub backwards: bool,
@@ -96,6 +96,7 @@ impl Parameters {
     }
 }
 
+#[allow(clippy::too_many_lines)]
 pub fn get_parameters(options_with_defaults: &OptionsWithDefaults) -> NedResult<Parameters> {
     // -C --context takes precedence over -B --before and -A --after.
     let mut context_before =
@@ -168,11 +169,9 @@ pub fn get_parameters(options_with_defaults: &OptionsWithDefaults) -> NedResult<
     let stdin = globs.is_empty();
     let stdout = stdin || options_with_defaults.opt_present("stdout");
     let replace = convert_escapes(options_with_defaults.opt_str("replace"));
-    // TODO: decide what is the best way to deal with STDOUT_FILENO not being defined in the x86_64-pc-windows-gnu,
-    // x86_64-pc-windows-msvc, or i686-pc-windows-msvc versions of libc.
-    let isatty = unsafe {
-        libc::isatty(/*libc::STDOUT_FILENO as i32*/ 1)
-    } != 0;
+    let isatty = std::io::stdout().is_terminal();
+    // Detect if the current stdout stream supports ANSI colors (handles Windows correctly).
+    let supports_colors = supports_color::on(Stream::Stdout).is_some();
 
     let c = options_with_defaults.opt_present("c");
     let mut colors = parse_opt_str(options_with_defaults, "colors", None)?;
@@ -181,16 +180,23 @@ pub fn get_parameters(options_with_defaults: &OptionsWithDefaults) -> NedResult<
         colors = parse_opt_str(options_with_defaults, "color", Some(Colors::Off))?;
     }
     let colors = colors.expect("The default is a Some.");
-    let colors = c
-        || (colors == Colors::Always && (replace.is_none() || replace.is_some() && stdout)
-            || colors == Colors::Auto && (replace.is_none() || stdout) && isatty)
+    // Enable color if:
+    // - `-c` is present, or
+    // - `--colors=always` and we're writing to stdout appropriately, or
+    // - `--colors=auto` and stdout is a terminal that supports ANSI colors.
+    let use_colors = c
+        || ((colors == Colors::Always && (replace.is_none() || (replace.is_some() && stdout)))
+            || (colors == Colors::Auto
+                && (replace.is_none() || stdout)
+                && isatty
+                && supports_colors))
             && colors != Colors::Never;
 
     Ok(Parameters {
         all: options_with_defaults.opt_present("all"),
         backwards: options_with_defaults.opt_present("backwards"),
         case_replacements: options_with_defaults.opt_present("case-replacements"),
-        colors,
+        colors: use_colors,
         context_after,
         context_before,
         exclude_dirs,
@@ -262,16 +268,16 @@ fn add_regex_flags_to_pattern(
     options_with_defaults: &OptionsWithDefaults,
     pattern: &str,
 ) -> String {
-    let mut regex_flags = "".to_string();
+    let mut regex_flags = String::new();
     for option in &["i", "s", "m", "x"] {
         if options_with_defaults.opt_present(option) {
             regex_flags.push_str(option);
         }
     }
-    if !regex_flags.is_empty() {
-        format!("(?{}){}", &regex_flags, &pattern)
-    } else {
+    if regex_flags.is_empty() {
         pattern.to_string()
+    } else {
+        format!("(?{regex_flags}){pattern}")
     }
 }
 
@@ -286,7 +292,7 @@ fn parse_opt_str<T: FromStr>(
         value = v;
     // ...or it exists without a value, in which case we assume it is empty string...
     } else if options_with_defaults.opt_present(option) {
-        value = "".to_string();
+        value = String::new();
     } else {
         return Ok(default);
     }
@@ -294,7 +300,7 @@ fn parse_opt_str<T: FromStr>(
     match value.trim().parse::<T>() {
         Ok(value) => Ok(Some(value)),
         Err(_) => Err(NedError::ParameterError(StringError {
-            err: format!("invalid value for --{} option", option),
+            err: format!("invalid value for --{option} option"),
         })),
     }
 }

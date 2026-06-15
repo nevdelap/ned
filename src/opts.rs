@@ -1,7 +1,7 @@
 //
 // ned, https://github.com/nevdelap/ned, opts.rs
 //
-// Copyright 2016-2024 Nev Delap (nevdelap at gmail)
+// Copyright 2016-2026 Nev Delap (nevdelap at gmail)
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -32,15 +32,17 @@ isn't restricted to line oriented editing.
 
 FILEs are ASCII or UTF-8 text files. For regex syntax see:
 
-  https://docs.rs/regex/1.4.6/regex/#syntax";
+    https://docs.rs/regex/1.12.2/regex/#syntax";
 
 static POST_DESCRIPTION: &str = "Environment:
-    NED_DEFAULTS        ned options added to the program's arguments. Is
-                        a space delimited list of options and is not first
-                        interpreted by a shell, so quotes are not required
-                        around arguments. For example:
+    NED_DEFAULTS        ned options added to the program's arguments. Arguments
+                        are parsed using POSIX shell-style splitting: quotes and
+                        escapes are respected, so quoted segments remain a single
+                        argument. No shell expansion occurs (wildcards and variables
+                        are not expanded). ASCII RS (U+001E) is normalized to spaces.
+                        Example:
 
-                        NED_DEFAULTS=\"-u -R --exclude *.bk --exclude-dir .git\"
+                        NED_DEFAULTS=\"-u -R --exclude '*.bk' --exclude-dir .git --colors always\"
 Exit codes:
     0                   matches found/replaced
     1                   no matches
@@ -52,13 +54,14 @@ Quiet:
     behaviour, quiet matches are more performant than non-quiet matches.";
 
 static COPYRIGHT: &str = "\
-                          Copyright (C) 2016-2024 Nev Delap - https://github.com/nevdelap/ned";
+                          Copyright (C) 2016-2026 Nev Delap - https://github.com/nevdelap/ned";
 
 static LICENSE: &str = "\
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.";
 
+#[allow(clippy::too_many_lines)]
 pub fn make_opts() -> Options {
     let mut opts = Options::new();
     opts.parsing_style(ParsingStyle::FloatingFrees);
@@ -165,7 +168,7 @@ pub fn make_opts() -> Options {
         "LINES",
     );
     opts.optflag("R", "recursive", "Recurse.");
-    opts.optflag("l", "follow", "Follow symlinks. (Ignored on Windows.)");
+    opts.optflag("", "follow", "Follow symlinks. (Ignored on Windows.)");
     opts.optmulti("", "include", "Match only files that match GLOB.", "GLOB");
     opts.optmulti("", "exclude", "Skip files matching GLOB.", "GLOB");
     opts.optmulti("", "exclude-dir", "Skip directories matching GLOB.", "GLOB");
